@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "badger-multisig"
+name = "ebtc-multisig"
 version = "0.1.0"
-description = "Badger DAO's EVM multisig operations."
+description = "eBTC's EVM multisig operations."
 authors = ["Gosuto Inzasheru <mail@gosuto.ai>"]
 readme = "README.md"
 
