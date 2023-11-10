@@ -109,6 +109,111 @@ class eBTC:
 
     ##################################################################
     ##
+    ##                Timelock Management Functions
+    ##
+    ##################################################################
+
+    def grant_timelock_role(self, role_key, account, use_high_sec=False):
+        if use_high_sec:
+            timelock = self.highsec_timelock
+        else:
+            timelock = self.lowsec_timelock
+
+        if role_key == "PROPOSER_ROLE":
+            role = timelock.PROPOSER_ROLE()
+        elif role_key == "CANCELLER_ROLE":
+            role = timelock.CANCELLER_ROLE()
+        elif role_key == "EXECUTOR_ROLE":
+            role = timelock.EXECUTOR_ROLE()
+        elif role_key == "TIMELOCK_ADMIN_ROLE":
+            role = timelock.TIMELOCK_ADMIN_ROLE()
+        else:
+            C.print(f"[red]Role not found![/red]")
+            return
+
+        ## Check if tx is already scheduled
+        target = timelock
+        data = target.grantRole.encode_input(role, account)
+        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+
+        if timelock.isOperation(id):
+            self.execute_timelock(
+                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
+            )
+        else:
+            delay = timelock.getMinDelay()
+            self.schedule_timelock(
+                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+            )
+
+        self.safe.post_safe_tx()
+
+    def revoke_timelock_role(self, role_key, account, use_high_sec=False):
+        if use_high_sec:
+            timelock = self.highsec_timelock
+        else:
+            timelock = self.lowsec_timelock
+
+        if role_key == "PROPOSER_ROLE":
+            role = timelock.PROPOSER_ROLE()
+        elif role_key == "CANCELLER_ROLE":
+            role = timelock.CANCELLER_ROLE()
+        elif role_key == "EXECUTOR_ROLE":
+            role = timelock.EXECUTOR_ROLE()
+        elif role_key == "TIMELOCK_ADMIN_ROLE":
+            role = timelock.TIMELOCK_ADMIN_ROLE()
+        else:
+            C.print(f"[red]Role not found![/red]")
+            return
+        
+        ## Check that target has role
+        assert timelock.hasRole(role, account)
+
+        ## Check if tx is already scheduled
+        target = timelock
+        data = target.revokeRole.encode_input(role, account)
+        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+
+        if timelock.isOperation(id):
+            self.execute_timelock(
+                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
+            )
+        else:
+            delay = timelock.getMinDelay()
+            self.schedule_timelock(
+                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+            )
+
+        self.safe.post_safe_tx()
+
+    def update_timelock_delay(self, new_delay, use_high_sec=False):
+        if use_high_sec:
+            timelock = self.highsec_timelock
+        else:
+            timelock = self.lowsec_timelock
+        
+        ## Check that new delay is different
+        assert timelock.getDelay() != new_delay
+
+        ## Check if tx is already scheduled
+        target = timelock
+        data = target.updateDelay.encode_input(new_delay)
+        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+
+        if timelock.isOperation(id):
+            self.execute_timelock(
+                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
+            )
+        else:
+            delay = timelock.getMinDelay()
+            self.schedule_timelock(
+                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+            )
+
+        self.safe.post_safe_tx()
+
+    ##################################################################
+    ##
     ##                CDP System Management Functions
     ##
     ##################################################################
@@ -512,23 +617,35 @@ class eBTC:
 
             self.safe.post_safe_tx()
 
-
     #### ===== GOVERNANCE CONFIGURATION (Only high sec) ===== ####
 
     def authority_set_role_name(self, role, name):
         ## Check if tx is already scheduled
         target = self.authority
         data = target.setRoleName.encode_input(role, name)
-        id = self.highsec_timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+        id = self.highsec_timelock.hashOperation(
+            target.address, 0, data, EmptyBytes32, EmptyBytes32
+        )
 
         if self.highsec_timelock.isOperation(id):
             self.execute_timelock(
-                self.highsec_timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
+                self.highsec_timelock,
+                target.address,
+                0,
+                data,
+                EmptyBytes32,
+                EmptyBytes32,
             )
         else:
             delay = self.highsec_timelock.getMinDelay()
             self.schedule_timelock(
-                self.highsec_timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+                self.highsec_timelock,
+                target.address,
+                0,
+                data,
+                EmptyBytes32,
+                EmptyBytes32,
+                delay + 1,
             )
 
         self.safe.post_safe_tx()
@@ -537,16 +654,29 @@ class eBTC:
         ## Check if tx is already scheduled
         target = self.authority
         data = target.setUserRole.encode_input(user, role, enabled)
-        id = self.highsec_timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+        id = self.highsec_timelock.hashOperation(
+            target.address, 0, data, EmptyBytes32, EmptyBytes32
+        )
 
         if self.highsec_timelock.isOperation(id):
             self.execute_timelock(
-                self.highsec_timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
+                self.highsec_timelock,
+                target.address,
+                0,
+                data,
+                EmptyBytes32,
+                EmptyBytes32,
             )
         else:
             delay = self.highsec_timelock.getMinDelay()
             self.schedule_timelock(
-                self.highsec_timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+                self.highsec_timelock,
+                target.address,
+                0,
+                data,
+                EmptyBytes32,
+                EmptyBytes32,
+                delay + 1,
             )
 
         self.safe.post_safe_tx()
@@ -554,17 +684,32 @@ class eBTC:
     def authority_set_role_capability(self, role, target_address, functionSig, enabled):
         ## Check if tx is already scheduled
         target = self.authority
-        data = target.setRoleCapability.encode_input(role, target_address, functionSig, enabled)
-        id = self.highsec_timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+        data = target.setRoleCapability.encode_input(
+            role, target_address, functionSig, enabled
+        )
+        id = self.highsec_timelock.hashOperation(
+            target.address, 0, data, EmptyBytes32, EmptyBytes32
+        )
 
         if self.highsec_timelock.isOperation(id):
             self.execute_timelock(
-                self.highsec_timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
+                self.highsec_timelock,
+                target.address,
+                0,
+                data,
+                EmptyBytes32,
+                EmptyBytes32,
             )
         else:
             delay = self.highsec_timelock.getMinDelay()
             self.schedule_timelock(
-                self.highsec_timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+                self.highsec_timelock,
+                target.address,
+                0,
+                data,
+                EmptyBytes32,
+                EmptyBytes32,
+                delay + 1,
             )
 
         self.safe.post_safe_tx()
@@ -572,17 +717,32 @@ class eBTC:
     def authority_set_public_capability(self, target_address, functionSig, enabled):
         ## Check if tx is already scheduled
         target = self.authority
-        data = target.setPublicCapability.encode_input(target_address, functionSig, enabled)
-        id = self.highsec_timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+        data = target.setPublicCapability.encode_input(
+            target_address, functionSig, enabled
+        )
+        id = self.highsec_timelock.hashOperation(
+            target.address, 0, data, EmptyBytes32, EmptyBytes32
+        )
 
         if self.highsec_timelock.isOperation(id):
             self.execute_timelock(
-                self.highsec_timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
+                self.highsec_timelock,
+                target.address,
+                0,
+                data,
+                EmptyBytes32,
+                EmptyBytes32,
             )
         else:
             delay = self.highsec_timelock.getMinDelay()
             self.schedule_timelock(
-                self.highsec_timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+                self.highsec_timelock,
+                target.address,
+                0,
+                data,
+                EmptyBytes32,
+                EmptyBytes32,
+                delay + 1,
             )
 
         self.safe.post_safe_tx()
@@ -591,16 +751,29 @@ class eBTC:
         ## Check if tx is already scheduled
         target = self.authority
         data = target.burnCapability.encode_input(target_address, functionSig)
-        id = self.highsec_timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+        id = self.highsec_timelock.hashOperation(
+            target.address, 0, data, EmptyBytes32, EmptyBytes32
+        )
 
         if self.highsec_timelock.isOperation(id):
             self.execute_timelock(
-                self.highsec_timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
+                self.highsec_timelock,
+                target.address,
+                0,
+                data,
+                EmptyBytes32,
+                EmptyBytes32,
             )
         else:
             delay = self.highsec_timelock.getMinDelay()
             self.schedule_timelock(
-                self.highsec_timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+                self.highsec_timelock,
+                target.address,
+                0,
+                data,
+                EmptyBytes32,
+                EmptyBytes32,
+                delay + 1,
             )
 
         self.safe.post_safe_tx()
@@ -609,16 +782,29 @@ class eBTC:
         ## Check if tx is already scheduled
         target = self.authority
         data = target.setAuthority.encode_input(new_authority)
-        id = self.highsec_timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+        id = self.highsec_timelock.hashOperation(
+            target.address, 0, data, EmptyBytes32, EmptyBytes32
+        )
 
         if self.highsec_timelock.isOperation(id):
             self.execute_timelock(
-                self.highsec_timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
+                self.highsec_timelock,
+                target.address,
+                0,
+                data,
+                EmptyBytes32,
+                EmptyBytes32,
             )
         else:
             delay = self.highsec_timelock.getMinDelay()
             self.schedule_timelock(
-                self.highsec_timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+                self.highsec_timelock,
+                target.address,
+                0,
+                data,
+                EmptyBytes32,
+                EmptyBytes32,
+                delay + 1,
             )
 
         self.safe.post_safe_tx()
