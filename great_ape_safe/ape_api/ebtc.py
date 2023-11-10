@@ -88,6 +88,19 @@ class eBTC:
         self,
         timelock,
         id,
+    ):
+        if timelock.isOperationPending(id):
+            timelock.cancel(id)
+            assert timelock.isOperation(id) == False
+            C.print(f"[green]Operation {id} has been cancelled![/green]")
+            return True
+        else:
+            C.print(f"[red]Operation {id} can't be cancelled![/red]")
+            return False
+
+    def cancel_lowsec_timelock(
+        self,
+        id,
         target=None,
         value=None,
         data=None,
@@ -95,17 +108,31 @@ class eBTC:
         salt=None,
     ):
         ## Check that safe has CANCELLER_ROLE on timelock
-        assert timelock.hasRole(timelock.CANCELLER_ROLE(), self.safe.account)
-        ## If ID is given, check that it is valid and cancel if so
+        assert self.lowsec_timelock.hasRole(self.lowsec_timelock.CANCELLER_ROLE(), self.safe.account)
         if id == "":
-            id = timelock.hashOperation(target, value, data, predecessor, salt)
+            id = self.lowsec_timelock.hashOperation(target, value, data, predecessor, salt)
 
-        if timelock.isOperationPending(id):
-            timelock.cancel(id)
-            assert timelock.isOperation(id) == False
-            C.print(f"[green]Operation {id} has been cancelled![/green]")
-        else:
-            C.print(f"[red]Operation {id} can't be cancelled![/red]")
+        if(self.cancel_timelock(self.lowsec_timelock, id)):
+            self.safe.post_safe_tx()
+
+    def cancel_highsec_timelock(
+        self,
+        id,
+        target=None,
+        value=None,
+        data=None,
+        predecessor=None,
+        salt=None,
+    ):
+        ## Check that safe has CANCELLER_ROLE on timelock
+        assert self.highsec_timelock.hasRole(self.highsec_timelock.CANCELLER_ROLE(), self.safe.account)
+        if id == "":
+            id = self.highsec_timelock.hashOperation(target, value, data, predecessor, salt)
+
+        if(self.cancel_timelock(self.highsec_timelock, id)):
+            self.safe.post_safe_tx()
+
+
 
     ##################################################################
     ##
