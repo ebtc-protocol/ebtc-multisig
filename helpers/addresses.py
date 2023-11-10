@@ -8,7 +8,7 @@ import json
 ADDRESSES_ETH = {
     "ebtc": {"placeholder": "0x0"},
     "ebtc_wallets": {
-        "ebtc_deployer": "0xC39A1159eDd78458E7b4943fcCa45c769b0E223e",
+        "placeholder": "0x0"
     },
 }
 
@@ -27,9 +27,42 @@ ADDRESSES_SEPOLIA = {
         "hint_helpers": "0x52A6C2C30Eb6E3c9E8a0BF1479d8d81ad4c6fCE4",
         "fee_recipient": "0xeAB976bBE69fE936beD9D079B4f61A19be4Cb69A",
         "multi_cdp_getter": "0xE9F8c2ff6014184959b970ac7CbE7073B78C291c",
+        "ebtc_deployer": "0xC39A1159eDd78458E7b4943fcCa45c769b0E223e",
+        "highsec_timelock": "",
+        "lowsec_timelock": "",
     },
     "ebtc_wallets": {
+        "ecosystem_multisig": "0xC8A7768D2a9EE15437c981a7130268622083c2BD",
+        "council_multisig": "0x005E0Ad70b40B23cef409978350CA77a179de350",
+        "techops_multisig": "0x664F43229dDa9fdEE00e723753f88f3Ba81967F6",
+        "fee_recipient_multisig": "0x5C1246E0b464060919301273781a266Ac119A0Bb",
+    },
+}
+
+ADDRESSES_GOERLI = {
+    "ebtc": {
+        "collateral": "0x879fB0Ea23d3e08c67437D88e6B38AA67A91646e",
+        "authority": "0x0A64EFEA554769De201d362A755CDAC7C949a6E5",
+        "liquidation_library": "0xd98c30Dab8F018456ba966E67fB6311efB334C2D",
+        "cdp_manager": "0x97387ddA50765356f6f1F5957c4afB79CED4ebd6",
+        "borrower_operations": "0x9FeAd18276448c27E8174a4e542a57dB294Ea1e7",
+        "ebtc_token": "0x6Db7BF0DE56d10b1B8F9cb966a9F9F08cbd07231",
+        "price_feed": "0x4B8A691A135A7Dd7f90538569b5032B1DAa7369c",
+        "active_pool": "0x463902ccCbcbfB1c5F9B35E4D0032Ef8fEaa8392",
+        "coll_surplus_pool": "0xbb8D843f223E11a93d00594Dd473a213BaB198c7",
+        "sorted_cdps": "0xfcE06D412bBb010466e95b24E69Cd1017a10269f",
+        "hint_helpers": "0x83fee3737E0F15a78F9f08eDc86493B8ed3b7E2C",
+        "fee_recipient": "0x103c5096F4268d9BB5A69DA173C7b26BbA1AD95f",
+        "multi_cdp_getter": "0xD7E6F2bB0b6fE392cD01e311cc1EeDa9d209Ae9f",
         "ebtc_deployer": "0xC39A1159eDd78458E7b4943fcCa45c769b0E223e",
+        "highsec_timelock": "0xcFF5f6c02d6627483850116A96c9c8f78FDb0aAe",
+        "lowsec_timelock": "0x0fcc64DA819F9Ae13B48329fbCF7f42F96200D43",
+    },
+    "ebtc_wallets": {
+        "ecosystem_multisig": "0x0A8fE898020f5E02C8D7ac29CCb907198f77ed92",
+        "council_multisig": "0xed448dA7b82Df32bEeDdc91DaE169cBC278Bc108",
+        "techops_multisig": "0xb1939449B5612F632F2651cBe56b8FDc7f04dE26",
+        "fee_recipient_multisig": "0x821Ef96C19db290d2E4856460C730E59F4688539",
     },
 }
 
