@@ -119,7 +119,6 @@ class eBTC:
             )
 
         self.cancel_timelock(self.lowsec_timelock, id)
-        self.safe.post_safe_tx()
 
     def cancel_highsec_timelock(
         self,
@@ -140,7 +139,6 @@ class eBTC:
             )
 
         self.cancel_timelock(self.highsec_timelock, id)
-        self.safe.post_safe_tx()
 
     ##################################################################
     ##
@@ -182,8 +180,6 @@ class eBTC:
                 timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
             )
 
-        self.safe.post_safe_tx()
-
     def revoke_timelock_role(self, role_key, account, use_high_sec=False):
         if use_high_sec:
             timelock = self.highsec_timelock
@@ -221,8 +217,6 @@ class eBTC:
                 timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
             )
 
-        self.safe.post_safe_tx()
-
     def update_timelock_delay(self, new_delay, use_high_sec=False):
         if use_high_sec:
             timelock = self.highsec_timelock
@@ -247,8 +241,6 @@ class eBTC:
             self.schedule_timelock(
                 timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
             )
-
-        self.safe.post_safe_tx()
 
     ##################################################################
     ##
@@ -280,8 +272,6 @@ class eBTC:
                 timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
             )
 
-        self.safe.post_safe_tx()
-
     def cdpManager_set_redemption_fee_floor(self, value, use_high_sec=False):
         if use_high_sec:
             timelock = self.highsec_timelock
@@ -303,8 +293,6 @@ class eBTC:
             self.schedule_timelock(
                 timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
             )
-
-        self.safe.post_safe_tx()
 
     def cdpManager_set_minute_decay_factor(self, value, use_high_sec=False):
         if use_high_sec:
@@ -328,8 +316,6 @@ class eBTC:
                 timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
             )
 
-        self.safe.post_safe_tx()
-
     def cdpManager_set_beta(self, value, use_high_sec=False):
         if use_high_sec:
             timelock = self.highsec_timelock
@@ -351,8 +337,6 @@ class eBTC:
             self.schedule_timelock(
                 timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
             )
-
-        self.safe.post_safe_tx()
 
     def cdpManager_set_redemptions_paused(self, pause, use_high_sec=False):
         if use_high_sec:
@@ -376,8 +360,6 @@ class eBTC:
                 timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
             )
 
-        self.safe.post_safe_tx()
-
     def cdpManager_set_grace_period(self, value, use_high_sec=False):
         if use_high_sec:
             timelock = self.highsec_timelock
@@ -399,8 +381,6 @@ class eBTC:
             self.schedule_timelock(
                 timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
             )
-
-        self.safe.post_safe_tx()
 
     #### ===== PRICE FEED ===== ####
 
@@ -426,8 +406,6 @@ class eBTC:
                 timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
             )
 
-        self.safe.post_safe_tx()
-
     #### ===== FLASHLOANS and FEES (ACTIVE POOL AND BORROWERS OPERATIONS) ===== ####
 
     def activePool_set_fee_bps(self, value, use_high_sec=False):
@@ -452,8 +430,6 @@ class eBTC:
                 timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
             )
 
-        self.safe.post_safe_tx()
-
     def borrowerOperations_set_fee_bps(self, value, use_high_sec=False):
         if use_high_sec:
             timelock = self.highsec_timelock
@@ -475,8 +451,6 @@ class eBTC:
             self.schedule_timelock(
                 timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
             )
-
-        self.safe.post_safe_tx()
 
     ## TODO: Function to change the fee on both the AP and the BO through a batched timelock tx
 
@@ -502,8 +476,6 @@ class eBTC:
                 timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
             )
 
-        self.safe.post_safe_tx()
-
     def borrowerOperations_set_fee_recipient_addresss(
         self, address, use_high_sec=False
     ):
@@ -527,8 +499,6 @@ class eBTC:
             self.schedule_timelock(
                 timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
             )
-
-        self.safe.post_safe_tx()
 
     ## TODO: Function to change the fee recipient on both the AP and the BO through a batched timelock tx
 
@@ -578,8 +548,6 @@ class eBTC:
             target.claimFeeRecipientCollShares(value)
             assert coll.sharesOf(fee_recipient) - shares_before == value
 
-            self.safe.post_safe_tx()
-
     #### ===== SWEEP STUCK TOKENS (ACTIVE POOL AND COLL SURPLUS POOL) ===== ####
 
     def activePool_sweep_token(
@@ -625,8 +593,6 @@ class eBTC:
             balance_before = token.balanceOf(fee_recipient)
             target.claimFeeRecipientCollShares(value)
             assert token.balanceOf(fee_recipient) - balance_before == value
-
-            self.safe.post_safe_tx()
 
     def collSurplusPool_sweep_token(
         self, token_address, value, use_timelock=False, use_high_sec=False
@@ -676,8 +642,6 @@ class eBTC:
             target.claimFeeRecipientCollShares(value)
             assert token.balanceOf(fee_recipient) - balance_before == value
 
-            self.safe.post_safe_tx()
-
     #### ===== GOVERNANCE CONFIGURATION (Only high sec) ===== ####
 
     def authority_set_role_name(self, role, name):
@@ -710,8 +674,6 @@ class eBTC:
                 delay + 1,
             )
 
-        self.safe.post_safe_tx()
-
     def authority_set_user_role(self, user, role, enabled):
         ## Check if tx is already scheduled
         target = self.authority
@@ -742,8 +704,6 @@ class eBTC:
                 delay + 1,
             )
 
-        self.safe.post_safe_tx()
-
     def authority_set_role_capability(self, role, target_address, functionSig, enabled):
         ## Check if tx is already scheduled
         target = self.authority
@@ -763,7 +723,10 @@ class eBTC:
                 EmptyBytes32,
                 EmptyBytes32,
             )
-            assert self.authority.doesRoleHaveCapability(role, target_address, functionSig) == enabled
+            assert (
+                self.authority.doesRoleHaveCapability(role, target_address, functionSig)
+                == enabled
+            )
         else:
             delay = self.highsec_timelock.getMinDelay()
             self.schedule_timelock(
@@ -775,8 +738,6 @@ class eBTC:
                 EmptyBytes32,
                 delay + 1,
             )
-
-        self.safe.post_safe_tx()
 
     def authority_set_public_capability(self, target_address, functionSig, enabled):
         ## Check if tx is already scheduled
@@ -797,7 +758,10 @@ class eBTC:
                 EmptyBytes32,
                 EmptyBytes32,
             )
-            assert self.authority.isPublicCapability(target_address, functionSig) == enabled
+            assert (
+                self.authority.isPublicCapability(target_address, functionSig)
+                == enabled
+            )
         else:
             delay = self.highsec_timelock.getMinDelay()
             self.schedule_timelock(
@@ -809,8 +773,6 @@ class eBTC:
                 EmptyBytes32,
                 delay + 1,
             )
-
-        self.safe.post_safe_tx()
 
     def authority_burn_capability(self, target_address, functionSig):
         ## Check if tx is already scheduled
@@ -829,7 +791,9 @@ class eBTC:
                 EmptyBytes32,
                 EmptyBytes32,
             )
-            assert self.authority.capabilityFlag(target_address, functionSig) == 2 # 2: Burned
+            assert (
+                self.authority.capabilityFlag(target_address, functionSig) == 2
+            )  # 2: Burned
         else:
             delay = self.highsec_timelock.getMinDelay()
             self.schedule_timelock(
@@ -841,8 +805,6 @@ class eBTC:
                 EmptyBytes32,
                 delay + 1,
             )
-
-        self.safe.post_safe_tx()
 
     def authority_set_authority(self, new_authority):
         ## Check if tx is already scheduled
@@ -873,5 +835,3 @@ class eBTC:
                 EmptyBytes32,
                 delay + 1,
             )
-
-        self.safe.post_safe_tx()
