@@ -131,10 +131,6 @@ class eBTC:
         timelock,
         id,
     ):
-        assert timelock.hasRole(
-            timelock.CANCELLER_ROLE(), self.safe.account
-        ), "Error: No role"
-
         if timelock.isOperationPending(id):
             timelock.cancel(id)
             assert timelock.isOperation(id) == False
@@ -155,8 +151,8 @@ class eBTC:
         ## Check that safe has CANCELLER_ROLE on timelock
         assert self.lowsec_timelock.hasRole(
             self.lowsec_timelock.CANCELLER_ROLE(), self.safe.account
-        )
-        if id == "":
+        ), "Error: No role"
+        if id == "0x0":
             id = self.lowsec_timelock.hashOperation(
                 target, value, data, predecessor, salt
             )
@@ -175,8 +171,8 @@ class eBTC:
         ## Check that safe has CANCELLER_ROLE on timelock
         assert self.highsec_timelock.hasRole(
             self.highsec_timelock.CANCELLER_ROLE(), self.safe.account
-        )
-        if id == "":
+        ), "Error: No role"
+        if id == "0x0":
             id = self.highsec_timelock.hashOperation(
                 target, value, data, predecessor, salt
             )

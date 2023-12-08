@@ -69,14 +69,13 @@ def test_cancel_timelock_before_scheduling(techops, ecosystem, random_safe):
 
     target = techops.ebtc.active_pool
     data = target.setFeeBps.encode_input(100)
-    timelock = techops.ebtc.lowsec_timelock
     id = techops.ebtc.lowsec_timelock.hashOperation(
         target.address, 0, data, EmptyBytes32, EmptyBytes32
     )
 
     ## Attempts to cancel the operation before scheduled
     with pytest.raises(Exception, match="Error: operation does not exist"):
-        ecosystem.ebtc.cancel_timelock(ecosystem.ebtc.lowsec_timelock, id)
+        ecosystem.ebtc.cancel_lowsec_timelock(id)
 
 def test_cancel_timelock_permissions(techops, ecosystem, random_safe):
     techops.init_ebtc()
@@ -97,7 +96,7 @@ def test_cancel_timelock_permissions(techops, ecosystem, random_safe):
 
     ## Random account attempts to cancel (permissions)
     with pytest.raises(AssertionError, match="Error: No role"):
-        random_safe.ebtc.cancel_timelock(ecosystem.ebtc.lowsec_timelock, id)
+        random_safe.ebtc.cancel_lowsec_timelock(id)
 
 
 def test_cancel_pending_operation(techops, ecosystem):
@@ -123,7 +122,7 @@ def test_cancel_pending_operation(techops, ecosystem):
     assert techops.ebtc.lowsec_timelock.isOperationPending(id)
 
     ## Permissioned account can cancel pending operation
-    ecosystem.ebtc.cancel_timelock(ecosystem.ebtc.lowsec_timelock, id)
+    ecosystem.ebtc.cancel_lowsec_timelock(id)
 
     assert techops.ebtc.lowsec_timelock.isOperationPending(id) == False
 
@@ -150,8 +149,36 @@ def test_cancel_ready_operation(techops, ecosystem):
 
     assert techops.ebtc.lowsec_timelock.isOperationReady(id)
 
-    ## Permissioned account can cancel pending operation
-    ecosystem.ebtc.cancel_timelock(ecosystem.ebtc.lowsec_timelock, id)
+    ## Permissioned account can cancel ready operation
+    ecosystem.ebtc.cancel_lowsec_timelock(id)
+
+    assert techops.ebtc.lowsec_timelock.isOperationReady(id) == False
+
+
+def test_cancel_operation_from_parameters(techops, ecosystem):
+    techops.init_ebtc()
+    ecosystem.init_ebtc()
+
+    target = techops.ebtc.active_pool
+    data = target.setFeeBps.encode_input(100)
+    timelock = techops.ebtc.lowsec_timelock
+    delay = timelock.getMinDelay()
+    id = techops.ebtc.lowsec_timelock.hashOperation(
+        target.address, 0, data, EmptyBytes32, EmptyBytes32
+    )
+
+    techops.ebtc.schedule_timelock(
+        timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+    )
+
+    ## Some time passes
+    chain.sleep(delay + 10)
+    chain.mine()
+
+    assert techops.ebtc.lowsec_timelock.isOperationReady(id)
+
+    ## Permissioned account can cancel ready operation
+    ecosystem.ebtc.cancel_lowsec_timelock("0x0", target.address, 0, data, EmptyBytes32, EmptyBytes32)
 
     assert techops.ebtc.lowsec_timelock.isOperationReady(id) == False
 
