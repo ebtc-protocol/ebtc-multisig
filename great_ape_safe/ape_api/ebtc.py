@@ -255,7 +255,7 @@ class eBTC:
             timelock = self.lowsec_timelock
 
         ## Check that new delay is different
-        assert timelock.getDelay() != new_delay
+        assert timelock.getMinDelay() != new_delay
 
         ## Check if tx is already scheduled
         target = timelock
@@ -266,7 +266,7 @@ class eBTC:
             self.execute_timelock(
                 timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
             )
-            assert timelock.getDelay() == new_delay
+            assert timelock.getMinDelay() == new_delay
         else:
             delay = timelock.getMinDelay()
             self.schedule_timelock(
