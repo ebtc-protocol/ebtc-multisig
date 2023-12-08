@@ -6,9 +6,9 @@ from web3 import Web3
 import json
 
 ADDRESSES_ETH = {
-    "ebtc": {"placeholder": "0x0"},
+    "ebtc": {"placeholder": "0x0000000000000000000000000000000000000000"},
     "ebtc_wallets": {
-        "placeholder": "0x0"
+        "placeholder": "0x0000000000000000000000000000000000000000"
     },
 }
 
@@ -28,8 +28,8 @@ ADDRESSES_SEPOLIA = {
         "fee_recipient": "0xeAB976bBE69fE936beD9D079B4f61A19be4Cb69A",
         "multi_cdp_getter": "0xE9F8c2ff6014184959b970ac7CbE7073B78C291c",
         "ebtc_deployer": "0xC39A1159eDd78458E7b4943fcCa45c769b0E223e",
-        "highsec_timelock": "",
-        "lowsec_timelock": "",
+        "highsec_timelock": "0x0b6cA096Cc6C21a06d5476b3d147F0398A5251C0",
+        "lowsec_timelock": "0x29001E42899308A61d981c5f5780e4E4D727a0BB",
     },
     "ebtc_wallets": {
         "ecosystem_multisig": "0xC8A7768D2a9EE15437c981a7130268622083c2BD",
@@ -37,6 +37,10 @@ ADDRESSES_SEPOLIA = {
         "techops_multisig": "0x664F43229dDa9fdEE00e723753f88f3Ba81967F6",
         "fee_recipient_multisig": "0x5C1246E0b464060919301273781a266Ac119A0Bb",
     },
+    "tokens": {
+        "ebtc": "0x2459A79d406256030d339379592ae2fF639bA324",
+        "steth": "0x97BA9AA7B7DC74f7a74864A62c4fF93b2b22f015"
+    }
 }
 
 ADDRESSES_GOERLI = {
@@ -89,6 +93,7 @@ with open("helpers/chaindata.json") as chaindata:
 registry = DotMap(
     {
         "eth": checksum_address_dict(ADDRESSES_ETH),
+        "goerli": checksum_address_dict(ADDRESSES_GOERLI),
         "sepolia": checksum_address_dict(ADDRESSES_SEPOLIA),
     }
 )
@@ -98,6 +103,8 @@ def get_registry():
     try:
         if chain.id == 1:
             return registry.eth
+        elif chain.id == 5:
+            return registry.goerli
         elif chain.id == 11155111:
             return registry.sepolia
     except:

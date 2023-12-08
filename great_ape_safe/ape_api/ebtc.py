@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 
-from brownie import web3
+from brownie import web3, interface
 from rich.console import Console
-from helpers.addresses import r
+from helpers.addresses import registry
 from helpers.constants import EmptyBytes32
 
 C = Console()
@@ -13,22 +13,53 @@ class eBTC:
         self.safe = safe
 
         # contracts
-        self.collateral = safe.contract(r.ebtc.collateral)
-        self.authority = safe.contract(r.ebtc.authority)
-        self.liquidation_library = safe.contract(r.ebtc.liquidation_library)
-        self.cdp_manager = safe.contract(r.ebtc.cdp_manager)
-        self.borrower_operations = safe.contract(r.ebtc.borrower_operations)
-        self.ebtc_token = safe.contract(r.ebtc.ebtc_token)
-        self.price_feed = safe.contract(r.ebtc.price_feed)
-        self.active_pool = safe.contract(r.ebtc.active_pool)
-        self.coll_surplus_pool = safe.contract(r.ebtc.coll_surplus_pool)
-        self.sorted_cdps = safe.contract(r.ebtc.sorted_cdps)
-        self.hint_helpers = safe.contract(r.ebtc.hint_helpers)
-        self.fee_recipient = safe.contract(r.ebtc.fee_recipient)
-        self.multi_cdp_getter = safe.contract(r.ebtc.multi_cdp_getter)
-        self.ebtc_deployer = safe.contract(r.ebtc.ebtc_deployer)
-        self.highsec_timelock = safe.contract(r.ebtc.highsec_timelock)
-        self.lowsec_timelock = safe.contract(r.ebtc.lowsec_timelock)
+        self.collateral = safe.contract(
+            registry.sepolia.ebtc.collateral, interface.ICollateralToken
+        )
+        self.authority = safe.contract(
+            registry.sepolia.ebtc.authority, interface.IGovernor
+        )
+        self.liquidation_library = safe.contract(
+            registry.sepolia.ebtc.liquidation_library, interface.ILiquidationLibrary
+        )
+        self.cdp_manager = safe.contract(
+            registry.sepolia.ebtc.cdp_manager, interface.ICdpManager
+        )
+        self.borrower_operations = safe.contract(
+            registry.sepolia.ebtc.borrower_operations, interface.IBorrowerOperations
+        )
+        self.ebtc_token = safe.contract(
+            registry.sepolia.ebtc.ebtc_token, interface.IEBTCToken
+        )
+        self.price_feed = safe.contract(
+            registry.sepolia.ebtc.price_feed, interface.IPriceFeedTestnet
+        )
+        self.active_pool = safe.contract(
+            registry.sepolia.ebtc.active_pool, interface.IActivePool
+        )
+        self.coll_surplus_pool = safe.contract(
+            registry.sepolia.ebtc.coll_surplus_pool, interface.ICollSurplusPool
+        )
+        self.sorted_cdps = safe.contract(
+            registry.sepolia.ebtc.sorted_cdps, interface.ISortedCdps
+        )
+        self.hint_helpers = safe.contract(
+            registry.sepolia.ebtc.hint_helpers, interface.IHintHelpers
+        )
+        self.fee_recipient = safe.contract(
+            registry.sepolia.ebtc.fee_recipient, interface.IFeeRecipient
+        )
+        self.multi_cdp_getter = safe.contract(
+            registry.sepolia.ebtc.multi_cdp_getter, interface.IMultiCdpGetter
+        )
+        self.highsec_timelock = safe.contract(
+            registry.sepolia.ebtc.highsec_timelock,
+            interface.ITimelockControllerEnumerable,
+        )
+        self.lowsec_timelock = safe.contract(
+            registry.sepolia.ebtc.lowsec_timelock,
+            interface.ITimelockControllerEnumerable,
+        )
 
     ##################################################################
     ##
