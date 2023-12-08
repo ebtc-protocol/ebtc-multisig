@@ -71,11 +71,15 @@ class eBTC:
         self, timelock, target, value, data, predecessor, salt, delay
     ):
         ## Check that safe has PROPOSER_ROLE on timelock
-        assert timelock.hasRole(timelock.PROPOSER_ROLE(), self.safe.account)
+        assert timelock.hasRole(
+            timelock.PROPOSER_ROLE(), self.safe.account
+        ), "Error: No role"
 
         ## Check that timelock has the appropiate permissions
         if target != timelock.address:
-            assert self.authority.canCall(timelock.address, target, data[:10])
+            assert self.authority.canCall(
+                timelock.address, target, data[:10]
+            ), "Error: Not authorized"
 
         ## Schedule tx
         timelock.schedule(target, value, data, predecessor, salt, delay)
@@ -91,11 +95,15 @@ class eBTC:
 
     def execute_timelock(self, timelock, target, value, data, predecessor, salt):
         ## Check that safe has EXECUTOR_ROLE on timelock
-        assert timelock.hasRole(timelock.EXECUTOR_ROLE(), self.safe.account)
+        assert timelock.hasRole(
+            timelock.EXECUTOR_ROLE(), self.safe.account
+        ), "Error: No role"
 
         ## Check that timelock has the appropiate permissions
         if target != timelock.address:
-            assert self.authority.canCall(timelock.address, target, data[:10])
+            assert self.authority.canCall(
+                timelock.address, target, data[:10]
+            ), "Error: Not authorized"
 
         ## Check that valid tx and execute if so
         id = timelock.hashOperation(target, value, data, predecessor, salt)
@@ -123,13 +131,17 @@ class eBTC:
         timelock,
         id,
     ):
+        assert timelock.hasRole(
+            timelock.CANCELLER_ROLE(), self.safe.account
+        ), "Error: No role"
+
         if timelock.isOperationPending(id):
             timelock.cancel(id)
             assert timelock.isOperation(id) == False
             C.print(f"[green]Operation {id} has been cancelled![/green]")
         else:
             C.print(f"[red]Operation {id} can't be cancelled![/red]")
-            raise
+            raise Exception("Error: operation does not exist")
 
     def cancel_lowsec_timelock(
         self,
@@ -230,7 +242,7 @@ class eBTC:
             return
 
         ## Check that target has role
-        assert timelock.hasRole(role, account)
+        assert timelock.hasRole(role, account), "Error: No role"
 
         ## Check if tx is already scheduled
         target = timelock
@@ -255,7 +267,7 @@ class eBTC:
             timelock = self.lowsec_timelock
 
         ## Check that new delay is different
-        assert timelock.getMinDelay() != new_delay
+        assert timelock.getMinDelay() != new_delay, "Error: Delay already set"
 
         ## Check if tx is already scheduled
         target = timelock
@@ -570,7 +582,9 @@ class eBTC:
                     delay + 1,
                 )
         else:
-            assert self.authority.canCall(self.safe.account, target, data[:10])
+            assert self.authority.canCall(
+                self.safe.account, target, data[:10]
+            ), "Error: Not authorized"
 
             # Claim shares
             coll = self.collateral
@@ -617,7 +631,9 @@ class eBTC:
                     delay + 1,
                 )
         else:
-            assert self.authority.canCall(self.safe.account, target, data[:10])
+            assert self.authority.canCall(
+                self.safe.account, target, data[:10]
+            ), "Error: Not authorized"
             # sweep token
             token = self.safe.contract(token_address)
             fee_recipient = self.active_pool.feeRecipientAddress()
@@ -663,7 +679,9 @@ class eBTC:
                     delay + 1,
                 )
         else:
-            assert self.authority.canCall(self.safe.account, target, data[:10])
+            assert self.authority.canCall(
+                self.safe.account, target, data[:10]
+            ), "Error: Not authorized"
             # sweep token
             token = self.safe.contract(token_address)
             fee_recipient = (
