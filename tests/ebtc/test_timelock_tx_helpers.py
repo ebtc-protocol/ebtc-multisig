@@ -2,8 +2,6 @@ from brownie import chain
 import pytest
 from helpers.constants import EmptyBytes32
 
-# Happy paths are implicitly tested through the operations tests
-
 
 def test_schedule_permissions(random_safe):
     random_safe.init_ebtc()
@@ -76,6 +74,7 @@ def test_cancel_timelock_before_scheduling(techops, ecosystem, random_safe):
     ## Attempts to cancel the operation before scheduled
     with pytest.raises(Exception, match="Error: operation does not exist"):
         ecosystem.ebtc.cancel_lowsec_timelock(id)
+
 
 def test_cancel_timelock_permissions(techops, ecosystem, random_safe):
     techops.init_ebtc()
@@ -178,8 +177,8 @@ def test_cancel_operation_from_parameters(techops, ecosystem):
     assert techops.ebtc.lowsec_timelock.isOperationReady(id)
 
     ## Permissioned account can cancel ready operation
-    ecosystem.ebtc.cancel_lowsec_timelock("0x0", target.address, 0, data, EmptyBytes32, EmptyBytes32)
+    ecosystem.ebtc.cancel_lowsec_timelock(
+        "0x0", target.address, 0, data, EmptyBytes32, EmptyBytes32
+    )
 
     assert techops.ebtc.lowsec_timelock.isOperationReady(id) == False
-
-
