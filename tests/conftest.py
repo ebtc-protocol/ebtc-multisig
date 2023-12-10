@@ -1,7 +1,9 @@
 import pytest
-from brownie import accounts
+from brownie import accounts, interface
 from great_ape_safe import GreatApeSafe
 from helpers.addresses import registry
+from brownie_tokens import MintableForkToken
+
 
 @pytest.fixture(autouse=True)
 def isolation(fn_isolation):
@@ -31,3 +33,10 @@ def techops():
 @pytest.fixture
 def fee_recipient():
     return GreatApeSafe(registry.sepolia.ebtc_wallets.fee_recipient_multisig)
+
+
+@pytest.fixture
+def wbtc(ecosystem):
+    return interface.IMintableERC20(
+        registry.sepolia.tokens.wbtc, owner=ecosystem.account
+    )
