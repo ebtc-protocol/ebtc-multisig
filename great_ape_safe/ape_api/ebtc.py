@@ -515,7 +515,7 @@ class eBTC:
                 timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
             )
 
-    def borrowerOperations_set_fee_recipient_addresss(
+    def borrowerOperations_set_fee_recipient_address(
         self, address, use_high_sec=False
     ):
         if use_high_sec:
@@ -595,7 +595,7 @@ class eBTC:
         self, token_address, value, use_timelock=False, use_high_sec=False
     ):
         target = self.active_pool
-        data = target.sweeptoken.encode_input(token_address, value)
+        data = target.sweepToken.encode_input(token_address, value)
         if use_timelock:
             if use_high_sec:
                 timelock = self.highsec_timelock
@@ -634,14 +634,14 @@ class eBTC:
             token = self.safe.contract(token_address)
             fee_recipient = self.active_pool.feeRecipientAddress()
             balance_before = token.balanceOf(fee_recipient)
-            target.claimFeeRecipientCollShares(value)
+            target.sweepToken(token_address, value)
             assert token.balanceOf(fee_recipient) - balance_before == value
 
     def collSurplusPool_sweep_token(
         self, token_address, value, use_timelock=False, use_high_sec=False
     ):
         target = self.coll_surplus_pool
-        data = target.sweeptoken.encode_input(token_address, value)
+        data = target.sweepToken.encode_input(token_address, value)
         if use_timelock:
             if use_high_sec:
                 timelock = self.highsec_timelock
@@ -656,7 +656,7 @@ class eBTC:
             if timelock.isOperation(id):
                 token = self.safe.contract(token_address)
                 fee_recipient = (
-                    self.active_pool.feeRecipientAddress()
+                    self.coll_surplus_pool.feeRecipientAddress()
                 )  # Fee recipient will be modified to track the Active Pool's
                 balance_before = token.balanceOf(fee_recipient)
                 self.execute_timelock(
@@ -681,10 +681,10 @@ class eBTC:
             # sweep token
             token = self.safe.contract(token_address)
             fee_recipient = (
-                self.active_pool.feeRecipientAddress()
+                self.coll_surplus_pool.feeRecipientAddress()
             )  # Fee recipient will be modified to track the Active Pool's
             balance_before = token.balanceOf(fee_recipient)
-            target.claimFeeRecipientCollShares(value)
+            target.sweepToken(token_address, value)
             assert token.balanceOf(fee_recipient) - balance_before == value
 
     #### ===== GOVERNANCE CONFIGURATION (Only high sec) ===== ####
