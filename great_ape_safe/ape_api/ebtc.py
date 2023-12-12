@@ -515,9 +515,7 @@ class eBTC:
                 timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
             )
 
-    def borrowerOperations_set_fee_recipient_address(
-        self, address, use_high_sec=False
-    ):
+    def borrowerOperations_set_fee_recipient_address(self, address, use_high_sec=False):
         if use_high_sec:
             timelock = self.highsec_timelock
         else:

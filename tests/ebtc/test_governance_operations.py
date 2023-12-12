@@ -106,6 +106,7 @@ def test_activePool_set_fee_bps_happy(techops):
 
     assert techops.ebtc.active_pool.feeBps() == 1000
 
+
 # Test borrowerOperations_set_fee_bps
 def test_borrowerOperations_set_fee_bps_happy(techops):
     techops.init_ebtc()
@@ -174,7 +175,9 @@ def test_activePool_sweep_token_happy(fee_recipient, wbtc, ecosystem):
     recipient = fee_recipient.ebtc.active_pool.feeRecipientAddress()
     amount = 500 * 10 ** wbtc.decimals()
 
-    wbtc.mint(fee_recipient.ebtc.active_pool.address, amount, {"from": ecosystem.account})
+    wbtc.mint(
+        fee_recipient.ebtc.active_pool.address, amount, {"from": ecosystem.account}
+    )
     assert wbtc.balanceOf(active_pool) == amount
 
     balance_before = wbtc.balanceOf(recipient)
@@ -203,7 +206,11 @@ def test_collSurplusPool_sweep_token_happy(fee_recipient, wbtc, ecosystem):
     recipient = fee_recipient.ebtc.coll_surplus_pool.feeRecipientAddress()
     amount = 500 * 10 ** wbtc.decimals()
 
-    wbtc.mint(fee_recipient.ebtc.coll_surplus_pool.address, amount, {"from": ecosystem.account})
+    wbtc.mint(
+        fee_recipient.ebtc.coll_surplus_pool.address,
+        amount,
+        {"from": ecosystem.account},
+    )
     assert wbtc.balanceOf(coll_surplus_pool) == amount
 
     balance_before = wbtc.balanceOf(recipient)
@@ -217,9 +224,10 @@ def test_collSurplusPool_sweep_token_permissions(wbtc, ecosystem, random_safe):
     coll_surplus_pool = random_safe.ebtc.coll_surplus_pool.address
     amount = 500 * 10 ** wbtc.decimals()
 
-    wbtc.mint(random_safe.ebtc.coll_surplus_pool.address, amount, {"from": ecosystem.account})
+    wbtc.mint(
+        random_safe.ebtc.coll_surplus_pool.address, amount, {"from": ecosystem.account}
+    )
     assert wbtc.balanceOf(coll_surplus_pool) == amount
 
     with pytest.raises(AssertionError, match="Error: Not authorized"):
         random_safe.ebtc.collSurplusPool_sweep_token(wbtc.address, amount)
-

@@ -2,6 +2,7 @@ from brownie import chain, accounts
 
 # Test authority_set_role_name
 
+
 def test_authority_set_role_name_happy(ecosystem):
     ecosystem.init_ebtc()
     role = 10
@@ -16,6 +17,7 @@ def test_authority_set_role_name_happy(ecosystem):
 
 
 # Test authority_set_user_role
+
 
 def test_authority_set_user_role_happy(ecosystem, random_safe):
     ecosystem.init_ebtc()
@@ -32,6 +34,7 @@ def test_authority_set_user_role_happy(ecosystem, random_safe):
 
 
 # Test authority_set_role_capability
+
 
 def test_authority_set_role_capability_happy(ecosystem):
     ecosystem.init_ebtc()
@@ -68,6 +71,7 @@ def test_authority_set_role_capability_happy(ecosystem):
 
 # Test authority_set_public_capability
 
+
 def test_authority_set_public_capability_happy(ecosystem):
     ecosystem.init_ebtc()
 
@@ -81,10 +85,7 @@ def test_authority_set_public_capability_happy(ecosystem):
 
     ecosystem.ebtc.authority_set_public_capability(target, mock_signature, True)
 
-    assert (
-        ecosystem.ebtc.authority.isPublicCapability(target, mock_signature)
-        == True
-    )
+    assert ecosystem.ebtc.authority.isPublicCapability(target, mock_signature) == True
 
     # Now we test making cabaility private
     ecosystem.ebtc.authority_set_public_capability(target, mock_signature, False)
@@ -94,12 +95,11 @@ def test_authority_set_public_capability_happy(ecosystem):
 
     ecosystem.ebtc.authority_set_public_capability(target, mock_signature, False)
 
-    assert (
-        ecosystem.ebtc.authority.isPublicCapability(target, mock_signature)
-        == False
-    )
+    assert ecosystem.ebtc.authority.isPublicCapability(target, mock_signature) == False
+
 
 # Test authority_burn_capability
+
 
 def test_authority_burn_capability_happy(ecosystem):
     ecosystem.init_ebtc()
@@ -125,6 +125,7 @@ def test_authority_burn_capability_happy(ecosystem):
 
 # Test authority_set_authority
 
+
 def test_authority_set_authority_happy(ecosystem):
     ecosystem.init_ebtc()
 
@@ -138,6 +139,3 @@ def test_authority_set_authority_happy(ecosystem):
     ecosystem.ebtc.authority_set_authority(new_authority)
 
     assert ecosystem.ebtc.authority.authority() == new_authority
-
-
-
