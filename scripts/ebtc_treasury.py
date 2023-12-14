@@ -23,7 +23,7 @@ def activePool_claim_fee_recipient_coll_shares(value):
     safe = GreatApeSafe(r.ebtc_wallets.fee_recipient_multisig)
     safe.init_ebtc()
     C.print(f"\nUsing {safe.account} for ActivePool.claimFeeRecipientCollShares\n")
-    safe.ebtc.activePool_set_fee_recipient_address(value)
+    safe.ebtc.activePool_claim_fee_recipient_coll_shares(value)
 
     safe.post_safe_tx()
 
