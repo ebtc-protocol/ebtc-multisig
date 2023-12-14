@@ -4,17 +4,18 @@ from rich.console import Console
 
 C = Console()
 
-'''
+"""
 The following scripts are meant to provide a convenient access to the multisig treausry operations of the EBTC ecosystem.
 These script will use the default multisig intended for each of the operations.
-'''
+"""
 
 
-'''
+"""
 Low Sec Treasury Operations
 
 The following operations are meant to be executed by the Fee Recipient multisig.
-'''
+"""
+
 
 def activePool_claim_fee_recipient_coll_shares(value):
     """
