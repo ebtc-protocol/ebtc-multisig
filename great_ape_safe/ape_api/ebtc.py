@@ -866,3 +866,168 @@ class eBTC:
                 EmptyBytes32,
                 delay + 1,
             )
+
+    #### ===== CDP OPS ===== ####
+
+    def _assert_collateral_balance(self, coll_amount):
+        total_coll_bal = self.collateral.balanceOf(self.safe.address)
+        assert total_coll_bal >= coll_amount
+
+    def _assert_debt_balance(self, debt_amount):
+        total_debt_bal = self.ebtc_token.balanceOf(self.safe.address)
+        assert total_debt_bal >= debt_amount
+        return total_debt_bal
+
+    def _assert_cdp_id_ownership(self, cdp_id):
+        cdp_safe_owned = self.sorted_cdps.getCdpsOf(self.safe.address)
+        assert cdp_id in cdp_safe_owned
+
+    def open_cdp(self, coll_amount, target_cr):
+        # verify: is it coll balance available
+        self._assert_collateral_balance(coll_amount)
+
+        debt_balance_before = self.ebtc_token.balanceOf(self.safe.address)
+
+        # 1. collateral approval for BO
+        self.collateral.approve(self.borrower_operations.address, coll_amount)
+
+        # 2. decide borrow amount based on: collateral, feed price & CR
+        feed_price = (
+            self.price_feed.getPrice()
+        )  # NOTE: should this check against cg for safety checks?
+        borrow_amount = (coll_amount * feed_price) / target_cr
+
+        # 3. open cdp with args
+        # NOTE: should we optimize here for the hints?
+        cdp_id = self.borrower_operations.openCdp(borrow_amount, b"", b"", coll_amount)
+
+        # 4. assertions:
+
+        # 4.1. verify cdp id is owned by caller
+        self._assert_cdp_id_ownership(cdp_id)
+
+        # 4.2. debt balance of caller increased (difference)
+        bal_diff = self.ebtc_token.balanceOf(self.safe.address) - debt_balance_before
+        assert bal_diff == borrow_amount
+
+    def close_cdp(self, cdp_id):
+        # verify: cdp id ownership from caller
+        self._assert_cdp_id_ownership(cdp_id)
+
+        # 1. close target cdp id
+        self.borrower_operations.closeCdp(cdp_id)
+
+        # 2. assertions:
+
+        # 2.1. verify status (2): `closedByOwner`
+        # ref: https://github.com/ebtc-protocol/ebtc/blob/main/packages/contracts/contracts/Interfaces/ICdpManagerData.sol#L91
+        cdp_id_status = self.cdp_manager.getCdpStatus(cdp_id)
+        assert cdp_id_status == 2  # TODO: MAGIC NUMBER?
+
+        # 2.2. verify expected values are 0 at readings from the cdp manager
+        (
+            cdp_id_debt,
+            cdp_id_coll,
+            cdp_id_stake,
+            cdp_id_liq_reward_shares,
+            _,
+            _,
+        ) = self.cdp_manager.cdps(cdp_id)
+        assert self.cdp_manager.cdpStEthFeePerUnitIndex(cdp_id) == 0
+        assert cdp_id_debt == 0
+        assert cdp_id_coll == 0
+        assert cdp_id_stake == 0
+        assert cdp_id_liq_reward_shares == 0
+
+    def cdp_add_collateral(self, cdp_id, coll_amount):
+        # verify: is it coll balance available
+        self._assert_collateral_balance(coll_amount)
+
+        # verify: cdp id ownership from caller
+        self._assert_cdp_id_ownership(cdp_id)
+
+        feed_price = self.price_feed.getPrice()
+        prev_icr = self.cdp_manager.getCachedICR(cdp_id, feed_price)
+        prev_tcr = self.cdp_manager.getCachedTCR(feed_price)
+        prev_coll_balance = self.cdp_manager.getCdpCollShares(cdp_id)
+
+        # 1. collateral approval for BO
+        self.collateral.approve(self.borrower_operations.address, coll_amount)
+
+        # 2. increase collateral in target cdp id
+        self.borrower_operations.addColl(cdp_id, b"", b"", coll_amount)
+
+        # 3. assertions:
+
+        # 3.1. icr and tcr had increased
+        assert self.cdp_manager.getCachedICR(cdp_id, feed_price) > prev_icr
+        assert self.cdp_manager.getCachedTCR(feed_price) > prev_tcr
+
+        # 3.2 collateral in cdp at storage has increased
+        assert self.cdp_manager.getCdpCollShares(cdp_id) > prev_coll_balance
+
+    def cdp_withdraw_collateral(self, cdp_id, coll_amount):
+        # verify: cdp id ownership from caller
+        self._assert_cdp_id_ownership(cdp_id)
+
+        feed_price = self.price_feed.getPrice()
+        prev_icr = self.cdp_manager.getCachedICR(cdp_id, feed_price)
+        prev_tcr = self.cdp_manager.getCachedTCR(feed_price)
+        prev_coll_balance = self.cdp_manager.getCdpCollShares(cdp_id)
+
+        # 1. decreased collateral in target cdp id
+        self.borrower_operations.withdrawColl(cdp_id, coll_amount, b"", b"")
+
+        # 2. assertions:
+
+        # 2.1. icr and tcr had decreased
+        assert self.cdp_manager.getCachedICR(cdp_id, feed_price) < prev_icr
+        assert self.cdp_manager.getCachedTCR(feed_price) < prev_tcr
+
+        # 2.2 collateral in cdp at storage has decreased
+        assert self.cdp_manager.getCdpCollShares(cdp_id) < prev_coll_balance
+
+    def cdp_repay_debt(self, cdp_id, debt_repay_amount):
+        # verify: cdp id ownership from caller
+        self._assert_cdp_id_ownership(cdp_id)
+
+        # verify: check debt caller balance
+        prev_debt_balance = self._assert_debt_balance(debt_repay_amount)
+
+        feed_price = self.price_feed.getPrice()
+        prev_icr = self.cdp_manager.getCachedICR(cdp_id, feed_price)
+
+        # 1. repay debt
+        self.borrower_operations.repayDebt(cdp_id, debt_repay_amount, b"", b"")
+
+        # 2. assertions
+
+        # 2.1. debt balance decreased
+        assert self.ebtc_token.balanceOf(self.safe.address) < prev_debt_balance
+
+        # 2.2. icr should improved
+        assert self.cdp_manager.getCachedICR(cdp_id, feed_price) > prev_icr
+
+    def cdp_withdraw_debt(self, cdp_id, debt_withdrawable_amount):
+        # verify: cdp id ownership from caller
+        self._assert_cdp_id_ownership(cdp_id)
+
+        # verify: existing debt in cdp id is greater than amount to wd
+        debt_before = self.cdp_manager.getCdpDebt(cdp_id)
+        assert debt_before > debt_withdrawable_amount
+
+        feed_price = self.price_feed.getPrice()
+        prev_icr = self.cdp_manager.getCachedICR(cdp_id, feed_price)
+
+        # 1. wd debt from cdp
+        self.borrower_operations.withdrawDebt(
+            cdp_id, debt_withdrawable_amount, b"", b""
+        )
+
+        # 2. assertions
+
+        # 2.1. debt should decreased
+        assert self.cdp_manager.getCdpDebt(cdp_id) < debt_before
+
+        # 2.2. icr decreased
+        assert self.cdp_manager.getCachedICR(cdp_id, feed_price) < prev_icr
