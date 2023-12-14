@@ -883,6 +883,11 @@ class eBTC:
         assert cdp_id in cdp_safe_owned
 
     def open_cdp(self, coll_amount, target_cr):
+        """
+        @dev Opens a new cdp position.
+        @param coll_amount The total stETH collateral amount deposited for the specified Cdp.
+        @param target_cr The desired target collateral ratio in the cdp position.
+        """
         # verify: is it coll balance available
         self._assert_collateral_balance(coll_amount)
 
@@ -911,6 +916,10 @@ class eBTC:
         assert bal_diff == borrow_amount
 
     def close_cdp(self, cdp_id):
+        """
+        @dev Closes a target cdp id.
+        @param cdp_id The CdpId on which this operation is operated.
+        """
         # verify: cdp id ownership from caller
         self._assert_cdp_id_ownership(cdp_id)
 
@@ -940,6 +949,11 @@ class eBTC:
         assert cdp_id_liq_reward_shares == 0
 
     def cdp_add_collateral(self, cdp_id, coll_amount):
+        """
+        @dev Adds the received stETH to the specified Cdp.
+        @param cdp_id The CdpId on which this operation is operated.
+        @param coll_amount The total stETH collateral amount deposited (added) for the specified Cdp.
+        """
         # verify: is it coll balance available
         self._assert_collateral_balance(coll_amount)
 
@@ -967,6 +981,11 @@ class eBTC:
         assert self.cdp_manager.getCdpCollShares(cdp_id) > prev_coll_balance
 
     def cdp_withdraw_collateral(self, cdp_id, coll_amount):
+        """
+        @dev Withdraws the amount of collateral from the specified Cdp.
+        @param cdp_id The CdpId on which this operation is operated.
+        @param coll_amount The total stETH collateral amount withdrawn (reduced) for the specified Cdp.
+        """
         # verify: cdp id ownership from caller
         self._assert_cdp_id_ownership(cdp_id)
 
@@ -988,6 +1007,11 @@ class eBTC:
         assert self.cdp_manager.getCdpCollShares(cdp_id) < prev_coll_balance
 
     def cdp_repay_debt(self, cdp_id, debt_repay_amount):
+        """
+        @dev Repays the received eBTC token to the specified Cdp, thus reducing its debt accounting.
+        @param cdp_id The CdpId on which this operation is operated.
+        @param debt_repay_amount The total eBTC debt amount repaid for the specified Cdp.
+        """
         # verify: cdp id ownership from caller
         self._assert_cdp_id_ownership(cdp_id)
 
@@ -1009,6 +1033,11 @@ class eBTC:
         assert self.cdp_manager.getCachedICR(cdp_id, feed_price) > prev_icr
 
     def cdp_withdraw_debt(self, cdp_id, debt_withdrawable_amount):
+        """
+        @dev Withdraws the amount of eBTC token from the specified Cdp, thus increasing its debt accounting.
+        @param cdp_id The CdpId on which this operation is operated.
+        @param debt_withdrawable_amount The total debt collateral amount increased for the specified Cdp.
+        """
         # verify: cdp id ownership from caller
         self._assert_cdp_id_ownership(cdp_id)
 
