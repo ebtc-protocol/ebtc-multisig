@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from enum import Enum
 
 from brownie import web3, interface
 from rich.console import Console
@@ -6,6 +7,11 @@ from helpers.addresses import registry
 from helpers.constants import EmptyBytes32
 
 C = Console()
+
+
+class CdpStatus(Enum):
+    # NOTE: there is more states, adding `2` to avoid magic numbers in code
+    CLOSED = 2
 
 
 class eBTC:
@@ -871,7 +877,7 @@ class eBTC:
 
     def _assert_collateral_balance(self, coll_amount):
         total_coll_bal = self.collateral.balanceOf(self.safe.address)
-        assert total_coll_bal >= coll_amount
+        assert total_coll_bal >= self.collateral.getSharesByPooledEth(coll_amount)
 
     def _assert_debt_balance(self, debt_amount):
         total_debt_bal = self.ebtc_token.balanceOf(self.safe.address)
@@ -881,6 +887,18 @@ class eBTC:
     def _assert_cdp_id_ownership(self, cdp_id):
         cdp_safe_owned = self.sorted_cdps.getCdpsOf(self.safe.address)
         assert cdp_id in cdp_safe_owned
+
+    def _hint_helper_values(self, coll_amount, debt_amount):
+        nicr = self.hint_helpers.computeNominalCR(coll_amount, debt_amount)
+
+        total_cdps = self.sorted_cdps.getSize()
+        hint, _, _ = self.hint_helpers.getApproxHint(
+            nicr, total_cdps, 42
+        )  # random seed 42
+
+        upper_hint, lower_hint = self.sorted_cdps.findInsertPosition(nicr, hint, hint)
+
+        return upper_hint, lower_hint
 
     def open_cdp(self, coll_amount, target_cr):
         """
@@ -897,14 +915,14 @@ class eBTC:
         self.collateral.approve(self.borrower_operations.address, coll_amount)
 
         # 2. decide borrow amount based on: collateral, feed price & CR
-        feed_price = (
-            self.price_feed.getPrice()
-        )  # NOTE: should this check against cg for safety checks?
+        feed_price = self.price_feed.getPrice()
         borrow_amount = (coll_amount * feed_price) / target_cr
 
         # 3. open cdp with args
-        # NOTE: should we optimize here for the hints?
-        cdp_id = self.borrower_operations.openCdp(borrow_amount, b"", b"", coll_amount)
+        upper_hint, lower_hint = self._hint_helper_values(coll_amount, borrow_amount)
+        cdp_id = self.borrower_operations.openCdp(
+            borrow_amount, upper_hint, lower_hint, coll_amount
+        ).return_value
 
         # 4. assertions:
 
@@ -914,6 +932,8 @@ class eBTC:
         # 4.2. debt balance of caller increased (difference)
         bal_diff = self.ebtc_token.balanceOf(self.safe.address) - debt_balance_before
         assert bal_diff == borrow_amount
+
+        return cdp_id
 
     def close_cdp(self, cdp_id):
         """
@@ -931,7 +951,7 @@ class eBTC:
         # 2.1. verify status (2): `closedByOwner`
         # ref: https://github.com/ebtc-protocol/ebtc/blob/main/packages/contracts/contracts/Interfaces/ICdpManagerData.sol#L91
         cdp_id_status = self.cdp_manager.getCdpStatus(cdp_id)
-        assert cdp_id_status == 2  # TODO: MAGIC NUMBER?
+        assert cdp_id_status == CdpStatus.CLOSED.value
 
         # 2.2. verify expected values are 0 at readings from the cdp manager
         (
@@ -941,7 +961,7 @@ class eBTC:
             cdp_id_liq_reward_shares,
             _,
             _,
-        ) = self.cdp_manager.cdps(cdp_id)
+        ) = self.cdp_manager.Cdps(cdp_id)
         assert self.cdp_manager.cdpStEthFeePerUnitIndex(cdp_id) == 0
         assert cdp_id_debt == 0
         assert cdp_id_coll == 0
@@ -969,7 +989,7 @@ class eBTC:
         self.collateral.approve(self.borrower_operations.address, coll_amount)
 
         # 2. increase collateral in target cdp id
-        self.borrower_operations.addColl(cdp_id, b"", b"", coll_amount)
+        self.borrower_operations.addColl(cdp_id, cdp_id, cdp_id, coll_amount)
 
         # 3. assertions:
 
@@ -995,7 +1015,7 @@ class eBTC:
         prev_coll_balance = self.cdp_manager.getCdpCollShares(cdp_id)
 
         # 1. decreased collateral in target cdp id
-        self.borrower_operations.withdrawColl(cdp_id, coll_amount, b"", b"")
+        self.borrower_operations.withdrawColl(cdp_id, coll_amount, cdp_id, cdp_id)
 
         # 2. assertions:
 
@@ -1022,7 +1042,7 @@ class eBTC:
         prev_icr = self.cdp_manager.getCachedICR(cdp_id, feed_price)
 
         # 1. repay debt
-        self.borrower_operations.repayDebt(cdp_id, debt_repay_amount, b"", b"")
+        self.borrower_operations.repayDebt(cdp_id, debt_repay_amount, cdp_id, cdp_id)
 
         # 2. assertions
 
@@ -1050,13 +1070,13 @@ class eBTC:
 
         # 1. wd debt from cdp
         self.borrower_operations.withdrawDebt(
-            cdp_id, debt_withdrawable_amount, b"", b""
+            cdp_id, debt_withdrawable_amount, cdp_id, cdp_id
         )
 
         # 2. assertions
 
-        # 2.1. debt should decreased
-        assert self.cdp_manager.getCdpDebt(cdp_id) < debt_before
+        # 2.1. debt should increased
+        assert self.cdp_manager.getCdpDebt(cdp_id) > debt_before
 
         # 2.2. icr decreased
         assert self.cdp_manager.getCachedICR(cdp_id, feed_price) < prev_icr
