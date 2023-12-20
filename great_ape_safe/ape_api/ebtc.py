@@ -915,7 +915,7 @@ class eBTC:
         self.collateral.approve(self.borrower_operations.address, coll_amount)
 
         # 2. decide borrow amount based on: collateral, feed price & CR
-        feed_price = self.price_feed.getPrice()
+        feed_price = self.price_feed.fetchPrice.call()
         borrow_amount = (coll_amount * feed_price) / target_cr
 
         # 3. open cdp with args
@@ -980,7 +980,7 @@ class eBTC:
         # verify: cdp id ownership from caller
         self._assert_cdp_id_ownership(cdp_id)
 
-        feed_price = self.price_feed.getPrice()
+        feed_price = self.price_feed.fetchPrice.call()
         prev_icr = self.cdp_manager.getCachedICR(cdp_id, feed_price)
         prev_tcr = self.cdp_manager.getCachedTCR(feed_price)
         prev_coll_balance = self.cdp_manager.getCdpCollShares(cdp_id)
@@ -1009,7 +1009,7 @@ class eBTC:
         # verify: cdp id ownership from caller
         self._assert_cdp_id_ownership(cdp_id)
 
-        feed_price = self.price_feed.getPrice()
+        feed_price = self.price_feed.fetchPrice.call()
         prev_icr = self.cdp_manager.getCachedICR(cdp_id, feed_price)
         prev_tcr = self.cdp_manager.getCachedTCR(feed_price)
         prev_coll_balance = self.cdp_manager.getCdpCollShares(cdp_id)
@@ -1038,7 +1038,7 @@ class eBTC:
         # verify: check debt caller balance
         prev_debt_balance = self._assert_debt_balance(debt_repay_amount)
 
-        feed_price = self.price_feed.getPrice()
+        feed_price = self.price_feed.fetchPrice.call()
         prev_icr = self.cdp_manager.getCachedICR(cdp_id, feed_price)
 
         # 1. repay debt
@@ -1065,7 +1065,7 @@ class eBTC:
         debt_before = self.cdp_manager.getCdpDebt(cdp_id)
         assert debt_before > debt_withdrawable_amount
 
-        feed_price = self.price_feed.getPrice()
+        feed_price = self.price_feed.fetchPrice.call()
         prev_icr = self.cdp_manager.getCachedICR(cdp_id, feed_price)
 
         # 1. wd debt from cdp
