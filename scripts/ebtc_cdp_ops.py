@@ -18,6 +18,7 @@ def open_cdp(collateral_amount, target_collateral_ratio):
     C.print(
         f"\nUsing {safe.account} for opening cdp position with {collateral_amount} collateral at {target_collateral_ratio}% CR\n"
     )
+    # NOTE: cr is converted to the right unit, see natspec comments in class for the method itself!
     safe.ebtc.open_cdp(collateral_amount * 1e18, target_collateral_ratio * 1e16)
     safe.post_safe_tx()
 

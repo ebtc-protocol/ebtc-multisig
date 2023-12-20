@@ -902,9 +902,9 @@ class eBTC:
 
     def open_cdp(self, coll_amount, target_cr):
         """
-        @dev Opens a new cdp position.
+        @dev Opens a new cdp position. Attention to target_cr unit format, see below!
         @param coll_amount The total stETH collateral amount deposited for the specified Cdp.
-        @param target_cr The desired target collateral ratio in the cdp position.
+        @param target_cr The desired target collateral ratio in the cdp position. Unit format: cr follows a 10^18 formatting
         """
         # verify: is it coll balance available
         self._assert_collateral_balance(coll_amount)
