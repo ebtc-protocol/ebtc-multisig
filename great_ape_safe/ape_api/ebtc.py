@@ -10,7 +10,7 @@ C = Console()
 
 
 class CdpStatus(Enum):
-    # NOTE: there is more states, adding `2` to avoid magic numbers in code
+    # NOTE: there are more states, adding `2` to avoid magic numbers in code
     CLOSED = 2
 
 
