@@ -943,6 +943,17 @@ class eBTC:
         # verify: cdp id ownership from caller
         self._assert_cdp_id_ownership(cdp_id)
 
+        # verify: sufficient ebtc is hold for closing
+        (
+            cdp_id_debt,
+            _,
+            _,
+            _,
+            _,
+            _,
+        ) = self.cdp_manager.Cdps(cdp_id)
+        self._assert_debt_balance(cdp_id_debt)
+
         # 1. close target cdp id
         self.borrower_operations.closeCdp(cdp_id)
 
@@ -953,7 +964,9 @@ class eBTC:
         cdp_id_status = self.cdp_manager.getCdpStatus(cdp_id)
         assert cdp_id_status == CdpStatus.CLOSED.value
 
-        # 2.2. verify expected values are 0 at readings from the cdp manager
+        # 2.2. verify that enough collateral was returned + gas stipend
+
+        # 2.3. verify expected values are 0 at readings from the cdp manager
         (
             cdp_id_debt,
             cdp_id_coll,
