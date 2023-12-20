@@ -1001,8 +1001,8 @@ class eBTC:
         self._assert_cdp_id_ownership(cdp_id)
 
         feed_price = self.price_feed.fetchPrice.call()
-        prev_icr = self.cdp_manager.getCachedICR(cdp_id, feed_price)
-        prev_tcr = self.cdp_manager.getCachedTCR(feed_price)
+        prev_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
+        prev_tcr = self.cdp_manager.getSyncedTCR(feed_price)
         prev_coll_balance = self.cdp_manager.getCdpCollShares(cdp_id)
 
         # 1. collateral approval for BO
@@ -1014,8 +1014,8 @@ class eBTC:
         # 3. assertions:
 
         # 3.1. icr and tcr had increased
-        assert self.cdp_manager.getCachedICR(cdp_id, feed_price) > prev_icr
-        assert self.cdp_manager.getCachedTCR(feed_price) > prev_tcr
+        assert self.cdp_manager.getSyncedICR(cdp_id, feed_price) > prev_icr
+        assert self.cdp_manager.getSyncedTCR(feed_price) > prev_tcr
 
         # 3.2 collateral in cdp at storage has increased
         assert self.cdp_manager.getCdpCollShares(cdp_id) > prev_coll_balance
@@ -1041,8 +1041,8 @@ class eBTC:
         assert cdp_id_coll > coll_amount
 
         feed_price = self.price_feed.fetchPrice.call()
-        prev_icr = self.cdp_manager.getCachedICR(cdp_id, feed_price)
-        prev_tcr = self.cdp_manager.getCachedTCR(feed_price)
+        prev_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
+        prev_tcr = self.cdp_manager.getSyncedTCR(feed_price)
         prev_coll_balance = self.cdp_manager.getCdpCollShares(cdp_id)
 
         # 1. decreased collateral in target cdp id
@@ -1051,8 +1051,8 @@ class eBTC:
         # 2. assertions:
 
         # 2.1. icr and tcr had decreased
-        assert self.cdp_manager.getCachedICR(cdp_id, feed_price) < prev_icr
-        assert self.cdp_manager.getCachedTCR(feed_price) < prev_tcr
+        assert self.cdp_manager.getSyncedICR(cdp_id, feed_price) < prev_icr
+        assert self.cdp_manager.getSyncedTCR(feed_price) < prev_tcr
 
         # 2.2 collateral in cdp at storage has decreased
         assert self.cdp_manager.getCdpCollShares(cdp_id) < prev_coll_balance
@@ -1070,7 +1070,7 @@ class eBTC:
         prev_debt_balance = self._assert_debt_balance(debt_repay_amount)
 
         feed_price = self.price_feed.fetchPrice.call()
-        prev_icr = self.cdp_manager.getCachedICR(cdp_id, feed_price)
+        prev_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
 
         # 1. repay debt
         self.borrower_operations.repayDebt(cdp_id, debt_repay_amount, cdp_id, cdp_id)
@@ -1081,7 +1081,7 @@ class eBTC:
         assert self.ebtc_token.balanceOf(self.safe.address) < prev_debt_balance
 
         # 2.2. icr should improved
-        assert self.cdp_manager.getCachedICR(cdp_id, feed_price) > prev_icr
+        assert self.cdp_manager.getSyncedICR(cdp_id, feed_price) > prev_icr
 
     def cdp_withdraw_debt(self, cdp_id, debt_withdrawable_amount):
         """
@@ -1097,7 +1097,7 @@ class eBTC:
         assert debt_before > debt_withdrawable_amount
 
         feed_price = self.price_feed.fetchPrice.call()
-        prev_icr = self.cdp_manager.getCachedICR(cdp_id, feed_price)
+        prev_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
 
         # 1. wd debt from cdp
         self.borrower_operations.withdrawDebt(
@@ -1110,4 +1110,4 @@ class eBTC:
         assert self.cdp_manager.getCdpDebt(cdp_id) > debt_before
 
         # 2.2. icr decreased
-        assert self.cdp_manager.getCachedICR(cdp_id, feed_price) < prev_icr
+        assert self.cdp_manager.getSyncedICR(cdp_id, feed_price) < prev_icr
