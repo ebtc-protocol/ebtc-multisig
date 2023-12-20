@@ -946,13 +946,16 @@ class eBTC:
         # verify: sufficient ebtc is hold for closing
         (
             cdp_id_debt,
+            cdp_id_coll,
             _,
-            _,
-            _,
+            cdp_id_liquidator_reward_shares,
             _,
             _,
         ) = self.cdp_manager.Cdps(cdp_id)
         self._assert_debt_balance(cdp_id_debt)
+
+        # cached prev collateral balance
+        collateral_balance_before = self.collateral.balanceOf(self.safe.address)
 
         # 1. close target cdp id
         self.borrower_operations.closeCdp(cdp_id)
@@ -965,6 +968,10 @@ class eBTC:
         assert cdp_id_status == CdpStatus.CLOSED.value
 
         # 2.2. verify that enough collateral was returned + gas stipend
+        assert (
+            self.collateral.balanceOf(self.safe.address)
+            == cdp_id_coll + cdp_id_liquidator_reward_shares + collateral_balance_before
+        )
 
         # 2.3. verify expected values are 0 at readings from the cdp manager
         (
