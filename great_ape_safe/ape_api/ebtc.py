@@ -1017,8 +1017,11 @@ class eBTC:
         assert self.cdp_manager.getSyncedICR(cdp_id, feed_price) > prev_icr
         assert self.cdp_manager.getSyncedTCR(feed_price) > prev_tcr
 
-        # 3.2 collateral in cdp at storage has increased
-        assert self.cdp_manager.getCdpCollShares(cdp_id) > prev_coll_balance
+        # 3.2 collateral in cdp at storage is exact on "shares" terms, following internal cdp accounting
+        # after increase should be equal to final = initial + top-up collateral
+        assert self.cdp_manager.getCdpCollShares(
+            cdp_id
+        ) == prev_coll_balance + self.collateral.getSharesByPooledEth(coll_amount)
 
     def cdp_withdraw_collateral(self, cdp_id, coll_amount):
         """
