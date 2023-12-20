@@ -1029,6 +1029,17 @@ class eBTC:
         # verify: cdp id ownership from caller
         self._assert_cdp_id_ownership(cdp_id)
 
+        # verify: cdp holds enough collateral to be withdrawn
+        (
+            _,
+            cdp_id_coll,
+            _,
+            _,
+            _,
+            _,
+        ) = self.cdp_manager.Cdps(cdp_id)
+        assert cdp_id_coll > coll_amount
+
         feed_price = self.price_feed.fetchPrice.call()
         prev_icr = self.cdp_manager.getCachedICR(cdp_id, feed_price)
         prev_tcr = self.cdp_manager.getCachedTCR(feed_price)
