@@ -18,6 +18,10 @@ class eBTC:
     def __init__(self, safe):
         self.safe = safe
 
+        # constants
+        self.SAFE_ICR_THRESHOLD = 120e16
+        self.CCR = 125e16
+
         # contracts
         self.collateral = safe.contract(
             registry.sepolia.ebtc.collateral, interface.ICollateralToken
@@ -877,6 +881,7 @@ class eBTC:
 
     def _assert_collateral_balance(self, coll_amount):
         total_coll_bal = self.collateral.balanceOf(self.safe.address)
+        # NOTE: ongoing work on solidity side for at https://github.com/ebtc-protocol/ebtc/pull/739. new deployment incoming
         assert total_coll_bal >= self.collateral.getSharesByPooledEth(coll_amount)
 
     def _assert_debt_balance(self, debt_amount):
@@ -887,6 +892,10 @@ class eBTC:
     def _assert_cdp_id_ownership(self, cdp_id):
         cdp_safe_owned = self.sorted_cdps.getCdpsOf(self.safe.address)
         assert cdp_id in cdp_safe_owned
+
+    def _assert_health_new_icr(self, new_icr):
+        # NOTE: chose 120% to have alert with a breath range from MCR
+        assert new_icr > self.SAFE_ICR_THRESHOLD
 
     def _hint_helper_values(self, coll_amount, debt_amount):
         nicr = self.hint_helpers.computeNominalCR(coll_amount, debt_amount)
@@ -1046,7 +1055,11 @@ class eBTC:
         ) = self.cdp_manager.Cdps(cdp_id)
         assert cdp_id_coll > coll_amount
 
+        # verify: check recovery mode status. use sync tcr so accounts for split fee
         feed_price = self.price_feed.fetchPrice.call()
+        prev_tcr = self.cdp_manager.getSyncedTCR(feed_price)
+        assert prev_tcr > self.CCR
+
         prev_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
         prev_tcr = self.cdp_manager.getSyncedTCR(feed_price)
         prev_coll_balance = self.cdp_manager.getCdpCollShares(cdp_id)
@@ -1055,9 +1068,17 @@ class eBTC:
         self.borrower_operations.withdrawColl(cdp_id, coll_amount, cdp_id, cdp_id)
 
         # 2. assertions:
+        new_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
+
+        # 2.1 verify icr not below `SAFE_ICR_THRESHOLD`
+        self._assert_health_new_icr(new_icr)
+
+        C.print(
+            f"[green]Withdrawing {coll_amount/1e18} collateral brings the CDP from {prev_icr/1e16}% to {new_icr/1e16}% ICR[/green]"
+        )
 
         # 2.1. icr and tcr had decreased
-        assert self.cdp_manager.getSyncedICR(cdp_id, feed_price) < prev_icr
+        assert new_icr < prev_icr
         assert self.cdp_manager.getSyncedTCR(feed_price) < prev_tcr
 
         # 2.2 collateral in cdp at storage has decreased
@@ -1098,11 +1119,15 @@ class eBTC:
         # verify: cdp id ownership from caller
         self._assert_cdp_id_ownership(cdp_id)
 
+        # verify: check recovery mode status. use sync tcr so accounts for split fee
+        feed_price = self.price_feed.fetchPrice.call()
+        sync_tcr = self.cdp_manager.getSyncedTCR(feed_price)
+        assert sync_tcr > self.CCR
+
         # verify: existing debt in cdp id is greater than amount to wd
         debt_before = self.cdp_manager.getCdpDebt(cdp_id)
         assert debt_before > debt_withdrawable_amount
 
-        feed_price = self.price_feed.fetchPrice.call()
         prev_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
 
         # 1. wd debt from cdp
@@ -1111,9 +1136,17 @@ class eBTC:
         )
 
         # 2. assertions
+        new_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
+
+        # 2.1 verify icr not below `SAFE_ICR_THRESHOLD`
+        self._assert_health_new_icr(new_icr)
+
+        C.print(
+            f"[green]Withdrawing {debt_withdrawable_amount/1e18} eBTC brings the CDP from {prev_icr/1e16}% to {new_icr/1e16}% ICR[/green]"
+        )
 
         # 2.1. debt should increased
         assert self.cdp_manager.getCdpDebt(cdp_id) > debt_before
 
         # 2.2. icr decreased
-        assert self.cdp_manager.getSyncedICR(cdp_id, feed_price) < prev_icr
+        assert new_icr < prev_icr
