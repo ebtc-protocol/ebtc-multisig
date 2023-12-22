@@ -1,6 +1,7 @@
 from datetime import datetime
+from enum import Enum
 
-from brownie import interface
+from brownie import interface, web3
 from rich.console import Console
 from helpers.addresses import registry
 from helpers.constants import EmptyBytes32
@@ -46,9 +47,6 @@ class eBTC:
         self.hint_helpers = safe.contract(
             registry.sepolia.ebtc.hint_helpers, interface.IHintHelpers
         )
-        self.fee_recipient = safe.contract(
-            registry.sepolia.ebtc.fee_recipient, interface.IFeeRecipient
-        )
         self.multi_cdp_getter = safe.contract(
             registry.sepolia.ebtc.multi_cdp_getter, interface.IMultiCdpGetter
         )
@@ -60,6 +58,245 @@ class eBTC:
             registry.sepolia.ebtc.lowsec_timelock,
             interface.ITimelockControllerEnumerable,
         )
+        self.fee_recipient = self.active_pool.feeRecipientAddress()
+
+        ##################################################################
+        ##
+        ##             Governance Configuration and Settings
+        ##
+        ##################################################################
+
+        # Contains a mapping of governancce roles to the role numbers used in the authority contract
+        class governanceRoles(Enum):
+            ADMIN = 0  # Admin
+            EBTC_MINTER = 1  # eBTCToken: mint
+            EBTC_BURNER = 2  # eBTCToken: burn
+            CDP_MANAGER_ALL = 3  # CDPManager: all
+            FALLBACK_ADMIN = 4  # PriceFeed: setFallbackCaller
+            FEE_ADMIN = 5  # BorrowerOperations+ActivePool: setFeeBps, setFlashLoansPaused, setFeeRecipientAddress
+            FEE_RECIPIENT_OPS = 6  # ActivePool: sweep tokens & claim fee recipient coll
+
+        self.governance_roles = governanceRoles
+
+        # Dictionary of all of the governable function signatures used in the authority contract
+        self.governance_signatures = {
+            "SET_STAKING_REWARD_SPLIT_SIG": web3.keccak(
+                text="setStakingRewardSplit(uint256)"
+            ).hex()[0:10],
+            "SET_REDEMPTION_FEE_FLOOR_SIG": web3.keccak(
+                text="setRedemptionFeeFloor(uint256)"
+            ).hex()[0:10],
+            "SET_MINUTE_DECAY_FACTOR_SIG": web3.keccak(
+                text="setMinuteDecayFactor(uint256)"
+            ).hex()[0:10],
+            "SET_BETA_SIG": web3.keccak(text="setBeta(uint256)").hex()[0:10],
+            "SET_REDEMPTIONS_PAUSED_SIG": web3.keccak(
+                text="setRedemptionsPaused(bool)"
+            ).hex()[0:10],
+            "SET_GRACE_PERIOD_SIG": web3.keccak(text="setGracePeriod(uint128)").hex()[
+                0:10
+            ],
+            "MINT_SIG": web3.keccak(text="mint(address,uint256)").hex()[0:10],
+            "BURN_SIG": web3.keccak(text="burn(address,uint256)").hex()[0:10],
+            "BURN2_SIG": web3.keccak(text="burn(uint256)").hex()[0:10],
+            "SET_FALLBACK_CALLER_SIG": web3.keccak(
+                text="setFallbackCaller(address)"
+            ).hex()[0:10],
+            "SET_FEE_BPS_SIG": web3.keccak(text="setFeeBps(uint256)").hex()[0:10],
+            "SET_FLASH_LOANS_PAUSED_SIG": web3.keccak(
+                text="setFlashLoansPaused(bool)"
+            ).hex()[0:10],
+            "SWEEP_TOKEN_SIG": web3.keccak(text="sweepToken(address,uint256)").hex()[
+                0:10
+            ],
+            "CLAIM_FEE_RECIPIENT_COLL_SIG": web3.keccak(
+                text="claimFeeRecipientCollShares(uint256)"
+            ).hex()[0:10],
+            "SET_FEE_RECIPIENT_ADDRESS_SIG": web3.keccak(
+                text="setFeeRecipientAddress(address)"
+            ).hex()[0:10],
+            "SET_ROLE_NAME_SIG": web3.keccak(text="setRoleName(uint8,string)").hex()[
+                0:10
+            ],
+            "SET_USER_ROLE_SIG": web3.keccak(
+                text="setUserRole(address,uint8,bool)"
+            ).hex()[0:10],
+            "SET_ROLE_CAPABILITY_SIG": web3.keccak(
+                text="setRoleCapability(uint8,address,bytes4,bool)"
+            ).hex()[0:10],
+            "SET_PUBLIC_CAPABILITY_SIG": web3.keccak(
+                text="setPublicCapability(address,bytes4,bool)"
+            ).hex()[0:10],
+            "BURN_CAPABILITY_SIG": web3.keccak(
+                text="burnCapability(address,bytes4)"
+            ).hex()[0:10],
+            "TRANSFER_OWNERSHIP_SIG": web3.keccak(
+                text="transferOwnership(address)"
+            ).hex()[0:10],
+            "SET_AUTHORITY_SIG": web3.keccak(text="setAuthority(address)").hex()[0:10],
+        }
+
+        # Mapping of the governance roles to the list of permissions (signatures within contracts) that they have
+        self.governance_configuration = {
+            governanceRoles.ADMIN.value: [
+                {
+                    "target": self.authority,
+                    "signature": self.governance_signatures["SET_ROLE_NAME_SIG"],
+                },
+                {
+                    "target": self.authority,
+                    "signature": self.governance_signatures["SET_USER_ROLE_SIG"],
+                },
+                {
+                    "target": self.authority,
+                    "signature": self.governance_signatures["SET_ROLE_CAPABILITY_SIG"],
+                },
+                {
+                    "target": self.authority,
+                    "signature": self.governance_signatures[
+                        "SET_PUBLIC_CAPABILITY_SIG"
+                    ],
+                },
+                {
+                    "target": self.authority,
+                    "signature": self.governance_signatures["BURN_CAPABILITY_SIG"],
+                },
+                {
+                    "target": self.authority,
+                    "signature": self.governance_signatures["TRANSFER_OWNERSHIP_SIG"],
+                },
+                {
+                    "target": self.authority,
+                    "signature": self.governance_signatures["SET_AUTHORITY_SIG"],
+                },
+            ],
+            governanceRoles.EBTC_MINTER.value: [
+                {
+                    "target": self.ebtc_token,
+                    "signature": self.governance_signatures["MINT_SIG"],
+                },
+            ],
+            governanceRoles.EBTC_BURNER.value: [
+                {
+                    "target": self.ebtc_token,
+                    "signature": self.governance_signatures["BURN_SIG"],
+                },
+                {
+                    "target": self.ebtc_token,
+                    "signature": self.governance_signatures["BURN2_SIG"],
+                },
+            ],
+            governanceRoles.CDP_MANAGER_ALL.value: [
+                {
+                    "target": self.cdp_manager,
+                    "signature": self.governance_signatures[
+                        "SET_STAKING_REWARD_SPLIT_SIG"
+                    ],
+                },
+                {
+                    "target": self.cdp_manager,
+                    "signature": self.governance_signatures[
+                        "SET_REDEMPTION_FEE_FLOOR_SIG"
+                    ],
+                },
+                {
+                    "target": self.cdp_manager,
+                    "signature": self.governance_signatures[
+                        "SET_MINUTE_DECAY_FACTOR_SIG"
+                    ],
+                },
+                {
+                    "target": self.cdp_manager,
+                    "signature": self.governance_signatures["SET_BETA_SIG"],
+                },
+                {
+                    "target": self.cdp_manager,
+                    "signature": self.governance_signatures[
+                        "SET_REDEMPTIONS_PAUSED_SIG"
+                    ],
+                },
+                {
+                    "target": self.cdp_manager,
+                    "signature": self.governance_signatures["SET_GRACE_PERIOD_SIG"],
+                },
+            ],
+            governanceRoles.FALLBACK_ADMIN.value: [
+                {
+                    "target": self.price_feed,
+                    "signature": self.governance_signatures["SET_FALLBACK_CALLER_SIG"],
+                },
+            ],
+            governanceRoles.FEE_ADMIN.value: [
+                {
+                    "target": self.borrower_operations,
+                    "signature": self.governance_signatures["SET_FEE_BPS_SIG"],
+                },
+                {
+                    "target": self.borrower_operations,
+                    "signature": self.governance_signatures[
+                        "SET_FLASH_LOANS_PAUSED_SIG"
+                    ],
+                },
+                {
+                    "target": self.borrower_operations,
+                    "signature": self.governance_signatures[
+                        "SET_FEE_RECIPIENT_ADDRESS_SIG"
+                    ],
+                },
+                {
+                    "target": self.active_pool,
+                    "signature": self.governance_signatures["SET_FEE_BPS_SIG"],
+                },
+                {
+                    "target": self.active_pool,
+                    "signature": self.governance_signatures[
+                        "SET_FLASH_LOANS_PAUSED_SIG"
+                    ],
+                },
+                {
+                    "target": self.active_pool,
+                    "signature": self.governance_signatures[
+                        "SET_FEE_RECIPIENT_ADDRESS_SIG"
+                    ],
+                },
+            ],
+            governanceRoles.FEE_RECIPIENT_OPS.value: [
+                {
+                    "target": self.active_pool,
+                    "signature": self.governance_signatures["SWEEP_TOKEN_SIG"],
+                },
+                {
+                    "target": self.active_pool,
+                    "signature": self.governance_signatures[
+                        "CLAIM_FEE_RECIPIENT_COLL_SIG"
+                    ],
+                },
+                {
+                    "target": self.coll_surplus_pool,
+                    "signature": self.governance_signatures["SWEEP_TOKEN_SIG"],
+                },
+            ],
+        }
+
+        # Mapping of the permissioned actors to their assigned roles
+        self.users_roles_configuration = {
+            self.highsec_timelock.address: [
+                governanceRoles.ADMIN.value,
+                governanceRoles.CDP_MANAGER_ALL.value,
+                governanceRoles.FALLBACK_ADMIN.value,
+                governanceRoles.FEE_ADMIN.value,
+                governanceRoles.FEE_RECIPIENT_OPS.value,
+            ],
+            self.lowsec_timelock.address: [
+                governanceRoles.CDP_MANAGER_ALL.value,
+                governanceRoles.FALLBACK_ADMIN.value,
+                governanceRoles.FEE_ADMIN.value,
+                governanceRoles.FEE_RECIPIENT_OPS.value,
+            ],
+            self.fee_recipient: [
+                governanceRoles.FEE_RECIPIENT_OPS.value,
+            ],
+        }
 
     ##################################################################
     ##
@@ -348,7 +585,7 @@ class eBTC:
         @dev Sets the staking reward split in the CDP Manager.
         @param value The new staking reward split to set.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
-        """    
+        """
         if use_high_sec:
             timelock = self.highsec_timelock
         else:

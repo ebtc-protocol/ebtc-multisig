@@ -23,7 +23,9 @@ def test_schedule_timelock_permissions_on_target(techops):
 
     ## Attempt to schedule grant TechOps minting rights by techopss
     target = techops.ebtc.authority
-    data = target.setUserRole.encode_input(techops.account, 1, True)
+    data = target.setUserRole.encode_input(
+        techops.account, techops.ebtc.governance_roles.EBTC_MINTER.value, True
+    )
     timelock = techops.ebtc.lowsec_timelock
     delay = timelock.getMinDelay()
 
@@ -52,7 +54,9 @@ def test_execute_timelock_permissions_on_target(techops):
 
     ## Attempt to execute grant TechOps minting rights by techopss
     target = techops.ebtc.authority
-    data = target.setUserRole.encode_input(techops.account, 1, True)
+    data = target.setUserRole.encode_input(
+        techops.account, techops.ebtc.governance_roles.EBTC_MINTER.value, True
+    )
     timelock = techops.ebtc.lowsec_timelock
 
     with pytest.raises(AssertionError, match="Error: Not authorized"):
