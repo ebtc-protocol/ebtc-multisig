@@ -4,7 +4,18 @@ from enum import Enum
 from brownie import interface, web3
 from rich.console import Console
 from helpers.addresses import registry
-from helpers.constants import EmptyBytes32
+from helpers.constants import (
+    EmptyBytes32,
+    AddressZero,
+    DECIMAL_PRECISION,
+    MAX_REWARD_SPLIT,
+    MIN_REDEMPTION_FEE_FLOOR,
+    MIN_MINUTE_DECAY_FACTOR,
+    MAX_MINUTE_DECAY_FACTOR,
+    MINIMUM_GRACE_PERIOD,
+    MAX_FEE_BPS,
+)
+
 
 C = Console()
 
@@ -586,6 +597,9 @@ class eBTC:
         @param value The new staking reward split to set.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
+        ## Ref: uint256 public constant MAX_REWARD_SPLIT = 10_000;
+        assert value <= MAX_REWARD_SPLIT, "Error: Value too high"
+
         if use_high_sec:
             timelock = self.highsec_timelock
         else:
@@ -613,6 +627,10 @@ class eBTC:
         @param value The new redemption fee floor to set.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
+
+        assert value >= MIN_REDEMPTION_FEE_FLOOR, "Error: Value too low"
+        assert value <= DECIMAL_PRECISION, "Error: Value too high"
+
         if use_high_sec:
             timelock = self.highsec_timelock
         else:
@@ -640,6 +658,10 @@ class eBTC:
         @param value The new redemption fee minute decay factor.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
+
+        assert value >= MIN_MINUTE_DECAY_FACTOR, "Error: Value too low"
+        assert value <= MAX_MINUTE_DECAY_FACTOR, "Error: Value too high"
+
         if use_high_sec:
             timelock = self.highsec_timelock
         else:
@@ -721,6 +743,9 @@ class eBTC:
         @param value The new grace period to set.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
+
+        assert value >= MINIMUM_GRACE_PERIOD, "Error: Value too low"
+
         if use_high_sec:
             timelock = self.highsec_timelock
         else:
@@ -779,6 +804,9 @@ class eBTC:
         @param value The new fee bps.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
+
+        assert value <= MAX_FEE_BPS, "Error: Value too high"
+
         if use_high_sec:
             timelock = self.highsec_timelock
         else:
@@ -806,6 +834,9 @@ class eBTC:
         @param value The new fee bps.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
+
+        assert value <= MAX_FEE_BPS, "Error: Value too high"
+
         if use_high_sec:
             timelock = self.highsec_timelock
         else:
@@ -835,6 +866,9 @@ class eBTC:
         @param address The new fee recipient address.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
+
+        assert address != AddressZero, "Error: Address cannot be zero"
+
         if use_high_sec:
             timelock = self.highsec_timelock
         else:
@@ -862,6 +896,9 @@ class eBTC:
         @param address The new fee recipient address.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
+
+        assert address != AddressZero, "Error: Address cannot be zero"
+
         if use_high_sec:
             timelock = self.highsec_timelock
         else:

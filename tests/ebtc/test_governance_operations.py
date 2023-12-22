@@ -1,6 +1,15 @@
 from brownie import chain
 import pytest
-from helpers.constants import EmptyBytes32
+from helpers.constants import (
+    AddressZero,
+    DECIMAL_PRECISION,
+    MAX_REWARD_SPLIT,
+    MIN_REDEMPTION_FEE_FLOOR,
+    MIN_MINUTE_DECAY_FACTOR,
+    MAX_MINUTE_DECAY_FACTOR,
+    MINIMUM_GRACE_PERIOD,
+    MAX_FEE_BPS,
+)
 
 
 # Test cdpManager_set_staking_reward_split
@@ -16,6 +25,13 @@ def test_cdpManager_set_staking_reward_split_happy(techops):
     assert techops.ebtc.cdp_manager.stakingRewardSplit() == 1000
 
 
+# Test cdpManager_set_staking_reward_split value checks
+def test_cdpManager_set_staking_reward_split_checks(techops):
+    techops.init_ebtc()
+    with pytest.raises(AssertionError, match="Error: Value too high"):
+        techops.ebtc.cdpManager_set_staking_reward_split(MAX_REWARD_SPLIT + 1)
+
+
 # Test cdpManager_set_redemption_fee_floor
 def test_cdpManager_set_redemption_fee_floor_happy(techops):
     techops.init_ebtc()
@@ -29,6 +45,16 @@ def test_cdpManager_set_redemption_fee_floor_happy(techops):
     assert techops.ebtc.cdp_manager.redemptionFeeFloor() == 0.006e18
 
 
+# Test cdpManager_set_redemption_fee_floor value checks
+def test_cdpManager_set_redemption_fee_floor_checks(techops):
+    techops.init_ebtc()
+    with pytest.raises(AssertionError, match="Error: Value too low"):
+        techops.ebtc.cdpManager_set_redemption_fee_floor(MIN_REDEMPTION_FEE_FLOOR - 1)
+
+    with pytest.raises(AssertionError, match="Error: Value too high"):
+        techops.ebtc.cdpManager_set_redemption_fee_floor(DECIMAL_PRECISION + 1)
+
+
 # Test cdpManager_set_minute_decay_factor
 def test_cdpManager_set_minute_decay_factor_happy(techops):
     techops.init_ebtc()
@@ -40,6 +66,16 @@ def test_cdpManager_set_minute_decay_factor_happy(techops):
     techops.ebtc.cdpManager_set_minute_decay_factor(1000)
 
     assert techops.ebtc.cdp_manager.minuteDecayFactor() == 1000
+
+
+# Test cdpManager_set_minute_decay_factor value checks
+def test_cdpManager_set_minute_decay_factor_checks(techops):
+    techops.init_ebtc()
+    with pytest.raises(AssertionError, match="Error: Value too low"):
+        techops.ebtc.cdpManager_set_minute_decay_factor(MIN_MINUTE_DECAY_FACTOR - 1)
+
+    with pytest.raises(AssertionError, match="Error: Value too high"):
+        techops.ebtc.cdpManager_set_minute_decay_factor(MAX_MINUTE_DECAY_FACTOR + 1)
 
 
 # Test cdpManager_set_beta
@@ -81,6 +117,13 @@ def test_cdpManager_set_grace_period_happy(techops):
     assert techops.ebtc.cdp_manager.recoveryModeGracePeriodDuration() == 1000
 
 
+# Test cdpManager_set_grace_period value checks
+def test_cdpManager_set_grace_period_checks(techops):
+    techops.init_ebtc()
+    with pytest.raises(AssertionError, match="Error: Value too low"):
+        techops.ebtc.cdpManager_set_grace_period(MINIMUM_GRACE_PERIOD - 1)
+
+
 # Test priceFeed_set_fallback_caller
 def test_priceFeed_set_fallback_caller_happy(techops):
     techops.init_ebtc()
@@ -107,6 +150,13 @@ def test_activePool_set_fee_bps_happy(techops):
     assert techops.ebtc.active_pool.feeBps() == 1000
 
 
+# Test activePool_set_fee_bps value checks
+def test_activePool_set_fee_bps_checks(techops):
+    techops.init_ebtc()
+    with pytest.raises(AssertionError, match="Error: Value too high"):
+        techops.ebtc.activePool_set_fee_bps(MAX_FEE_BPS + 1)
+
+
 # Test borrowerOperations_set_fee_bps
 def test_borrowerOperations_set_fee_bps_happy(techops):
     techops.init_ebtc()
@@ -118,6 +168,13 @@ def test_borrowerOperations_set_fee_bps_happy(techops):
     techops.ebtc.borrowerOperations_set_fee_bps(1000)
 
     assert techops.ebtc.borrower_operations.feeBps() == 1000
+
+
+# Test borrowerOperations_set_fee_bps value checks
+def test_borrowerOperations_set_fee_bps_checks(techops):
+    techops.init_ebtc()
+    with pytest.raises(AssertionError, match="Error: Value too high"):
+        techops.ebtc.borrowerOperations_set_fee_bps(MAX_FEE_BPS + 1)
 
 
 # Test activePool_set_fee_recipient_address
@@ -133,6 +190,13 @@ def test_activePool_set_fee_recipient_address_happy(techops):
     assert techops.ebtc.active_pool.feeRecipientAddress() == techops.account
 
 
+# Test activePool_set_fee_recipient_address address checks
+def test_activePool_set_fee_recipient_address_checks(techops):
+    techops.init_ebtc()
+    with pytest.raises(AssertionError, match="Error: Address cannot be zero"):
+        techops.ebtc.activePool_set_fee_recipient_address(AddressZero)
+
+
 # Test borrowerOperations_set_fee_recipient_address
 def test_borrowerOperations_set_fee_recipient_address_happy(techops):
     techops.init_ebtc()
@@ -144,6 +208,13 @@ def test_borrowerOperations_set_fee_recipient_address_happy(techops):
     techops.ebtc.borrowerOperations_set_fee_recipient_address(techops.account)
 
     assert techops.ebtc.borrower_operations.feeRecipientAddress() == techops.account
+
+
+# Test borrowerOperations_set_fee_recipient_address address checks
+def test_borrowerOperations_set_fee_recipient_address_checks(techops):
+    techops.init_ebtc()
+    with pytest.raises(AssertionError, match="Error: Address cannot be zero"):
+        techops.ebtc.borrowerOperations_set_fee_recipient_address(AddressZero)
 
 
 # Test activePool_claim_fee_recipient_coll_shares
