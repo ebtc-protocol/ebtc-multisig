@@ -325,7 +325,7 @@ class eBTC:
         @param value The ETH value of the timelock transaction.
         @param data The data of the timelock transaction (encoding of function signature and parameters).
         @param predecessor The predecessing transacction of the timelock transaction. Matters when cancelling batched transactions.
-        @param salt The salt of the timelock. Matters when cancelling a batched, repeated, transaction.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param delay The time delay at which the transaction will be executable. Must be higher than the min delay.
         """
         ## Check that safe has PROPOSER_ROLE on timelock
@@ -340,7 +340,7 @@ class eBTC:
             ), "Error: Not authorized"
 
         ## Schedule tx
-        timelock.schedule(target, value, data, predecessor, salt, delay)
+        tx = timelock.schedule(target, value, data, predecessor, salt, delay)
         id = timelock.hashOperation(target, value, data, predecessor, salt)
         assert timelock.isOperationPending(id)
         exec_date = datetime.utcfromtimestamp(timelock.getTimestamp(id)).strftime(
@@ -350,6 +350,7 @@ class eBTC:
         C.print(
             f"[green]Operation {id} has been scheduled! Execution available at {exec_date}[/green]"
         )
+        return tx
 
     def execute_timelock(self, timelock, target, value, data, predecessor, salt):
         """
@@ -375,9 +376,10 @@ class eBTC:
         ## Check that valid tx and execute if so
         id = timelock.hashOperation(target, value, data, predecessor, salt)
         if timelock.isOperationReady(id):
-            timelock.execute(target, value, data, predecessor, salt)
+            tx = timelock.execute(target, value, data, predecessor, salt)
             assert timelock.isOperationDone(id)
             C.print(f"[green]Operation {id} has been executed![/green]")
+            return tx
         elif timelock.isOperationPending(id):
             exec_date = datetime.utcfromtimestamp(timelock.getTimestamp(id)).strftime(
                 "%Y-%m-%d %H:%M:%S"
@@ -399,9 +401,10 @@ class eBTC:
         id,
     ):
         if timelock.isOperationPending(id):
-            timelock.cancel(id)
+            tx = timelock.cancel(id)
             assert timelock.isOperation(id) == False
             C.print(f"[green]Operation {id} has been cancelled![/green]")
+            return tx
         else:
             C.print(f"[red]Operation {id} can't be cancelled![/red]")
             raise Exception("Error: operation does not exist")
@@ -470,7 +473,9 @@ class eBTC:
     ##
     ##################################################################
 
-    def grant_timelock_role(self, role_key, account, use_high_sec=False):
+    def grant_timelock_role(
+        self, role_key, account, salt=EmptyBytes32, use_high_sec=False
+    ):
         """
         @dev Grants a role on the timelock to an account.
         @param role_key The key of the role to grant. Can be one of "PROPOSER_ROLE", "CANCELLER_ROLE", "EXECUTOR_ROLE", or "TIMELOCK_ADMIN_ROLE".
@@ -497,20 +502,20 @@ class eBTC:
         ## Check if tx is already scheduled
         target = timelock
         data = target.grantRole.encode_input(role, account)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
         if timelock.isOperation(id):
-            self.execute_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
-            )
+            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
             assert timelock.hasRole(role, account)
         else:
             delay = timelock.getMinDelay()
             self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
             )
 
-    def revoke_timelock_role(self, role_key, account, use_high_sec=False):
+    def revoke_timelock_role(
+        self, role_key, account, salt=EmptyBytes32, use_high_sec=False
+    ):
         """
         @dev Revokes a role on the timelock from an account.
         @param role_key The key of the role to revoke. Can be one of "PROPOSER_ROLE", "CANCELLER_ROLE", "EXECUTOR_ROLE", or "TIMELOCK_ADMIN_ROLE".
@@ -540,20 +545,18 @@ class eBTC:
         ## Check if tx is already scheduled
         target = timelock
         data = target.revokeRole.encode_input(role, account)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
         if timelock.isOperation(id):
-            self.execute_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
-            )
+            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
             assert timelock.hasRole(role, account) == False
         else:
             delay = timelock.getMinDelay()
             self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
             )
 
-    def update_timelock_delay(self, new_delay, use_high_sec=False):
+    def update_timelock_delay(self, new_delay, salt=EmptyBytes32, use_high_sec=False):
         """
         @dev Updates the delay on the timelock.
         @param new_delay The new delay to set on the timelock.
@@ -570,17 +573,15 @@ class eBTC:
         ## Check if tx is already scheduled
         target = timelock
         data = target.updateDelay.encode_input(new_delay)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
         if timelock.isOperation(id):
-            self.execute_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
-            )
+            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
             assert timelock.getMinDelay() == new_delay
         else:
             delay = timelock.getMinDelay()
             self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
             )
 
     ##################################################################
@@ -591,7 +592,9 @@ class eBTC:
 
     #### ===== CDP MANAGER ===== ####
 
-    def cdpManager_set_staking_reward_split(self, value, use_high_sec=False):
+    def cdpManager_set_staking_reward_split(
+        self, value, salt=EmptyBytes32, use_high_sec=False
+    ):
         """
         @dev Sets the staking reward split in the CDP Manager.
         @param value The new staking reward split to set.
@@ -608,20 +611,20 @@ class eBTC:
         ## Check if tx is already scheduled
         target = self.cdp_manager
         data = target.setStakingRewardSplit.encode_input(value)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
         if timelock.isOperation(id):
-            self.execute_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
-            )
+            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
             assert self.cdp_manager.stakingRewardSplit() == value
         else:
             delay = timelock.getMinDelay()
             self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
             )
 
-    def cdpManager_set_redemption_fee_floor(self, value, use_high_sec=False):
+    def cdpManager_set_redemption_fee_floor(
+        self, value, salt=EmptyBytes32, use_high_sec=False
+    ):
         """
         @dev Sets the redemption fee floor in the CDP Manager.
         @param value The new redemption fee floor to set.
@@ -639,20 +642,20 @@ class eBTC:
         ## Check if tx is already scheduled
         target = self.cdp_manager
         data = target.setRedemptionFeeFloor.encode_input(value)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
         if timelock.isOperation(id):
-            self.execute_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
-            )
+            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
             assert self.cdp_manager.redemptionFeeFloor() == value
         else:
             delay = timelock.getMinDelay()
             self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
             )
 
-    def cdpManager_set_minute_decay_factor(self, value, use_high_sec=False):
+    def cdpManager_set_minute_decay_factor(
+        self, value, salt=EmptyBytes32, use_high_sec=False
+    ):
         """
         @dev Sets the minute decay factor for the redemption fee in the CDP Manager.
         @param value The new redemption fee minute decay factor.
@@ -670,20 +673,18 @@ class eBTC:
         ## Check if tx is already scheduled
         target = self.cdp_manager
         data = target.setMinuteDecayFactor.encode_input(value)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
         if timelock.isOperation(id):
-            self.execute_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
-            )
+            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
             assert self.cdp_manager.minuteDecayFactor() == value
         else:
             delay = timelock.getMinDelay()
             self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
             )
 
-    def cdpManager_set_beta(self, value, use_high_sec=False):
+    def cdpManager_set_beta(self, value, salt=EmptyBytes32, use_high_sec=False):
         """
         @dev Sets the beta for the redemption fee in the CDP Manager.
         @param value The new redemption fee beta.
@@ -697,20 +698,20 @@ class eBTC:
         ## Check if tx is already scheduled
         target = self.cdp_manager
         data = target.setBeta.encode_input(value)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
         if timelock.isOperation(id):
-            self.execute_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
-            )
+            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
             assert self.cdp_manager.beta() == value
         else:
             delay = timelock.getMinDelay()
             self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
             )
 
-    def cdpManager_set_redemptions_paused(self, pause, use_high_sec=False):
+    def cdpManager_set_redemptions_paused(
+        self, pause, salt=EmptyBytes32, use_high_sec=False
+    ):
         """
         @dev Sets the redemptions paused state in the CDP Manager.
         @param paused The new redemptions paused state to set (True or False).
@@ -724,20 +725,18 @@ class eBTC:
         ## Check if tx is already scheduled
         target = self.cdp_manager
         data = target.setRedemptionsPaused.encode_input(pause)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
         if timelock.isOperation(id):
-            self.execute_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
-            )
+            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
             assert self.cdp_manager.redemptionsPaused() == pause
         else:
             delay = timelock.getMinDelay()
             self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
             )
 
-    def cdpManager_set_grace_period(self, value, use_high_sec=False):
+    def cdpManager_set_grace_period(self, value, salt=EmptyBytes32, use_high_sec=False):
         """
         @dev Sets the grace period in the CDP Manager.
         @param value The new grace period to set.
@@ -754,22 +753,22 @@ class eBTC:
         ## Check if tx is already scheduled
         target = self.cdp_manager
         data = target.setGracePeriod.encode_input(value)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
         if timelock.isOperation(id):
-            self.execute_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
-            )
+            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
             assert self.cdp_manager.recoveryModeGracePeriodDuration() == value
         else:
             delay = timelock.getMinDelay()
             self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
             )
 
     #### ===== PRICE FEED ===== ####
 
-    def priceFeed_set_fallback_caller(self, address, use_high_sec=False):
+    def priceFeed_set_fallback_caller(
+        self, address, salt=EmptyBytes32, use_high_sec=False
+    ):
         """
         @dev Sets the fallbak Oracle caller on the PriceFeed.
         @param address The address of the new fallback caller
@@ -783,22 +782,20 @@ class eBTC:
         ## Check if tx is already scheduled
         target = self.price_feed
         data = target.setFallbackCaller.encode_input(address)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
         if timelock.isOperation(id):
-            self.execute_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
-            )
+            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
             assert self.price_feed.fallbackCaller() == address
         else:
             delay = timelock.getMinDelay()
             self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
             )
 
     #### ===== FLASHLOANS and FEES (ACTIVE POOL AND BORROWERS OPERATIONS) ===== ####
 
-    def activePool_set_fee_bps(self, value, use_high_sec=False):
+    def activePool_set_fee_bps(self, value, salt=EmptyBytes32, use_high_sec=False):
         """
         @dev Sets the fee bps on the Active Pool.
         @param value The new fee bps.
@@ -815,20 +812,20 @@ class eBTC:
         ## Check if tx is already scheduled
         target = self.active_pool
         data = target.setFeeBps.encode_input(value)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
         if timelock.isOperation(id):
-            self.execute_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
-            )
+            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
             assert self.active_pool.feeBps() == value
         else:
             delay = timelock.getMinDelay()
             self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
             )
 
-    def borrowerOperations_set_fee_bps(self, value, use_high_sec=False):
+    def borrowerOperations_set_fee_bps(
+        self, value, salt=EmptyBytes32, use_high_sec=False
+    ):
         """
         @dev Sets the fee bps on the CDP Manager.
         @param value The new fee bps.
@@ -845,22 +842,22 @@ class eBTC:
         ## Check if tx is already scheduled
         target = self.borrower_operations
         data = target.setFeeBps.encode_input(value)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
         if timelock.isOperation(id):
-            self.execute_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
-            )
+            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
             assert self.borrower_operations.feeBps() == value
         else:
             delay = timelock.getMinDelay()
             self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
             )
 
     ## TODO: Function to change the fee on both the AP and the BO through a batched timelock tx
 
-    def activePool_set_fee_recipient_address(self, address, use_high_sec=False):
+    def activePool_set_fee_recipient_address(
+        self, address, salt=EmptyBytes32, use_high_sec=False
+    ):
         """
         @dev Sets the new fee recipient address on the Active Pool.
         @param address The new fee recipient address.
@@ -877,20 +874,20 @@ class eBTC:
         ## Check if tx is already scheduled
         target = self.active_pool
         data = target.setFeeRecipientAddress.encode_input(address)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
         if timelock.isOperation(id):
-            self.execute_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
-            )
+            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
             assert self.active_pool.feeRecipientAddress() == address
         else:
             delay = timelock.getMinDelay()
             self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
             )
 
-    def borrowerOperations_set_fee_recipient_address(self, address, use_high_sec=False):
+    def borrowerOperations_set_fee_recipient_address(
+        self, address, salt=EmptyBytes32, use_high_sec=False
+    ):
         """
         @dev Sets the new fee recipient address on the Borrowers Operations.
         @param address The new fee recipient address.
@@ -907,24 +904,22 @@ class eBTC:
         ## Check if tx is already scheduled
         target = self.borrower_operations
         data = target.setFeeRecipientAddress.encode_input(address)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
         if timelock.isOperation(id):
-            self.execute_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
-            )
+            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
             assert self.borrower_operations.feeRecipientAddress() == address
         else:
             delay = timelock.getMinDelay()
             self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
             )
 
     ## TODO: Function to change the fee recipient on both the AP and the BO through a batched timelock tx
 
     #### ===== ACTIVE POOL ===== ####
     def activePool_claim_fee_recipient_coll_shares(
-        self, value, use_timelock=False, use_high_sec=False
+        self, value, use_timelock=False, salt=EmptyBytes32, use_high_sec=False
     ):
         """
         @dev Claims the accumulated collateral shares for the Fee Recipient on the Active Pool.
@@ -941,16 +936,14 @@ class eBTC:
                 timelock = self.lowsec_timelock
 
             ## Check if tx is already scheduled
-            id = timelock.hashOperation(
-                target.address, 0, data, EmptyBytes32, EmptyBytes32
-            )
+            id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
             if timelock.isOperation(id):
                 coll = self.collateral
                 fee_recipient = self.active_pool.feeRecipientAddress()
                 shares_before = coll.sharesOf(fee_recipient)
                 self.execute_timelock(
-                    timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
+                    timelock, target.address, 0, data, EmptyBytes32, salt
                 )
                 assert coll.sharesOf(fee_recipient) - shares_before == value
             else:
@@ -961,7 +954,7 @@ class eBTC:
                     0,
                     data,
                     EmptyBytes32,
-                    EmptyBytes32,
+                    salt,
                     delay + 1,
                 )
         else:
@@ -979,7 +972,12 @@ class eBTC:
     #### ===== SWEEP STUCK TOKENS (ACTIVE POOL AND COLL SURPLUS POOL) ===== ####
 
     def activePool_sweep_token(
-        self, token_address, value, use_timelock=False, use_high_sec=False
+        self,
+        token_address,
+        value,
+        use_timelock=False,
+        salt=EmptyBytes32,
+        use_high_sec=False,
     ):
         """
         @dev Sweeps an amount of an specific unprotected, stuck, token from the Active Pool into the fee recipient.
@@ -997,16 +995,14 @@ class eBTC:
                 timelock = self.lowsec_timelock
 
             ## Check if tx is already scheduled
-            id = timelock.hashOperation(
-                target.address, 0, data, EmptyBytes32, EmptyBytes32
-            )
+            id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
             if timelock.isOperation(id):
                 token = self.safe.contract(token_address)
                 fee_recipient = self.active_pool.feeRecipientAddress()
                 balance_before = token.balanceOf(fee_recipient)
                 self.execute_timelock(
-                    timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
+                    timelock, target.address, 0, data, EmptyBytes32, salt
                 )
                 assert token.balanceOf(fee_recipient) - balance_before == value
             else:
@@ -1017,7 +1013,7 @@ class eBTC:
                     0,
                     data,
                     EmptyBytes32,
-                    EmptyBytes32,
+                    salt,
                     delay + 1,
                 )
         else:
@@ -1032,7 +1028,12 @@ class eBTC:
             assert token.balanceOf(fee_recipient) - balance_before == value
 
     def collSurplusPool_sweep_token(
-        self, token_address, value, use_timelock=False, use_high_sec=False
+        self,
+        token_address,
+        value,
+        use_timelock=False,
+        salt=EmptyBytes32,
+        use_high_sec=False,
     ):
         """
         @dev Sweeps an amount of an specific unprotected, stuck, token from the Collateral Surplus pool into the fee recipient.
@@ -1050,9 +1051,7 @@ class eBTC:
                 timelock = self.lowsec_timelock
 
             ## Check if tx is already scheduled
-            id = timelock.hashOperation(
-                target.address, 0, data, EmptyBytes32, EmptyBytes32
-            )
+            id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
             if timelock.isOperation(id):
                 token = self.safe.contract(token_address)
@@ -1061,7 +1060,7 @@ class eBTC:
                 )  # Fee recipient will be modified to track the Active Pool's
                 balance_before = token.balanceOf(fee_recipient)
                 self.execute_timelock(
-                    timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
+                    timelock, target.address, 0, data, EmptyBytes32, salt
                 )
                 assert token.balanceOf(fee_recipient) - balance_before == value
             else:
@@ -1072,7 +1071,7 @@ class eBTC:
                     0,
                     data,
                     EmptyBytes32,
-                    EmptyBytes32,
+                    salt,
                     delay + 1,
                 )
         else:
@@ -1090,7 +1089,7 @@ class eBTC:
 
     #### ===== GOVERNANCE CONFIGURATION (Only high sec) ===== ####
 
-    def authority_set_role_name(self, role, name):
+    def authority_set_role_name(self, role, name, salt=EmptyBytes32):
         """
         @dev Sets the name of a role in the Authority.
         @param role The role to set the name of.
@@ -1100,7 +1099,7 @@ class eBTC:
         target = self.authority
         data = target.setRoleName.encode_input(role, name)
         id = self.highsec_timelock.hashOperation(
-            target.address, 0, data, EmptyBytes32, EmptyBytes32
+            target.address, 0, data, EmptyBytes32, salt
         )
 
         if self.highsec_timelock.isOperation(id):
@@ -1110,7 +1109,7 @@ class eBTC:
                 0,
                 data,
                 EmptyBytes32,
-                EmptyBytes32,
+                salt,
             )
             assert self.authority.getRoleName(role) == name
         else:
@@ -1125,7 +1124,7 @@ class eBTC:
                 delay + 1,
             )
 
-    def authority_set_user_role(self, user, role, enabled):
+    def authority_set_user_role(self, user, role, enabled, salt=EmptyBytes32):
         """
         @dev Grants a role to a user in the Authority.
         @param user The user to grant the role to.
@@ -1136,7 +1135,7 @@ class eBTC:
         target = self.authority
         data = target.setUserRole.encode_input(user, role, enabled)
         id = self.highsec_timelock.hashOperation(
-            target.address, 0, data, EmptyBytes32, EmptyBytes32
+            target.address, 0, data, EmptyBytes32, salt
         )
 
         if self.highsec_timelock.isOperation(id):
@@ -1146,7 +1145,7 @@ class eBTC:
                 0,
                 data,
                 EmptyBytes32,
-                EmptyBytes32,
+                salt,
             )
             assert self.authority.doesUserHaveRole(user, role) == enabled
         else:
@@ -1157,11 +1156,13 @@ class eBTC:
                 0,
                 data,
                 EmptyBytes32,
-                EmptyBytes32,
+                salt,
                 delay + 1,
             )
 
-    def authority_set_role_capability(self, role, target_address, functionSig, enabled):
+    def authority_set_role_capability(
+        self, role, target_address, functionSig, enabled, salt=EmptyBytes32
+    ):
         """
         @dev Assigns the capability to call a contrat's function to a role in the Authority.
         @param role The role to set the name of.
@@ -1175,7 +1176,7 @@ class eBTC:
             role, target_address, functionSig, enabled
         )
         id = self.highsec_timelock.hashOperation(
-            target.address, 0, data, EmptyBytes32, EmptyBytes32
+            target.address, 0, data, EmptyBytes32, salt
         )
 
         if self.highsec_timelock.isOperation(id):
@@ -1185,7 +1186,7 @@ class eBTC:
                 0,
                 data,
                 EmptyBytes32,
-                EmptyBytes32,
+                salt,
             )
             assert (
                 self.authority.doesRoleHaveCapability(role, target_address, functionSig)
@@ -1199,11 +1200,13 @@ class eBTC:
                 0,
                 data,
                 EmptyBytes32,
-                EmptyBytes32,
+                salt,
                 delay + 1,
             )
 
-    def authority_set_public_capability(self, target_address, functionSig, enabled):
+    def authority_set_public_capability(
+        self, target_address, functionSig, enabled, salt=EmptyBytes32
+    ):
         """
         @dev Flags a contract's function as callable by anyone (public) in the Authority.
         @param target_address The address of the contract containing the function.
@@ -1216,7 +1219,7 @@ class eBTC:
             target_address, functionSig, enabled
         )
         id = self.highsec_timelock.hashOperation(
-            target.address, 0, data, EmptyBytes32, EmptyBytes32
+            target.address, 0, data, EmptyBytes32, salt
         )
 
         if self.highsec_timelock.isOperation(id):
@@ -1226,7 +1229,7 @@ class eBTC:
                 0,
                 data,
                 EmptyBytes32,
-                EmptyBytes32,
+                salt,
             )
             assert (
                 self.authority.isPublicCapability(target_address, functionSig)
@@ -1240,11 +1243,11 @@ class eBTC:
                 0,
                 data,
                 EmptyBytes32,
-                EmptyBytes32,
+                salt,
                 delay + 1,
             )
 
-    def authority_burn_capability(self, target_address, functionSig):
+    def authority_burn_capability(self, target_address, functionSig, salt=EmptyBytes32):
         """
         @dev Burns the ability to call a contract's function from anyone irrespective of their roles in the Authority.
         @param target_address The address of the contract containing the function.
@@ -1254,7 +1257,7 @@ class eBTC:
         target = self.authority
         data = target.burnCapability.encode_input(target_address, functionSig)
         id = self.highsec_timelock.hashOperation(
-            target.address, 0, data, EmptyBytes32, EmptyBytes32
+            target.address, 0, data, EmptyBytes32, salt
         )
 
         if self.highsec_timelock.isOperation(id):
@@ -1264,7 +1267,7 @@ class eBTC:
                 0,
                 data,
                 EmptyBytes32,
-                EmptyBytes32,
+                salt,
             )
             assert (
                 self.authority.capabilityFlag(target_address, functionSig) == 2
@@ -1277,11 +1280,11 @@ class eBTC:
                 0,
                 data,
                 EmptyBytes32,
-                EmptyBytes32,
+                salt,
                 delay + 1,
             )
 
-    def authority_set_authority(self, new_authority):
+    def authority_set_authority(self, new_authority, salt=EmptyBytes32):
         """
         @dev Changes the Governance underying authority contract.
         @param new_authority The address of the new Authority contract.
@@ -1290,7 +1293,7 @@ class eBTC:
         target = self.authority
         data = target.setAuthority.encode_input(new_authority)
         id = self.highsec_timelock.hashOperation(
-            target.address, 0, data, EmptyBytes32, EmptyBytes32
+            target.address, 0, data, EmptyBytes32, salt
         )
 
         if self.highsec_timelock.isOperation(id):
@@ -1300,7 +1303,7 @@ class eBTC:
                 0,
                 data,
                 EmptyBytes32,
-                EmptyBytes32,
+                salt,
             )
             assert self.authority.authority() == new_authority
         else:
@@ -1311,6 +1314,6 @@ class eBTC:
                 0,
                 data,
                 EmptyBytes32,
-                EmptyBytes32,
+                salt,
                 delay + 1,
             )

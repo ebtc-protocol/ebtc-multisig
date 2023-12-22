@@ -1,5 +1,6 @@
 from brownie import chain
 import pytest
+from helpers.constants import EmptyBytes32
 
 
 def test_grant_timelock_role_happy(techops, random_safe):
@@ -53,12 +54,12 @@ def test_high_sec_management_happy(ecosystem):
     ecosystem.init_ebtc()
     new_dalay = 1000
 
-    ecosystem.ebtc.update_timelock_delay(new_dalay, True)
+    ecosystem.ebtc.update_timelock_delay(new_dalay, EmptyBytes32, True)
 
     chain.sleep(ecosystem.ebtc.highsec_timelock.getMinDelay() + 1)
     chain.mine()
 
-    ecosystem.ebtc.update_timelock_delay(new_dalay, True)
+    ecosystem.ebtc.update_timelock_delay(new_dalay, EmptyBytes32, True)
 
     assert ecosystem.ebtc.highsec_timelock.getMinDelay() == new_dalay
 
@@ -68,4 +69,4 @@ def test_high_sec_management_permissions(techops):
     new_dalay = 1000
 
     with pytest.raises(AssertionError):
-        techops.ebtc.update_timelock_delay(new_dalay, True)
+        techops.ebtc.update_timelock_delay(new_dalay, EmptyBytes32, True)

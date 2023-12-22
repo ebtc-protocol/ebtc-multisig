@@ -1,5 +1,6 @@
 from brownie import chain
 import pytest
+import brownie
 from helpers.constants import EmptyBytes32
 
 
@@ -186,3 +187,65 @@ def test_cancel_operation_from_parameters(techops, ecosystem):
     )
 
     assert techops.ebtc.lowsec_timelock.isOperationReady(id) == False
+
+
+# Test posting two operations with the same parameters but differentiating them with a salt value
+def test_repeated_operations_with_salt(techops):
+    techops.init_ebtc()
+
+    target = techops.ebtc.active_pool
+    data = target.setFeeBps.encode_input(100)
+    timelock = techops.ebtc.lowsec_timelock
+    delay = timelock.getMinDelay()
+
+    ## Schedule and execute first operation
+    id1 = timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+    techops.ebtc.schedule_timelock(
+        timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+    )
+    chain.sleep(delay + 1)
+    chain.mine()
+    techops.ebtc.execute_timelock(
+        timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
+    )
+    assert target.feeBps() == 100
+    assert techops.ebtc.lowsec_timelock.isOperationDone(id1)
+
+    ## Schedule and execute second operation with different value (changing value)
+    data = target.setFeeBps.encode_input(200)
+    id2 = timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+    techops.ebtc.schedule_timelock(
+        timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+    )
+    chain.sleep(delay + 1)
+    chain.mine()
+    techops.ebtc.execute_timelock(
+        timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32
+    )
+    assert target.feeBps() == 200
+    assert techops.ebtc.lowsec_timelock.isOperationDone(id2)
+
+    ## Attempting to schedule and execute third operation with the same value as the first operation and no salt
+    data = target.setFeeBps.encode_input(100)
+    id3 = timelock.hashOperation(target.address, 0, data, EmptyBytes32, EmptyBytes32)
+    assert id1 == id3
+
+    with brownie.reverts("TimelockController: operation already scheduled"):
+        techops.ebtc.schedule_timelock(
+            timelock, target.address, 0, data, EmptyBytes32, EmptyBytes32, delay + 1
+        )
+
+    ## Schedule and execute third operation with the same value as the first operation but with a salt
+    salt = "0x0000000000000000000000000000000000000000000000000000000000000001"
+    id3 = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
+    assert id1 != id3
+    tx = techops.ebtc.schedule_timelock(
+        timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
+    )
+    assert tx.events["CallSalt"]["id"] == id3
+    assert tx.events["CallSalt"]["salt"] == str(salt)
+    chain.sleep(delay + 1)
+    chain.mine()
+    techops.ebtc.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
+    assert target.feeBps() == 100
+    assert techops.ebtc.lowsec_timelock.isOperationDone(id3)
