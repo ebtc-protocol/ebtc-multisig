@@ -324,7 +324,7 @@ class eBTC:
         @param target The target of the timelock transaction.
         @param value The ETH value of the timelock transaction.
         @param data The data of the timelock transaction (encoding of function signature and parameters).
-        @param predecessor The predecessing transacction of the timelock transaction. Matters when cancelling batched transactions.
+        @param predecessor The predecessing transacction of the timelock transaction. Matters when there is a dependency between operations.
         @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param delay The time delay at which the transaction will be executable. Must be higher than the min delay.
         """
@@ -359,8 +359,8 @@ class eBTC:
         @param target The target of the timelock transaction.
         @param value The ETH value of the timelock transaction.
         @param data The data of the timelock transaction (encoding of function signature and parameters).
-        @param predecessor The predecessing transacction of the timelock transaction. Matters when cancelling batched transactions.
-        @param salt The salt of the timelock. Matters when cancelling a batched, repeated, transaction.
+        @param predecessor The predecessing transacction of the timelock transaction. Matters when there is a dependency between operations.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         """
         ## Check that safe has EXECUTOR_ROLE on timelock
         assert timelock.hasRole(
@@ -424,8 +424,8 @@ class eBTC:
         @param target The target of the timelock transaction.
         @param value The ETH value of the timelock transaction.
         @param data The data of the timelock transaction (encoding of function signature and parameters).
-        @param predecessor The predecessing transacction of the timelock transaction. Matters when cancelling batched transactions.
-        @param salt The salt of the timelock. Matters when cancelling a batched, repeated, transaction.
+        @param predecessor The predecessing transacction of the timelock transaction. Matters when there is a dependency between operations.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         """
         ## Check that safe has CANCELLER_ROLE on timelock
         assert self.lowsec_timelock.hasRole(
@@ -453,8 +453,8 @@ class eBTC:
         @param target The target of the timelock transaction.
         @param value The ETH value of the timelock transaction.
         @param data The data of the timelock transaction (encoding of function signature and parameters).
-        @param predecessor The predecessing transacction of the timelock transaction. Matters when cancelling batched transactions.
-        @param salt The salt of the timelock. Matters when cancelling a batched, repeated, transaction.
+        @param predecessor The predecessing transacction of the timelock transaction. Matters when there is a dependency between operations.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         """
         ## Check that safe has CANCELLER_ROLE on timelock
         assert self.highsec_timelock.hasRole(
