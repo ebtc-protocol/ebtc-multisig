@@ -22,6 +22,8 @@ class eBTC:
         self.SAFE_ICR_THRESHOLD = 120e16
         self.CCR = 125e16
 
+        self.LIQUIDATOR_REWARD = 2e17
+
         # contracts
         self.collateral = safe.contract(
             registry.sepolia.ebtc.collateral, interface.ICollateralToken
@@ -953,14 +955,8 @@ class eBTC:
         self._assert_cdp_id_ownership(cdp_id)
 
         # verify: sufficient ebtc is hold for closing
-        (
-            cdp_id_debt,
-            cdp_id_coll,
-            _,
-            cdp_id_liquidator_reward_shares,
-            _,
-            _,
-        ) = self.cdp_manager.Cdps(cdp_id)
+        cdp_id_liquidator_reward_shares = self.collateral.getSharesByPooledEth(self.LIQUIDATOR_REWARD)
+        cdp_id_debt, cdp_id_coll = self.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
         self._assert_debt_balance(cdp_id_debt)
 
         # cached prev collateral balance
@@ -1045,14 +1041,7 @@ class eBTC:
         self._assert_cdp_id_ownership(cdp_id)
 
         # verify: cdp holds enough collateral to be withdrawn
-        (
-            _,
-            cdp_id_coll,
-            _,
-            _,
-            _,
-            _,
-        ) = self.cdp_manager.Cdps(cdp_id)
+        _, cdp_id_coll = self.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
         assert cdp_id_coll > coll_amount
 
         # verify: check recovery mode status. use sync tcr so accounts for split fee
@@ -1062,7 +1051,6 @@ class eBTC:
 
         prev_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
         prev_tcr = self.cdp_manager.getSyncedTCR(feed_price)
-        prev_coll_balance = self.cdp_manager.getCdpCollShares(cdp_id)
 
         # 1. decreased collateral in target cdp id
         self.borrower_operations.withdrawColl(cdp_id, coll_amount, cdp_id, cdp_id)
@@ -1082,7 +1070,7 @@ class eBTC:
         assert self.cdp_manager.getSyncedTCR(feed_price) < prev_tcr
 
         # 2.2 collateral in cdp at storage has decreased
-        assert self.cdp_manager.getCdpCollShares(cdp_id) < prev_coll_balance
+        assert self.cdp_manager.getCdpCollShares(cdp_id) < cdp_id_coll
 
     def cdp_repay_debt(self, cdp_id, debt_repay_amount):
         """
