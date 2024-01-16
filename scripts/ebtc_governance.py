@@ -152,7 +152,7 @@ def authority_set_role_name(role, name):
     """
     Set the role name for the Authority contract.
     """
-    safe = GreatApeSafe(r.ebtc_wallets.ecosystem_multisig)
+    safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
     safe.init_ebtc()
     C.print(f"\nUsing {safe.account} for Authority.setRoleName\n")
     safe.ebtc.authority_set_role_name(role, name)
@@ -164,7 +164,7 @@ def authority_set_user_role(user, role, enabled):
     """
     Set the user role for the Authority contract.
     """
-    safe = GreatApeSafe(r.ebtc_wallets.ecosystem_multisig)
+    safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
     safe.init_ebtc()
     C.print(f"\nUsing {safe.account} for Authority.setUserRole\n")
     safe.ebtc.authority_set_user_role(user, role, enabled)
@@ -176,7 +176,7 @@ def authority_set_role_capability(role, target_address, functionSig, enabled):
     """
     Set the role capability for the Authority contract.
     """
-    safe = GreatApeSafe(r.ebtc_wallets.ecosystem_multisig)
+    safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
     safe.init_ebtc()
     C.print(f"\nUsing {safe.account} for Authority.setRoleCapability\n")
     safe.ebtc.authority_set_role_capability(role, target_address, functionSig, enabled)
@@ -188,7 +188,7 @@ def authority_set_public_capability(target_address, functionSig, enabled):
     """
     Set the public capability for the Authority contract.
     """
-    safe = GreatApeSafe(r.ebtc_wallets.ecosystem_multisig)
+    safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
     safe.init_ebtc()
     C.print(f"\nUsing {safe.account} for Authority.setPublicCapability\n")
     safe.ebtc.authority_set_public_capability(target_address, functionSig, enabled)
@@ -200,7 +200,7 @@ def authority_burn_capability(target_address, functionSig):
     """
     Burn the capability for the Authority contract.
     """
-    safe = GreatApeSafe(r.ebtc_wallets.ecosystem_multisig)
+    safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
     safe.init_ebtc()
     C.print(f"\nUsing {safe.account} for Authority.burnCapability\n")
     safe.ebtc.authority_burn_capability(target_address, functionSig)
@@ -212,7 +212,7 @@ def authority_set_authority(new_authority):
     """
     Set the authority for the Authority contract.
     """
-    safe = GreatApeSafe(r.ebtc_wallets.ecosystem_multisig)
+    safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
     safe.init_ebtc()
     C.print(f"\nUsing {safe.account} for Authority.setAuthority\n")
     safe.ebtc.authority_set_authority(new_authority)
