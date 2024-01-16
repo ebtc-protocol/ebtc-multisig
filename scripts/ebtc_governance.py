@@ -5,9 +5,9 @@ from rich.console import Console
 C = Console()
 
 """
-The following scripts are meant to provide a convenient access to the multisig governance operations of the EBTC ecosystem.
+The following scripts are meant to provide a convenient access to the multisig governance operations of the EBTC security.
 These script will use the default multisig intended for each of the timelocks. In other words, operations interacting with
-the Low Sec Timelock will TechOps multisig and those interacting with the High Sec Timelock will use the Ecosystem multisig.
+the Low Sec Timelock will TechOps multisig and those interacting with the High Sec Timelock will use the security multisig.
 
 NOTE: Operations interacting with timelock will need to be executed twice. Once to queue the transaction and once to execute
 it at the end of the delay period.
@@ -156,7 +156,7 @@ def ebtcFeed_set_secondary_oracle(address):
 """
 High Sec Governance Operations
 
-The following operations are meant to be executed by the Ecosystem multisig.
+The following operations are meant to be executed by the security multisig.
 """
 
 

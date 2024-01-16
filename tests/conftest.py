@@ -36,7 +36,7 @@ def fee_recipient():
 
 
 @pytest.fixture
-def wbtc(ecosystem):
+def wbtc(security_multisig):
     return interface.IMintableERC20(
-        registry.sepolia.tokens.wbtc, owner=ecosystem.account
+        registry.sepolia.tokens.wbtc, owner=security_multisig.account
     )
