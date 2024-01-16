@@ -137,6 +137,32 @@ def test_priceFeed_set_fallback_caller_happy(techops):
     assert techops.ebtc.price_feed.fallbackCaller() == techops.account
 
 
+# Test ebtcFeed_set_primary_oracle
+def test_ebtcFeed_set_primary_oracle_happy(ecosystem):
+    ecosystem.init_ebtc()
+    ecosystem.ebtc.ebtcFeed_set_primary_oracle(ecosystem.account)
+
+    chain.sleep(ecosystem.ebtc.lowsec_timelock.getMinDelay() + 1)
+    chain.mine()
+
+    ecosystem.ebtc.ebtcFeed_set_primary_oracle(ecosystem.account)
+
+    assert ecosystem.ebtc.ebtc_feed.primaryOracle() == ecosystem.account
+
+
+# Test ebtcFeed_set_secondary_oracle
+def test_ebtcFeed_set_secondary_oracle_happy(techops):
+    techops.init_ebtc()
+    techops.ebtc.ebtcFeed_set_secondary_oracle(techops.account)
+
+    chain.sleep(techops.ebtc.lowsec_timelock.getMinDelay() + 1)
+    chain.mine()
+
+    techops.ebtc.ebtcFeed_set_secondary_oracle(techops.account)
+
+    assert techops.ebtc.ebtc_feed.secondaryOracle() == techops.account
+
+
 # Test activePool_set_fee_bps
 def test_activePool_set_fee_bps_happy(techops):
     techops.init_ebtc()
