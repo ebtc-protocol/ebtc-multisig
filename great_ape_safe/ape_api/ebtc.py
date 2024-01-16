@@ -846,7 +846,9 @@ class eBTC:
                 delay + 1,
             )
 
-    def ebtcFeed_set_secondary_oracle(self, address, salt=EmptyBytes32, use_high_sec=False):
+    def ebtcFeed_set_secondary_oracle(
+        self, address, salt=EmptyBytes32, use_high_sec=False
+    ):
         """
         @dev Sets the secondary Oracle on the EBTC Feed.
         @param address The address of the new secondary Oracle
@@ -862,9 +864,7 @@ class eBTC:
         ## Check if tx is already scheduled
         target = self.ebtc_feed
         data = target.setSecondaryOracle.encode_input(address)
-        id = timelock.hashOperation(
-            target.address, 0, data, EmptyBytes32, salt
-        )
+        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
         if timelock.isOperation(id):
             self.execute_timelock(
