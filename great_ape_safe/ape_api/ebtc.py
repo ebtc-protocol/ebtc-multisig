@@ -483,6 +483,7 @@ class eBTC:
         @dev Grants a role on the timelock to an account.
         @param role_key The key of the role to grant. Can be one of "PROPOSER_ROLE", "CANCELLER_ROLE", "EXECUTOR_ROLE", or "TIMELOCK_ADMIN_ROLE".
         @param account The account to grant the role to.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
         if use_high_sec:
@@ -523,6 +524,7 @@ class eBTC:
         @dev Revokes a role on the timelock from an account.
         @param role_key The key of the role to revoke. Can be one of "PROPOSER_ROLE", "CANCELLER_ROLE", "EXECUTOR_ROLE", or "TIMELOCK_ADMIN_ROLE".
         @param account The account to revoke the role from.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
         if use_high_sec:
@@ -563,6 +565,7 @@ class eBTC:
         """
         @dev Updates the delay on the timelock.
         @param new_delay The new delay to set on the timelock.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
         if use_high_sec:
@@ -601,6 +604,7 @@ class eBTC:
         """
         @dev Sets the staking reward split in the CDP Manager.
         @param value The new staking reward split to set.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
         ## Ref: uint256 public constant MAX_REWARD_SPLIT = 10_000;
@@ -631,6 +635,7 @@ class eBTC:
         """
         @dev Sets the redemption fee floor in the CDP Manager.
         @param value The new redemption fee floor to set.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
 
@@ -662,6 +667,7 @@ class eBTC:
         """
         @dev Sets the minute decay factor for the redemption fee in the CDP Manager.
         @param value The new redemption fee minute decay factor.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
 
@@ -691,6 +697,7 @@ class eBTC:
         """
         @dev Sets the beta for the redemption fee in the CDP Manager.
         @param value The new redemption fee beta.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
         if use_high_sec:
@@ -718,6 +725,7 @@ class eBTC:
         """
         @dev Sets the redemptions paused state in the CDP Manager.
         @param paused The new redemptions paused state to set (True or False).
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
         if use_high_sec:
@@ -743,6 +751,7 @@ class eBTC:
         """
         @dev Sets the grace period in the CDP Manager.
         @param value The new grace period to set.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
 
@@ -774,7 +783,8 @@ class eBTC:
     ):
         """
         @dev Sets the fallbak Oracle caller on the PriceFeed.
-        @param address The address of the new fallback caller
+        @param address The address of the new fallback caller.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
         if use_high_sec:
@@ -802,7 +812,8 @@ class eBTC:
         """
         @dev Sets the primary Oracle on the EBTC Feed.
         @param address The address of the new primary Oracle
-        @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         """
         ## Check if tx is already scheduled
         target = self.ebtc_feed
@@ -839,6 +850,7 @@ class eBTC:
         """
         @dev Sets the secondary Oracle on the EBTC Feed.
         @param address The address of the new secondary Oracle
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
 
@@ -884,6 +896,7 @@ class eBTC:
         """
         @dev Sets the fee bps on the Active Pool.
         @param value The new fee bps.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
 
@@ -914,6 +927,7 @@ class eBTC:
         """
         @dev Sets the fee bps on the CDP Manager.
         @param value The new fee bps.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
 
@@ -946,6 +960,7 @@ class eBTC:
         """
         @dev Sets the new fee recipient address on the Active Pool.
         @param address The new fee recipient address.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
 
@@ -976,6 +991,7 @@ class eBTC:
         """
         @dev Sets the new fee recipient address on the Borrowers Operations.
         @param address The new fee recipient address.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
 
@@ -1010,6 +1026,7 @@ class eBTC:
         @dev Claims the accumulated collateral shares for the Fee Recipient on the Active Pool.
         @param value The amount of collateral shares to claim.
         @param use_timelock If true, use the timelock. Otherwise, use direct tx.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
         target = self.active_pool
@@ -1069,6 +1086,7 @@ class eBTC:
         @param token_address The address of the token to sweep.
         @param value The amount of tokens to sweep.
         @param use_timelock If true, use the timelock. Otherwise, use direct tx.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
         target = self.active_pool
@@ -1125,6 +1143,7 @@ class eBTC:
         @param token_address The address of the token to sweep.
         @param value The amount of tokens to sweep.
         @param use_timelock If true, use the timelock. Otherwise, use direct tx.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
         target = self.coll_surplus_pool
@@ -1179,6 +1198,7 @@ class eBTC:
         @dev Sets the name of a role in the Authority.
         @param role The role to set the name of.
         @param name The new name of the role.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         """
         ## Check if tx is already scheduled
         target = self.authority
@@ -1215,6 +1235,7 @@ class eBTC:
         @param user The user to grant the role to.
         @param role The role to set the name of.
         @param enabled Whether to grant or revoke the role.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         """
         ## Check if tx is already scheduled
         target = self.authority
@@ -1254,6 +1275,7 @@ class eBTC:
         @param target_address The address of the contract containing the function.
         @param functionSig The signature of the function to grant the capability to.
         @param enabled Whether to grant or revoke the role.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         """
         ## Check if tx is already scheduled
         target = self.authority
@@ -1297,6 +1319,7 @@ class eBTC:
         @param target_address The address of the contract containing the function.
         @param functionSig The signature of the function to grant the capability to.
         @param enabled Whether to grant or revoke public access to the function.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         """
         ## Check if tx is already scheduled
         target = self.authority
@@ -1337,6 +1360,7 @@ class eBTC:
         @dev Burns the ability to call a contract's function from anyone irrespective of their roles in the Authority.
         @param target_address The address of the contract containing the function.
         @param functionSig The signature of the function to grant the capability to.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         """
         ## Check if tx is already scheduled
         target = self.authority
@@ -1373,6 +1397,7 @@ class eBTC:
         """
         @dev Changes the Governance underying authority contract.
         @param new_authority The address of the new Authority contract.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         """
         ## Check if tx is already scheduled
         target = self.authority
