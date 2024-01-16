@@ -138,16 +138,16 @@ def test_priceFeed_set_fallback_caller_happy(techops):
 
 
 # Test ebtcFeed_set_primary_oracle
-def test_ebtcFeed_set_primary_oracle_happy(ecosystem):
-    ecosystem.init_ebtc()
-    ecosystem.ebtc.ebtcFeed_set_primary_oracle(ecosystem.account)
+def test_ebtcFeed_set_primary_oracle_happy(security_multisig):
+    security_multisig.init_ebtc()
+    security_multisig.ebtc.ebtcFeed_set_primary_oracle(security_multisig.account)
 
-    chain.sleep(ecosystem.ebtc.lowsec_timelock.getMinDelay() + 1)
+    chain.sleep(security_multisig.ebtc.lowsec_timelock.getMinDelay() + 1)
     chain.mine()
 
-    ecosystem.ebtc.ebtcFeed_set_primary_oracle(ecosystem.account)
+    security_multisig.ebtc.ebtcFeed_set_primary_oracle(security_multisig.account)
 
-    assert ecosystem.ebtc.ebtc_feed.primaryOracle() == ecosystem.account
+    assert security_multisig.ebtc.ebtc_feed.primaryOracle() == security_multisig.account
 
 
 # Test ebtcFeed_set_secondary_oracle
@@ -265,7 +265,7 @@ def test_activePool_claim_fee_recipient_coll_shares_permissions(random_safe):
 
 
 # Test activePool_sweep_token
-def test_activePool_sweep_token_happy(fee_recipient, wbtc, ecosystem):
+def test_activePool_sweep_token_happy(fee_recipient, wbtc, security_multisig):
     fee_recipient.init_ebtc()
 
     active_pool = fee_recipient.ebtc.active_pool.address
@@ -273,7 +273,9 @@ def test_activePool_sweep_token_happy(fee_recipient, wbtc, ecosystem):
     amount = 500 * 10 ** wbtc.decimals()
 
     wbtc.mint(
-        fee_recipient.ebtc.active_pool.address, amount, {"from": ecosystem.account}
+        fee_recipient.ebtc.active_pool.address,
+        amount,
+        {"from": security_multisig.account},
     )
     assert wbtc.balanceOf(active_pool) == amount
 
@@ -282,13 +284,17 @@ def test_activePool_sweep_token_happy(fee_recipient, wbtc, ecosystem):
     assert wbtc.balanceOf(recipient) - balance_before == amount
 
 
-def test_activePool_sweep_token_permissions(wbtc, ecosystem, random_safe):
+def test_activePool_sweep_token_permissions(wbtc, security_multisig, random_safe):
     random_safe.init_ebtc()
 
     active_pool = random_safe.ebtc.active_pool.address
     amount = 500 * 10 ** wbtc.decimals()
 
-    wbtc.mint(random_safe.ebtc.active_pool.address, amount, {"from": ecosystem.account})
+    wbtc.mint(
+        random_safe.ebtc.active_pool.address,
+        amount,
+        {"from": security_multisig.account},
+    )
     assert wbtc.balanceOf(active_pool) == amount
 
     with pytest.raises(AssertionError, match="Error: Not authorized"):
@@ -296,7 +302,7 @@ def test_activePool_sweep_token_permissions(wbtc, ecosystem, random_safe):
 
 
 # Test activePool_sweep_token
-def test_collSurplusPool_sweep_token_happy(fee_recipient, wbtc, ecosystem):
+def test_collSurplusPool_sweep_token_happy(fee_recipient, wbtc, security_multisig):
     fee_recipient.init_ebtc()
 
     coll_surplus_pool = fee_recipient.ebtc.coll_surplus_pool.address
@@ -306,7 +312,7 @@ def test_collSurplusPool_sweep_token_happy(fee_recipient, wbtc, ecosystem):
     wbtc.mint(
         fee_recipient.ebtc.coll_surplus_pool.address,
         amount,
-        {"from": ecosystem.account},
+        {"from": security_multisig.account},
     )
     assert wbtc.balanceOf(coll_surplus_pool) == amount
 
@@ -315,14 +321,16 @@ def test_collSurplusPool_sweep_token_happy(fee_recipient, wbtc, ecosystem):
     assert wbtc.balanceOf(recipient) - balance_before == amount
 
 
-def test_collSurplusPool_sweep_token_permissions(wbtc, ecosystem, random_safe):
+def test_collSurplusPool_sweep_token_permissions(wbtc, security_multisig, random_safe):
     random_safe.init_ebtc()
 
     coll_surplus_pool = random_safe.ebtc.coll_surplus_pool.address
     amount = 500 * 10 ** wbtc.decimals()
 
     wbtc.mint(
-        random_safe.ebtc.coll_surplus_pool.address, amount, {"from": ecosystem.account}
+        random_safe.ebtc.coll_surplus_pool.address,
+        amount,
+        {"from": security_multisig.account},
     )
     assert wbtc.balanceOf(coll_surplus_pool) == amount
 
