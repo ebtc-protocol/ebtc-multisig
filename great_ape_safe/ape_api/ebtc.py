@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from enum import Enum
 
 from brownie import web3, interface
 from rich.console import Console
@@ -8,9 +9,20 @@ from helpers.constants import EmptyBytes32
 C = Console()
 
 
+class CdpStatus(Enum):
+    # NOTE: there are more states, adding `2` to avoid magic numbers in code
+    CLOSED = 2
+
+
 class eBTC:
     def __init__(self, safe):
         self.safe = safe
+
+        # constants
+        self.SAFE_ICR_THRESHOLD = 120e16
+        self.CCR = 125e16
+
+        self.LIQUIDATOR_REWARD = 2e17
 
         # contracts
         self.collateral = safe.contract(
@@ -866,3 +878,263 @@ class eBTC:
                 EmptyBytes32,
                 delay + 1,
             )
+
+    #### ===== CDP OPS ===== ####
+
+    def _assert_collateral_balance(self, coll_amount):
+        total_coll_bal = self.collateral.balanceOf(self.safe.address)
+        # NOTE: ongoing work on solidity side for at https://github.com/ebtc-protocol/ebtc/pull/739. new deployment incoming
+        assert total_coll_bal >= self.collateral.getSharesByPooledEth(coll_amount)
+
+    def _assert_debt_balance(self, debt_amount):
+        total_debt_bal = self.ebtc_token.balanceOf(self.safe.address)
+        assert total_debt_bal >= debt_amount
+        return total_debt_bal
+
+    def _assert_cdp_id_ownership(self, cdp_id):
+        cdp_safe_owned = self.sorted_cdps.getCdpsOf(self.safe.address)
+        assert cdp_id in cdp_safe_owned
+
+    def _assert_health_new_icr(self, new_icr):
+        # NOTE: chose 120% to have alert with a breath range from MCR
+        assert new_icr > self.SAFE_ICR_THRESHOLD
+
+    def _hint_helper_values(self, coll_amount, debt_amount):
+        nicr = self.hint_helpers.computeNominalCR(coll_amount, debt_amount)
+
+        total_cdps = self.sorted_cdps.getSize()
+        hint, _, _ = self.hint_helpers.getApproxHint(
+            nicr, total_cdps, 42
+        )  # random seed 42
+
+        upper_hint, lower_hint = self.sorted_cdps.findInsertPosition(nicr, hint, hint)
+
+        return upper_hint, lower_hint
+
+    def open_cdp(self, coll_amount, target_cr):
+        """
+        @dev Opens a new cdp position. Attention to target_cr unit format, see below!
+        @param coll_amount The total stETH collateral amount deposited for the specified Cdp.
+        @param target_cr The desired target collateral ratio in the cdp position. Unit format: cr follows a 10^18 formatting
+        """
+        # verify: is it coll balance available
+        self._assert_collateral_balance(coll_amount)
+
+        debt_balance_before = self.ebtc_token.balanceOf(self.safe.address)
+
+        # 1. collateral approval for BO
+        self.collateral.approve(self.borrower_operations.address, coll_amount)
+
+        # 2. decide borrow amount based on: collateral, feed price & CR
+        feed_price = self.price_feed.fetchPrice.call()
+        borrow_amount = (coll_amount * feed_price) / target_cr
+
+        # 3. open cdp with args
+        upper_hint, lower_hint = self._hint_helper_values(coll_amount, borrow_amount)
+        cdp_id = self.borrower_operations.openCdp(
+            borrow_amount, upper_hint, lower_hint, coll_amount
+        ).return_value
+
+        # 4. assertions:
+
+        # 4.1. verify cdp id is owned by caller
+        self._assert_cdp_id_ownership(cdp_id)
+
+        # 4.2. debt balance of caller increased (difference)
+        bal_diff = self.ebtc_token.balanceOf(self.safe.address) - debt_balance_before
+        assert bal_diff == borrow_amount
+
+        return cdp_id
+
+    def close_cdp(self, cdp_id):
+        """
+        @dev Closes a target cdp id.
+        @param cdp_id The CdpId on which this operation is operated.
+        """
+        # verify: cdp id ownership from caller
+        self._assert_cdp_id_ownership(cdp_id)
+
+        # verify: sufficient ebtc is hold for closing
+        cdp_id_liquidator_reward_shares = self.collateral.getSharesByPooledEth(self.LIQUIDATOR_REWARD)
+        cdp_id_debt, cdp_id_coll = self.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
+        self._assert_debt_balance(cdp_id_debt)
+
+        # cached prev collateral balance
+        collateral_balance_before = self.collateral.balanceOf(self.safe.address)
+
+        # 1. close target cdp id
+        self.borrower_operations.closeCdp(cdp_id)
+
+        # 2. assertions:
+
+        # 2.1. verify status (2): `closedByOwner`
+        # ref: https://github.com/ebtc-protocol/ebtc/blob/main/packages/contracts/contracts/Interfaces/ICdpManagerData.sol#L91
+        cdp_id_status = self.cdp_manager.getCdpStatus(cdp_id)
+        assert cdp_id_status == CdpStatus.CLOSED.value
+
+        # 2.2. verify that enough collateral was returned + gas stipend, assertion denominated in common `shares` unit
+        assert self.collateral.getSharesByPooledEth(
+            self.collateral.balanceOf(self.safe.address)
+        ) == (
+            cdp_id_coll
+            + cdp_id_liquidator_reward_shares
+            + self.collateral.getSharesByPooledEth(collateral_balance_before)
+        )
+
+        # 2.3. verify expected values are 0 at readings from the cdp manager
+        (
+            cdp_id_debt,
+            cdp_id_coll,
+            cdp_id_stake,
+            cdp_id_liq_reward_shares,
+            _,
+            _,
+        ) = self.cdp_manager.Cdps(cdp_id)
+        assert self.cdp_manager.cdpStEthFeePerUnitIndex(cdp_id) == 0
+        assert cdp_id_debt == 0
+        assert cdp_id_coll == 0
+        assert cdp_id_stake == 0
+        assert cdp_id_liq_reward_shares == 0
+
+    def cdp_add_collateral(self, cdp_id, coll_amount):
+        """
+        @dev Adds the received stETH to the specified Cdp.
+        @param cdp_id The CdpId on which this operation is operated.
+        @param coll_amount The total stETH collateral amount deposited (added) for the specified Cdp.
+        """
+        # verify: is it coll balance available
+        self._assert_collateral_balance(coll_amount)
+
+        # verify: cdp id ownership from caller
+        self._assert_cdp_id_ownership(cdp_id)
+
+        feed_price = self.price_feed.fetchPrice.call()
+        prev_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
+        prev_tcr = self.cdp_manager.getSyncedTCR(feed_price)
+        prev_coll_balance = self.cdp_manager.getCdpCollShares(cdp_id)
+
+        # 1. collateral approval for BO
+        self.collateral.approve(self.borrower_operations.address, coll_amount)
+
+        # 2. increase collateral in target cdp id
+        self.borrower_operations.addColl(cdp_id, cdp_id, cdp_id, coll_amount)
+
+        # 3. assertions:
+
+        # 3.1. icr and tcr had increased
+        assert self.cdp_manager.getSyncedICR(cdp_id, feed_price) > prev_icr
+        assert self.cdp_manager.getSyncedTCR(feed_price) > prev_tcr
+
+        # 3.2 collateral in cdp at storage is exact on "shares" terms, following internal cdp accounting
+        # after increase should be equal to final = initial + top-up collateral
+        assert self.cdp_manager.getCdpCollShares(
+            cdp_id
+        ) == prev_coll_balance + self.collateral.getSharesByPooledEth(coll_amount)
+
+    def cdp_withdraw_collateral(self, cdp_id, coll_amount):
+        """
+        @dev Withdraws the amount of collateral from the specified Cdp.
+        @param cdp_id The CdpId on which this operation is operated.
+        @param coll_amount The total stETH collateral amount withdrawn (reduced) for the specified Cdp.
+        """
+        # verify: cdp id ownership from caller
+        self._assert_cdp_id_ownership(cdp_id)
+
+        # verify: cdp holds enough collateral to be withdrawn
+        _, cdp_id_coll = self.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
+        assert cdp_id_coll > coll_amount
+
+        # verify: check recovery mode status. use sync tcr so accounts for split fee
+        feed_price = self.price_feed.fetchPrice.call()
+        prev_tcr = self.cdp_manager.getSyncedTCR(feed_price)
+        assert prev_tcr > self.CCR
+
+        prev_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
+        prev_tcr = self.cdp_manager.getSyncedTCR(feed_price)
+
+        # 1. decreased collateral in target cdp id
+        self.borrower_operations.withdrawColl(cdp_id, coll_amount, cdp_id, cdp_id)
+
+        # 2. assertions:
+        new_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
+
+        # 2.1 verify icr not below `SAFE_ICR_THRESHOLD`
+        self._assert_health_new_icr(new_icr)
+
+        C.print(
+            f"[green]Withdrawing {coll_amount/1e18} collateral brings the CDP from {prev_icr/1e16}% to {new_icr/1e16}% ICR[/green]"
+        )
+
+        # 2.1. icr and tcr had decreased
+        assert new_icr < prev_icr
+        assert self.cdp_manager.getSyncedTCR(feed_price) < prev_tcr
+
+        # 2.2 collateral in cdp at storage has decreased
+        assert self.cdp_manager.getCdpCollShares(cdp_id) < cdp_id_coll
+
+    def cdp_repay_debt(self, cdp_id, debt_repay_amount):
+        """
+        @dev Repays the received eBTC token to the specified Cdp, thus reducing its debt accounting.
+        @param cdp_id The CdpId on which this operation is operated.
+        @param debt_repay_amount The total eBTC debt amount repaid for the specified Cdp.
+        """
+        # verify: cdp id ownership from caller
+        self._assert_cdp_id_ownership(cdp_id)
+
+        # verify: check debt caller balance
+        prev_debt_balance = self._assert_debt_balance(debt_repay_amount)
+
+        feed_price = self.price_feed.fetchPrice.call()
+        prev_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
+
+        # 1. repay debt
+        self.borrower_operations.repayDebt(cdp_id, debt_repay_amount, cdp_id, cdp_id)
+
+        # 2. assertions
+
+        # 2.1. debt balance decreased
+        assert self.ebtc_token.balanceOf(self.safe.address) < prev_debt_balance
+
+        # 2.2. icr should improved
+        assert self.cdp_manager.getSyncedICR(cdp_id, feed_price) > prev_icr
+
+    def cdp_withdraw_debt(self, cdp_id, debt_withdrawable_amount):
+        """
+        @dev Withdraws the amount of eBTC token from the specified Cdp, thus increasing its debt accounting.
+        @param cdp_id The CdpId on which this operation is operated.
+        @param debt_withdrawable_amount The total debt collateral amount increased for the specified Cdp.
+        """
+        # verify: cdp id ownership from caller
+        self._assert_cdp_id_ownership(cdp_id)
+
+        # verify: check recovery mode status. use sync tcr so accounts for split fee
+        feed_price = self.price_feed.fetchPrice.call()
+        sync_tcr = self.cdp_manager.getSyncedTCR(feed_price)
+        assert sync_tcr > self.CCR
+
+        # verify: existing debt in cdp id is greater than amount to wd
+        debt_before = self.cdp_manager.getCdpDebt(cdp_id)
+        assert debt_before > debt_withdrawable_amount
+
+        prev_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
+
+        # 1. wd debt from cdp
+        self.borrower_operations.withdrawDebt(
+            cdp_id, debt_withdrawable_amount, cdp_id, cdp_id
+        )
+
+        # 2. assertions
+        new_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
+
+        # 2.1 verify icr not below `SAFE_ICR_THRESHOLD`
+        self._assert_health_new_icr(new_icr)
+
+        C.print(
+            f"[green]Withdrawing {debt_withdrawable_amount/1e18} eBTC brings the CDP from {prev_icr/1e16}% to {new_icr/1e16}% ICR[/green]"
+        )
+
+        # 2.1. debt should increased
+        assert self.cdp_manager.getCdpDebt(cdp_id) > debt_before
+
+        # 2.2. icr decreased
+        assert new_icr < prev_icr
