@@ -46,6 +46,9 @@ class eBTC:
         self.price_feed = safe.contract(
             registry.sepolia.ebtc.price_feed, interface.IPriceFeedTestnet
         )
+        self.ebtc_feed = safe.contract(
+            registry.sepolia.ebtc.price_feed, interface.IPriceFeedTestnet
+        )
         self.active_pool = safe.contract(
             registry.sepolia.ebtc.active_pool, interface.IActivePool
         )
@@ -791,6 +794,88 @@ class eBTC:
             delay = timelock.getMinDelay()
             self.schedule_timelock(
                 timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
+            )
+
+    #### ===== EBTC FEED ===== ####
+
+    def ebtcFeed_set_primary_oracle(self, address, salt=EmptyBytes32):
+        """
+        @dev Sets the primary Oracle on the EBTC Feed.
+        @param address The address of the new primary Oracle
+        @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
+        """
+        ## Check if tx is already scheduled
+        target = self.ebtc_feed
+        data = target.setPrimaryOracle.encode_input(address)
+        id = self.highsec_timelock.hashOperation(
+            target.address, 0, data, EmptyBytes32, salt
+        )
+
+        if self.highsec_timelock.isOperation(id):
+            self.execute_timelock(
+                self.highsec_timelock,
+                target.address,
+                0,
+                data,
+                EmptyBytes32,
+                salt,
+            )
+            assert (
+                self.ebtc_feed.primaryOracle() == address
+            ), "Error: Primary Oracle not set"
+        else:
+            delay = self.highsec_timelock.getMinDelay()
+            self.schedule_timelock(
+                self.highsec_timelock,
+                target.address,
+                0,
+                data,
+                EmptyBytes32,
+                salt,
+                delay + 1,
+            )
+
+    def ebtcFeed_set_secondary_oracle(self, address, salt=EmptyBytes32, use_high_sec=False):
+        """
+        @dev Sets the secondary Oracle on the EBTC Feed.
+        @param address The address of the new secondary Oracle
+        @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
+        """
+
+        if use_high_sec:
+            timelock = self.highsec_timelock
+        else:
+            timelock = self.lowsec_timelock
+
+        ## Check if tx is already scheduled
+        target = self.ebtc_feed
+        data = target.setSecondaryOracle.encode_input(address)
+        id = timelock.hashOperation(
+            target.address, 0, data, EmptyBytes32, salt
+        )
+
+        if timelock.isOperation(id):
+            self.execute_timelock(
+                timelock,
+                target.address,
+                0,
+                data,
+                EmptyBytes32,
+                salt,
+            )
+            assert (
+                self.ebtc_feed.secondaryOracle() == address
+            ), "Error: Secondary Oracle not set"
+        else:
+            delay = timelock.getMinDelay()
+            self.schedule_timelock(
+                timelock,
+                target.address,
+                0,
+                data,
+                EmptyBytes32,
+                salt,
+                delay + 1,
             )
 
     #### ===== FLASHLOANS and FEES (ACTIVE POOL AND BORROWERS OPERATIONS) ===== ####
