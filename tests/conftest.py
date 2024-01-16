@@ -17,7 +17,7 @@ def random_safe():
 
 @pytest.fixture
 def ecosystem():
-    return GreatApeSafe(registry.sepolia.ebtc_wallets.ecosystem_multisig)
+    return GreatApeSafe(registry.sepolia.ebtc_wallets.security_multisig)
 
 
 @pytest.fixture
