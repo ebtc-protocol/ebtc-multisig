@@ -141,6 +141,18 @@ def activePool_set_fee_recipient_address(address):
     safe.post_safe_tx()
 
 
+def ebtcFeed_set_secondary_oracle(address):
+    """
+    Set the secondary oracle for the EBTCFeed contract.
+    """
+    safe = GreatApeSafe(r.ebtc_wallets.techops_multisig)
+    safe.init_ebtc()
+    C.print(f"\nUsing {safe.account} for EBTCFeed.setSecondaryOracle\n")
+    safe.ebtc.ebtcFeed_set_secondary_oracle(address)
+
+    safe.post_safe_tx()
+
+
 """
 High Sec Governance Operations
 
@@ -216,5 +228,17 @@ def authority_set_authority(new_authority):
     safe.init_ebtc()
     C.print(f"\nUsing {safe.account} for Authority.setAuthority\n")
     safe.ebtc.authority_set_authority(new_authority)
+
+    safe.post_safe_tx()
+
+
+def ebtcFeed_set_primary_oracle(address):
+    """
+    Set the primary oracle for the EBTCFeed contract.
+    """
+    safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
+    safe.init_ebtc()
+    C.print(f"\nUsing {safe.account} for EBTCFeed.setPrimaryOracle\n")
+    safe.ebtc.ebtcFeed_set_primary_oracle(address)
 
     safe.post_safe_tx()
