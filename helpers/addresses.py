@@ -7,9 +7,7 @@ import json
 
 ADDRESSES_ETH = {
     "ebtc": {"placeholder": "0x0000000000000000000000000000000000000000"},
-    "ebtc_wallets": {
-        "placeholder": "0x0000000000000000000000000000000000000000"
-    },
+    "ebtc_wallets": {"placeholder": "0x0000000000000000000000000000000000000000"},
 }
 
 ADDRESSES_SEPOLIA = {
@@ -41,7 +39,7 @@ ADDRESSES_SEPOLIA = {
         "ebtc": "0x2459A79d406256030d339379592ae2fF639bA324",
         "steth": "0x97BA9AA7B7DC74f7a74864A62c4fF93b2b22f015",
         "wbtc": "0x84beA728aFb989756B4AF86600C0a95919035849",
-    }
+    },
 }
 
 ADDRESSES_GOERLI = {

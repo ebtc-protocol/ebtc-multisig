@@ -22,4 +22,7 @@ interface ICollateralToken is IERC20 {
 
     // Returns authorized oracle address
     function getOracle() external view returns (address);
+
+    /// @dev Deposit collateral without ether for testing purposes
+    function forceDeposit(uint256 ethToDeposit) external;
 }
