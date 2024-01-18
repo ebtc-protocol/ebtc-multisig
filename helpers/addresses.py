@@ -6,8 +6,22 @@ from web3 import Web3
 import json
 
 ADDRESSES_ETH = {
-    "ebtc": {"placeholder": "0x0000000000000000000000000000000000000000"},
+    "assets": {
+        "wbtc": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+        "ebtc": "0x0000000000000000000000000000000000000000",
+        "liq": "0xD82fd4D6D62f89A1E50b1db69AD19932314aa408",
+    },
+    "badger_wallets": {
+        "treasury_ops_multisig": "0x042B32Ac6b453485e357938bdC38e0340d4b9276",
+        "treasury_vault_multisig": "0xD0A7A8B98957b9CD3cFB9c0425AbE44551158e9e",
+    },
     "ebtc_wallets": {"placeholder": "0x0000000000000000000000000000000000000000"},
+    "uniswap": {
+        "factoryV3": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+        "NonfungiblePositionManager": "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
+        "routerV3": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+        "quoter": "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6",
+    },
 }
 
 ADDRESSES_SEPOLIA = {
