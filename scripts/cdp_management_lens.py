@@ -68,7 +68,7 @@ def main(msig_address=r.badger_wallets.treasury_vault_multisig):
     # fill up table rows
     for cdp_info in cdps_info:
         table.add_row(
-            f"{cdp_info[0][:7]}...{cdp_info[0][-7:]}",
+            f"{str(cdp_info[0])[:7]}...{str(cdp_info[0])[-7:]}",
             f"{(cdp_info[1] / 10 ** 18):.3f}",
             f"{(cdp_info[2] / 10 ** 18):.3f}",
             f"{(cdp_info[3] / 1e16):.3f}%",
