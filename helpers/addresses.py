@@ -6,8 +6,31 @@ from web3 import Web3
 import json
 
 ADDRESSES_ETH = {
+    "assets": {
+        "wbtc": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+        "ebtc": "0x0000000000000000000000000000000000000000",  # @note TBD!
+        "liq": "0xD82fd4D6D62f89A1E50b1db69AD19932314aa408",
+        "steth": "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
+        "weth": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+    },
+    "badger_wallets": {
+        "treasury_ops_multisig": "0x042B32Ac6b453485e357938bdC38e0340d4b9276",
+        "treasury_vault_multisig": "0xD0A7A8B98957b9CD3cFB9c0425AbE44551158e9e",
+        "ibbtc_multisig_incentives": "0xB76782B51BFf9C27bA69C77027e20Abd92Bcf3a8",
+    },
     "ebtc": {"placeholder": "0x0000000000000000000000000000000000000000"},
     "ebtc_wallets": {"placeholder": "0x0000000000000000000000000000000000000000"},
+    "uniswap": {
+        "factoryV3": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+        "NonfungiblePositionManager": "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
+        "routerV3": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+        "quoter": "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6",
+        "v3pool_wbtc_ebtc": "0x0000000000000000000000000000000000000000",  # @note TBD!
+        "v3pool_wbtc_weth": "0xCBCdF9626bC03E24f779434178A73a0B4bad62eD", 
+    },
+    "merkl": {
+        "distribution_creator": "0x8BB4C975Ff3c250e0ceEA271728547f3802B36Fd",
+    },
 }
 
 ADDRESSES_SEPOLIA = {
