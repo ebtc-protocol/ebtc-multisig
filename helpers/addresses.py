@@ -8,6 +8,10 @@ import json
 ADDRESSES_ETH = {
     "ebtc": {"placeholder": "0x0000000000000000000000000000000000000000"},
     "ebtc_wallets": {"placeholder": "0x0000000000000000000000000000000000000000"},
+    "cow": {
+        "vault_relayer": "0xC92E8bdf79f0507f65a392b0ab4667716BFE0110",
+        "settlement": "0x9008D19f58AAbD9eD0D60971565AA8510560ab41",
+    },
 }
 
 ADDRESSES_SEPOLIA = {
