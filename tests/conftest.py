@@ -21,11 +21,6 @@ def security_multisig():
 
 
 @pytest.fixture
-def council():
-    return GreatApeSafe(registry.sepolia.ebtc_wallets.council_multisig)
-
-
-@pytest.fixture
 def techops():
     return GreatApeSafe(registry.sepolia.ebtc_wallets.techops_multisig)
 

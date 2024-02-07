@@ -18,19 +18,19 @@ def test_grant_timelock_role_happy(techops, random_safe):
     )
 
 
-def test_revoke_timelock_role_happy(techops, council):
+def test_revoke_timelock_role_happy(techops, security_multisig):
     techops.init_ebtc()
 
-    techops.ebtc.revoke_timelock_role("PROPOSER_ROLE", council.account)
+    techops.ebtc.revoke_timelock_role("PROPOSER_ROLE", security_multisig.account)
 
     chain.sleep(techops.ebtc.lowsec_timelock.getMinDelay() + 1)
     chain.mine()
 
-    techops.ebtc.revoke_timelock_role("PROPOSER_ROLE", council.account)
+    techops.ebtc.revoke_timelock_role("PROPOSER_ROLE", security_multisig.account)
 
     assert (
         techops.ebtc.lowsec_timelock.hasRole(
-            techops.ebtc.lowsec_timelock.PROPOSER_ROLE(), council.account
+            techops.ebtc.lowsec_timelock.PROPOSER_ROLE(), security_multisig.account
         )
         == False
     )

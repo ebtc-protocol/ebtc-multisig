@@ -34,7 +34,6 @@ ADDRESSES_SEPOLIA = {
     },
     "ebtc_wallets": {
         "security_multisig": "0xC8A7768D2a9EE15437c981a7130268622083c2BD",
-        "council_multisig": "0x005E0Ad70b40B23cef409978350CA77a179de350",
         "techops_multisig": "0x664F43229dDa9fdEE00e723753f88f3Ba81967F6",
         "fee_recipient_multisig": "0x5C1246E0b464060919301273781a266Ac119A0Bb",
     },
@@ -66,7 +65,6 @@ ADDRESSES_GOERLI = {
     },
     "ebtc_wallets": {
         "security_multisig": "0x0A8fE898020f5E02C8D7ac29CCb907198f77ed92",
-        "council_multisig": "0xed448dA7b82Df32bEeDdc91DaE169cBC278Bc108",
         "techops_multisig": "0xb1939449B5612F632F2651cBe56b8FDc7f04dE26",
         "fee_recipient_multisig": "0x821Ef96C19db290d2E4856460C730E59F4688539",
     },

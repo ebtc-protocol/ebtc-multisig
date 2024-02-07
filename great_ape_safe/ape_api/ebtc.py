@@ -813,7 +813,6 @@ class eBTC:
         @dev Sets the primary Oracle on the EBTC Feed.
         @param address The address of the new primary Oracle
         @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
-        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         """
         ## Check if tx is already scheduled
         target = self.ebtc_feed

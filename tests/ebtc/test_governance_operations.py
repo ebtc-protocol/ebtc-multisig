@@ -142,7 +142,7 @@ def test_ebtcFeed_set_primary_oracle_happy(security_multisig):
     security_multisig.init_ebtc()
     security_multisig.ebtc.ebtcFeed_set_primary_oracle(security_multisig.account)
 
-    chain.sleep(security_multisig.ebtc.lowsec_timelock.getMinDelay() + 1)
+    chain.sleep(security_multisig.ebtc.highsec_timelock.getMinDelay() + 1)
     chain.mine()
 
     security_multisig.ebtc.ebtcFeed_set_primary_oracle(security_multisig.account)
