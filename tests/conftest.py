@@ -35,3 +35,8 @@ def wbtc(security_multisig):
     return interface.IMintableERC20(
         registry.sepolia.tokens.wbtc, owner=security_multisig.account
     )
+
+
+@pytest.fixture
+def test_price_feed():
+    return registry.sepolia.ebtc.test_contracts.test_price_feed

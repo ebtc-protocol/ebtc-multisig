@@ -47,7 +47,7 @@ class eBTC:
             registry.sepolia.ebtc.price_feed, interface.IPriceFeedTestnet
         )
         self.ebtc_feed = safe.contract(
-            registry.sepolia.ebtc.price_feed, interface.IEbtcFeed
+            registry.sepolia.ebtc.ebtc_feed, interface.IEbtcFeed
         )
         self.active_pool = safe.contract(
             registry.sepolia.ebtc.active_pool, interface.IActivePool

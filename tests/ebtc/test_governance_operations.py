@@ -138,29 +138,29 @@ def test_priceFeed_set_fallback_caller_happy(techops):
 
 
 # Test ebtcFeed_set_primary_oracle
-def test_ebtcFeed_set_primary_oracle_happy(security_multisig):
+def test_ebtcFeed_set_primary_oracle_happy(security_multisig, test_price_feed):
     security_multisig.init_ebtc()
-    security_multisig.ebtc.ebtcFeed_set_primary_oracle(security_multisig.account)
+    security_multisig.ebtc.ebtcFeed_set_primary_oracle(test_price_feed)
 
     chain.sleep(security_multisig.ebtc.highsec_timelock.getMinDelay() + 1)
     chain.mine()
 
-    security_multisig.ebtc.ebtcFeed_set_primary_oracle(security_multisig.account)
+    security_multisig.ebtc.ebtcFeed_set_primary_oracle(test_price_feed)
 
-    assert security_multisig.ebtc.ebtc_feed.primaryOracle() == security_multisig.account
+    assert security_multisig.ebtc.ebtc_feed.primaryOracle() == test_price_feed
 
 
 # Test ebtcFeed_set_secondary_oracle
-def test_ebtcFeed_set_secondary_oracle_happy(techops):
+def test_ebtcFeed_set_secondary_oracle_happy(techops, test_price_feed):
     techops.init_ebtc()
-    techops.ebtc.ebtcFeed_set_secondary_oracle(techops.account)
+    techops.ebtc.ebtcFeed_set_secondary_oracle(test_price_feed)
 
     chain.sleep(techops.ebtc.lowsec_timelock.getMinDelay() + 1)
     chain.mine()
 
-    techops.ebtc.ebtcFeed_set_secondary_oracle(techops.account)
+    techops.ebtc.ebtcFeed_set_secondary_oracle(test_price_feed)
 
-    assert techops.ebtc.ebtc_feed.secondaryOracle() == techops.account
+    assert techops.ebtc.ebtc_feed.secondaryOracle() == test_price_feed
 
 
 # Test activePool_set_fee_bps
