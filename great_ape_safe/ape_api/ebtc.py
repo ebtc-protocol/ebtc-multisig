@@ -4,6 +4,7 @@ from enum import Enum
 from brownie import interface, web3
 from rich.console import Console
 from helpers.addresses import registry
+from helpers.utils import encode_signature
 from helpers.constants import (
     EmptyBytes32,
     AddressZero,
@@ -100,63 +101,43 @@ class eBTC:
 
         # Dictionary of all of the governable function signatures used in the authority contract
         self.governance_signatures = {
-            "SET_STAKING_REWARD_SPLIT_SIG": web3.keccak(
-                text="setStakingRewardSplit(uint256)"
-            ).hex()[0:10],
-            "SET_REDEMPTION_FEE_FLOOR_SIG": web3.keccak(
-                text="setRedemptionFeeFloor(uint256)"
-            ).hex()[0:10],
-            "SET_MINUTE_DECAY_FACTOR_SIG": web3.keccak(
-                text="setMinuteDecayFactor(uint256)"
-            ).hex()[0:10],
-            "SET_BETA_SIG": web3.keccak(text="setBeta(uint256)").hex()[0:10],
-            "SET_REDEMPTIONS_PAUSED_SIG": web3.keccak(
-                text="setRedemptionsPaused(bool)"
-            ).hex()[0:10],
-            "SET_GRACE_PERIOD_SIG": web3.keccak(text="setGracePeriod(uint128)").hex()[
-                0:10
-            ],
-            "MINT_SIG": web3.keccak(text="mint(address,uint256)").hex()[0:10],
-            "BURN_SIG": web3.keccak(text="burn(address,uint256)").hex()[0:10],
-            "BURN2_SIG": web3.keccak(text="burn(uint256)").hex()[0:10],
-            "SET_FALLBACK_CALLER_SIG": web3.keccak(
-                text="setFallbackCaller(address)"
-            ).hex()[0:10],
-            "SET_PRIMARY_ORACLE_SIG": web3.keccak(
-                text="setPrimaryOracle(address)"
-            ).hex()[0:10],
-            "SET_SECONDARY_ORACLE_SIG": web3.keccak(
-                text="setSecondaryOracle(address)"
-            ).hex()[0:10],
-            "SET_FEE_BPS_SIG": web3.keccak(text="setFeeBps(uint256)").hex()[0:10],
-            "SET_FLASH_LOANS_PAUSED_SIG": web3.keccak(
-                text="setFlashLoansPaused(bool)"
-            ).hex()[0:10],
-            "SWEEP_TOKEN_SIG": web3.keccak(text="sweepToken(address,uint256)").hex()[
-                0:10
-            ],
-            "CLAIM_FEE_RECIPIENT_COLL_SIG": web3.keccak(
-                text="claimFeeRecipientCollShares(uint256)"
-            ).hex()[0:10],
-            "SET_ROLE_NAME_SIG": web3.keccak(text="setRoleName(uint8,string)").hex()[
-                0:10
-            ],
-            "SET_USER_ROLE_SIG": web3.keccak(
-                text="setUserRole(address,uint8,bool)"
-            ).hex()[0:10],
-            "SET_ROLE_CAPABILITY_SIG": web3.keccak(
-                text="setRoleCapability(uint8,address,bytes4,bool)"
-            ).hex()[0:10],
-            "SET_PUBLIC_CAPABILITY_SIG": web3.keccak(
-                text="setPublicCapability(address,bytes4,bool)"
-            ).hex()[0:10],
-            "BURN_CAPABILITY_SIG": web3.keccak(
-                text="burnCapability(address,bytes4)"
-            ).hex()[0:10],
-            "TRANSFER_OWNERSHIP_SIG": web3.keccak(
-                text="transferOwnership(address)"
-            ).hex()[0:10],
-            "SET_AUTHORITY_SIG": web3.keccak(text="setAuthority(address)").hex()[0:10],
+            "SET_STAKING_REWARD_SPLIT_SIG": encode_signature(
+                "setStakingRewardSplit(uint256)"
+            ),
+            "SET_REDEMPTION_FEE_FLOOR_SIG": encode_signature(
+                "setRedemptionFeeFloor(uint256)"
+            ),
+            "SET_MINUTE_DECAY_FACTOR_SIG": encode_signature(
+                "setMinuteDecayFactor(uint256)"
+            ),
+            "SET_BETA_SIG": encode_signature("setBeta(uint256)"),
+            "SET_REDEMPTIONS_PAUSED_SIG": encode_signature(
+                "setRedemptionsPaused(bool)"
+            ),
+            "SET_GRACE_PERIOD_SIG": encode_signature("setGracePeriod(uint128)"),
+            "MINT_SIG": encode_signature("mint(address,uint256)"),
+            "BURN_SIG": encode_signature("burn(address,uint256)"),
+            "BURN2_SIG": encode_signature("burn(uint256)"),
+            "SET_FALLBACK_CALLER_SIG": encode_signature("setFallbackCaller(address)"),
+            "SET_PRIMARY_ORACLE_SIG": encode_signature("setPrimaryOracle(address)"),
+            "SET_SECONDARY_ORACLE_SIG": encode_signature("setSecondaryOracle(address)"),
+            "SET_FEE_BPS_SIG": encode_signature("setFeeBps(uint256)"),
+            "SET_FLASH_LOANS_PAUSED_SIG": encode_signature("setFlashLoansPaused(bool)"),
+            "SWEEP_TOKEN_SIG": encode_signature("sweepToken(address,uint256)"),
+            "CLAIM_FEE_RECIPIENT_COLL_SIG": encode_signature(
+                "claimFeeRecipientCollShares(uint256)"
+            ),
+            "SET_ROLE_NAME_SIG": encode_signature("setRoleName(uint8,string)"),
+            "SET_USER_ROLE_SIG": encode_signature("setUserRole(address,uint8,bool)"),
+            "SET_ROLE_CAPABILITY_SIG": encode_signature(
+                "setRoleCapability(uint8,address,bytes4,bool)"
+            ),
+            "SET_PUBLIC_CAPABILITY_SIG": encode_signature(
+                "setPublicCapability(address,bytes4,bool)"
+            ),
+            "BURN_CAPABILITY_SIG": encode_signature("burnCapability(address,bytes4)"),
+            "TRANSFER_OWNERSHIP_SIG": encode_signature("transferOwnership(address)"),
+            "SET_AUTHORITY_SIG": encode_signature("setAuthority(address)"),
         }
 
         # Mapping of the governance roles to the list of permissions (signatures within contracts) that they have
