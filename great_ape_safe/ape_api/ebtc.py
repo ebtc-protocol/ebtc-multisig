@@ -478,6 +478,25 @@ class eBTC:
 
         self.cancel_timelock(self.highsec_timelock, id)
 
+    def schedule_or_execute_timelock(self, timelock, target, data, salt):
+        """
+        @dev Schedules or executes a timelock transaction according to its state.
+        @param timelock The timelock contract to execute the transaction on.
+        @param target The target of the timelock transaction (contract instance).
+        @param data The data of the timelock transaction (encoding of function signature and parameters).
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
+        """
+        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
+
+        if timelock.isOperation(id):
+            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
+            return True  # Returns true if executed, in order to assert the result
+        else:
+            delay = timelock.getMinDelay()
+            self.schedule_timelock(
+                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
+            )
+
     ##################################################################
     ##
     ##                Timelock Management Functions
@@ -511,19 +530,12 @@ class eBTC:
             C.print(f"[red]Role not found![/red]")
             return
 
-        ## Check if tx is already scheduled
         target = timelock
         data = target.grantRole.encode_input(role, account)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
-        if timelock.isOperation(id):
-            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
+        executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+        if executed:
             assert timelock.hasRole(role, account)
-        else:
-            delay = timelock.getMinDelay()
-            self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
-            )
 
     def revoke_timelock_role(
         self, role_key, account, salt=EmptyBytes32, use_high_sec=False
@@ -555,19 +567,12 @@ class eBTC:
         ## Check that target has role
         assert timelock.hasRole(role, account), "Error: No role"
 
-        ## Check if tx is already scheduled
         target = timelock
         data = target.revokeRole.encode_input(role, account)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
-        if timelock.isOperation(id):
-            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
+        executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+        if executed:
             assert timelock.hasRole(role, account) == False
-        else:
-            delay = timelock.getMinDelay()
-            self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
-            )
 
     def update_timelock_delay(self, new_delay, salt=EmptyBytes32, use_high_sec=False):
         """
@@ -584,19 +589,12 @@ class eBTC:
         ## Check that new delay is different
         assert timelock.getMinDelay() != new_delay, "Error: Delay already set"
 
-        ## Check if tx is already scheduled
         target = timelock
         data = target.updateDelay.encode_input(new_delay)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
-        if timelock.isOperation(id):
-            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
+        executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+        if executed:
             assert timelock.getMinDelay() == new_delay
-        else:
-            delay = timelock.getMinDelay()
-            self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
-            )
 
     ##################################################################
     ##
@@ -623,19 +621,12 @@ class eBTC:
         else:
             timelock = self.lowsec_timelock
 
-        ## Check if tx is already scheduled
         target = self.cdp_manager
         data = target.setStakingRewardSplit.encode_input(value)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
-        if timelock.isOperation(id):
-            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
+        executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+        if executed:
             assert self.cdp_manager.stakingRewardSplit() == value
-        else:
-            delay = timelock.getMinDelay()
-            self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
-            )
 
     def cdpManager_set_redemption_fee_floor(
         self, value, salt=EmptyBytes32, use_high_sec=False
@@ -655,19 +646,12 @@ class eBTC:
         else:
             timelock = self.lowsec_timelock
 
-        ## Check if tx is already scheduled
         target = self.cdp_manager
         data = target.setRedemptionFeeFloor.encode_input(value)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
-        if timelock.isOperation(id):
-            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
+        executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+        if executed:
             assert self.cdp_manager.redemptionFeeFloor() == value
-        else:
-            delay = timelock.getMinDelay()
-            self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
-            )
 
     def cdpManager_set_minute_decay_factor(
         self, value, salt=EmptyBytes32, use_high_sec=False
@@ -687,19 +671,12 @@ class eBTC:
         else:
             timelock = self.lowsec_timelock
 
-        ## Check if tx is already scheduled
         target = self.cdp_manager
         data = target.setMinuteDecayFactor.encode_input(value)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
-        if timelock.isOperation(id):
-            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
+        executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+        if executed:
             assert self.cdp_manager.minuteDecayFactor() == value
-        else:
-            delay = timelock.getMinDelay()
-            self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
-            )
 
     def cdpManager_set_beta(self, value, salt=EmptyBytes32, use_high_sec=False):
         """
@@ -713,19 +690,12 @@ class eBTC:
         else:
             timelock = self.lowsec_timelock
 
-        ## Check if tx is already scheduled
         target = self.cdp_manager
         data = target.setBeta.encode_input(value)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
-        if timelock.isOperation(id):
-            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
+        executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+        if executed:
             assert self.cdp_manager.beta() == value
-        else:
-            delay = timelock.getMinDelay()
-            self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
-            )
 
     def cdpManager_set_redemptions_paused(
         self, pause, use_timelock=False, salt=EmptyBytes32, use_high_sec=False
@@ -746,19 +716,9 @@ class eBTC:
             else:
                 timelock = self.lowsec_timelock
 
-            ## Check if tx is already scheduled
-            id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
-
-            if timelock.isOperation(id):
-                self.execute_timelock(
-                    timelock, target.address, 0, data, EmptyBytes32, salt
-                )
+            executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+            if executed:
                 assert self.cdp_manager.redemptionsPaused() == pause
-            else:
-                delay = timelock.getMinDelay()
-                self.schedule_timelock(
-                    timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
-                )
         else:
             assert self.authority.canCall(
                 self.safe.account, target, data[:10]
@@ -783,19 +743,12 @@ class eBTC:
         else:
             timelock = self.lowsec_timelock
 
-        ## Check if tx is already scheduled
         target = self.cdp_manager
         data = target.setGracePeriod.encode_input(value)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
-        if timelock.isOperation(id):
-            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
+        executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+        if executed:
             assert self.cdp_manager.recoveryModeGracePeriodDuration() == value
-        else:
-            delay = timelock.getMinDelay()
-            self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
-            )
 
     #### ===== PRICE FEED ===== ####
 
@@ -813,19 +766,12 @@ class eBTC:
         else:
             timelock = self.lowsec_timelock
 
-        ## Check if tx is already scheduled
         target = self.price_feed
         data = target.setFallbackCaller.encode_input(address)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
-        if timelock.isOperation(id):
-            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
+        executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+        if executed:
             assert self.price_feed.fallbackCaller() == address
-        else:
-            delay = timelock.getMinDelay()
-            self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
-            )
 
     #### ===== EBTC FEED ===== ####
 
@@ -835,36 +781,16 @@ class eBTC:
         @param address The address of the new primary Oracle
         @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         """
-        ## Check if tx is already scheduled
+
+        timelock = self.highsec_timelock
         target = self.ebtc_feed
         data = target.setPrimaryOracle.encode_input(address)
-        id = self.highsec_timelock.hashOperation(
-            target.address, 0, data, EmptyBytes32, salt
-        )
 
-        if self.highsec_timelock.isOperation(id):
-            self.execute_timelock(
-                self.highsec_timelock,
-                target.address,
-                0,
-                data,
-                EmptyBytes32,
-                salt,
-            )
+        executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+        if executed:
             assert (
                 self.ebtc_feed.primaryOracle() == address
             ), "Error: Primary Oracle not set"
-        else:
-            delay = self.highsec_timelock.getMinDelay()
-            self.schedule_timelock(
-                self.highsec_timelock,
-                target.address,
-                0,
-                data,
-                EmptyBytes32,
-                salt,
-                delay + 1,
-            )
 
     def ebtcFeed_set_secondary_oracle(
         self, address, salt=EmptyBytes32, use_high_sec=False
@@ -881,34 +807,14 @@ class eBTC:
         else:
             timelock = self.lowsec_timelock
 
-        ## Check if tx is already scheduled
         target = self.ebtc_feed
         data = target.setSecondaryOracle.encode_input(address)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
-        if timelock.isOperation(id):
-            self.execute_timelock(
-                timelock,
-                target.address,
-                0,
-                data,
-                EmptyBytes32,
-                salt,
-            )
+        executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+        if executed:
             assert (
                 self.ebtc_feed.secondaryOracle() == address
             ), "Error: Secondary Oracle not set"
-        else:
-            delay = timelock.getMinDelay()
-            self.schedule_timelock(
-                timelock,
-                target.address,
-                0,
-                data,
-                EmptyBytes32,
-                salt,
-                delay + 1,
-            )
 
     #### ===== FLASHLOANS and FEES (ACTIVE POOL AND BORROWERS OPERATIONS) ===== ####
 
@@ -927,19 +833,12 @@ class eBTC:
         else:
             timelock = self.lowsec_timelock
 
-        ## Check if tx is already scheduled
         target = self.active_pool
         data = target.setFeeBps.encode_input(value)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
-        if timelock.isOperation(id):
-            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
+        executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+        if executed:
             assert self.active_pool.feeBps() == value
-        else:
-            delay = timelock.getMinDelay()
-            self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
-            )
 
     def borrowerOperations_set_fee_bps(
         self, value, salt=EmptyBytes32, use_high_sec=False
@@ -958,19 +857,12 @@ class eBTC:
         else:
             timelock = self.lowsec_timelock
 
-        ## Check if tx is already scheduled
         target = self.borrower_operations
         data = target.setFeeBps.encode_input(value)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
-        if timelock.isOperation(id):
-            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
+        executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+        if executed:
             assert self.borrower_operations.feeBps() == value
-        else:
-            delay = timelock.getMinDelay()
-            self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
-            )
 
     ## TODO: Function to change the fee on both the AP and the BO through a batched timelock tx
 
@@ -993,19 +885,9 @@ class eBTC:
             else:
                 timelock = self.lowsec_timelock
 
-            ## Check if tx is already scheduled
-            id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
-
-            if timelock.isOperation(id):
-                self.execute_timelock(
-                    timelock, target.address, 0, data, EmptyBytes32, salt
-                )
+            executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+            if executed:
                 assert self.active_pool.flashLoansPaused() == pause
-            else:
-                delay = timelock.getMinDelay()
-                self.schedule_timelock(
-                    timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
-                )
         else:
             assert self.authority.canCall(
                 self.safe.account, target, data[:10]
@@ -1034,19 +916,9 @@ class eBTC:
             else:
                 timelock = self.lowsec_timelock
 
-            ## Check if tx is already scheduled
-            id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
-
-            if timelock.isOperation(id):
-                self.execute_timelock(
-                    timelock, target.address, 0, data, EmptyBytes32, salt
-                )
+            executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+            if executed:
                 assert self.borrower_operations.flashLoansPaused() == pause
-            else:
-                delay = timelock.getMinDelay()
-                self.schedule_timelock(
-                    timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
-                )
         else:
             assert self.authority.canCall(
                 self.safe.account, target, data[:10]
@@ -1069,43 +941,27 @@ class eBTC:
         """
         target = self.active_pool
         data = target.claimFeeRecipientCollShares.encode_input(value)
+
+        # Used for assertions
+        coll = self.collateral
+        fee_recipient = self.active_pool.feeRecipientAddress()
+        shares_before = coll.sharesOf(fee_recipient)
+
         if use_timelock:
             if use_high_sec:
                 timelock = self.highsec_timelock
             else:
                 timelock = self.lowsec_timelock
 
-            ## Check if tx is already scheduled
-            id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
-
-            if timelock.isOperation(id):
-                coll = self.collateral
-                fee_recipient = self.active_pool.feeRecipientAddress()
-                shares_before = coll.sharesOf(fee_recipient)
-                self.execute_timelock(
-                    timelock, target.address, 0, data, EmptyBytes32, salt
-                )
+            executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+            if executed:
                 assert coll.sharesOf(fee_recipient) - shares_before == value
-            else:
-                delay = timelock.getMinDelay()
-                self.schedule_timelock(
-                    timelock,
-                    target.address,
-                    0,
-                    data,
-                    EmptyBytes32,
-                    salt,
-                    delay + 1,
-                )
         else:
             assert self.authority.canCall(
                 self.safe.account, target, data[:10]
             ), "Error: Not authorized"
 
             # Claim shares
-            coll = self.collateral
-            fee_recipient = self.active_pool.feeRecipientAddress()
-            shares_before = coll.sharesOf(fee_recipient)
             target.claimFeeRecipientCollShares(value)
             assert coll.sharesOf(fee_recipient) - shares_before == value
 
@@ -1129,42 +985,26 @@ class eBTC:
         """
         target = self.active_pool
         data = target.sweepToken.encode_input(token_address, value)
+
+        # Used for assertions
+        token = self.safe.contract(token_address)
+        fee_recipient = self.active_pool.feeRecipientAddress()
+        balance_before = token.balanceOf(fee_recipient)
+
         if use_timelock:
             if use_high_sec:
                 timelock = self.highsec_timelock
             else:
                 timelock = self.lowsec_timelock
 
-            ## Check if tx is already scheduled
-            id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
-
-            if timelock.isOperation(id):
-                token = self.safe.contract(token_address)
-                fee_recipient = self.active_pool.feeRecipientAddress()
-                balance_before = token.balanceOf(fee_recipient)
-                self.execute_timelock(
-                    timelock, target.address, 0, data, EmptyBytes32, salt
-                )
+            executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+            if executed:
                 assert token.balanceOf(fee_recipient) - balance_before == value
-            else:
-                delay = timelock.getMinDelay()
-                self.schedule_timelock(
-                    timelock,
-                    target.address,
-                    0,
-                    data,
-                    EmptyBytes32,
-                    salt,
-                    delay + 1,
-                )
         else:
             assert self.authority.canCall(
                 self.safe.account, target, data[:10]
             ), "Error: Not authorized"
             # sweep token
-            token = self.safe.contract(token_address)
-            fee_recipient = self.active_pool.feeRecipientAddress()
-            balance_before = token.balanceOf(fee_recipient)
             target.sweepToken(token_address, value)
             assert token.balanceOf(fee_recipient) - balance_before == value
 
@@ -1186,42 +1026,26 @@ class eBTC:
         """
         target = self.coll_surplus_pool
         data = target.sweepToken.encode_input(token_address, value)
+
+        # Used for assertions
+        token = self.safe.contract(token_address)
+        fee_recipient = self.coll_surplus_pool.feeRecipientAddress()
+        balance_before = token.balanceOf(fee_recipient)
+
         if use_timelock:
             if use_high_sec:
                 timelock = self.highsec_timelock
             else:
                 timelock = self.lowsec_timelock
 
-            ## Check if tx is already scheduled
-            id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
-
-            if timelock.isOperation(id):
-                token = self.safe.contract(token_address)
-                fee_recipient = self.coll_surplus_pool.feeRecipientAddress()
-                balance_before = token.balanceOf(fee_recipient)
-                self.execute_timelock(
-                    timelock, target.address, 0, data, EmptyBytes32, salt
-                )
+            executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+            if executed:
                 assert token.balanceOf(fee_recipient) - balance_before == value
-            else:
-                delay = timelock.getMinDelay()
-                self.schedule_timelock(
-                    timelock,
-                    target.address,
-                    0,
-                    data,
-                    EmptyBytes32,
-                    salt,
-                    delay + 1,
-                )
         else:
             assert self.authority.canCall(
                 self.safe.account, target, data[:10]
             ), "Error: Not authorized"
             # sweep token
-            token = self.safe.contract(token_address)
-            fee_recipient = self.coll_surplus_pool.feeRecipientAddress()
-            balance_before = token.balanceOf(fee_recipient)
             target.sweepToken(token_address, value)
             assert token.balanceOf(fee_recipient) - balance_before == value
 
@@ -1234,34 +1058,14 @@ class eBTC:
         @param name The new name of the role.
         @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         """
-        ## Check if tx is already scheduled
+
+        timelock = self.highsec_timelock
         target = self.authority
         data = target.setRoleName.encode_input(role, name)
-        id = self.highsec_timelock.hashOperation(
-            target.address, 0, data, EmptyBytes32, salt
-        )
 
-        if self.highsec_timelock.isOperation(id):
-            self.execute_timelock(
-                self.highsec_timelock,
-                target.address,
-                0,
-                data,
-                EmptyBytes32,
-                salt,
-            )
+        executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+        if executed:
             assert self.authority.getRoleName(role) == name
-        else:
-            delay = self.highsec_timelock.getMinDelay()
-            self.schedule_timelock(
-                self.highsec_timelock,
-                target.address,
-                0,
-                data,
-                EmptyBytes32,
-                EmptyBytes32,
-                delay + 1,
-            )
 
     def authority_set_user_role(self, user, role, enabled, salt=EmptyBytes32):
         """
@@ -1271,34 +1075,14 @@ class eBTC:
         @param enabled Whether to grant or revoke the role.
         @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         """
-        ## Check if tx is already scheduled
+
+        timelock = self.highsec_timelock
         target = self.authority
         data = target.setUserRole.encode_input(user, role, enabled)
-        id = self.highsec_timelock.hashOperation(
-            target.address, 0, data, EmptyBytes32, salt
-        )
 
-        if self.highsec_timelock.isOperation(id):
-            self.execute_timelock(
-                self.highsec_timelock,
-                target.address,
-                0,
-                data,
-                EmptyBytes32,
-                salt,
-            )
+        executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+        if executed:
             assert self.authority.doesUserHaveRole(user, role) == enabled
-        else:
-            delay = self.highsec_timelock.getMinDelay()
-            self.schedule_timelock(
-                self.highsec_timelock,
-                target.address,
-                0,
-                data,
-                EmptyBytes32,
-                salt,
-                delay + 1,
-            )
 
     def authority_set_role_capability(
         self, role, target_address, functionSig, enabled, salt=EmptyBytes32
@@ -1311,38 +1095,18 @@ class eBTC:
         @param enabled Whether to grant or revoke the role.
         @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         """
-        ## Check if tx is already scheduled
+
+        timelock = self.highsec_timelock
         target = self.authority
         data = target.setRoleCapability.encode_input(
             role, target_address, functionSig, enabled
         )
-        id = self.highsec_timelock.hashOperation(
-            target.address, 0, data, EmptyBytes32, salt
-        )
 
-        if self.highsec_timelock.isOperation(id):
-            self.execute_timelock(
-                self.highsec_timelock,
-                target.address,
-                0,
-                data,
-                EmptyBytes32,
-                salt,
-            )
+        executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+        if executed:
             assert (
                 self.authority.doesRoleHaveCapability(role, target_address, functionSig)
                 == enabled
-            )
-        else:
-            delay = self.highsec_timelock.getMinDelay()
-            self.schedule_timelock(
-                self.highsec_timelock,
-                target.address,
-                0,
-                data,
-                EmptyBytes32,
-                salt,
-                delay + 1,
             )
 
     def authority_set_public_capability(
@@ -1355,38 +1119,18 @@ class eBTC:
         @param enabled Whether to grant or revoke public access to the function.
         @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         """
-        ## Check if tx is already scheduled
+
+        timelock = self.highsec_timelock
         target = self.authority
         data = target.setPublicCapability.encode_input(
             target_address, functionSig, enabled
         )
-        id = self.highsec_timelock.hashOperation(
-            target.address, 0, data, EmptyBytes32, salt
-        )
 
-        if self.highsec_timelock.isOperation(id):
-            self.execute_timelock(
-                self.highsec_timelock,
-                target.address,
-                0,
-                data,
-                EmptyBytes32,
-                salt,
-            )
+        executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+        if executed:
             assert (
                 self.authority.isPublicCapability(target_address, functionSig)
                 == enabled
-            )
-        else:
-            delay = self.highsec_timelock.getMinDelay()
-            self.schedule_timelock(
-                self.highsec_timelock,
-                target.address,
-                0,
-                data,
-                EmptyBytes32,
-                salt,
-                delay + 1,
             )
 
     def authority_burn_capability(self, target_address, functionSig, salt=EmptyBytes32):
@@ -1396,36 +1140,16 @@ class eBTC:
         @param functionSig The signature of the function to grant the capability to.
         @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         """
-        ## Check if tx is already scheduled
+
+        timelock = self.highsec_timelock
         target = self.authority
         data = target.burnCapability.encode_input(target_address, functionSig)
-        id = self.highsec_timelock.hashOperation(
-            target.address, 0, data, EmptyBytes32, salt
-        )
 
-        if self.highsec_timelock.isOperation(id):
-            self.execute_timelock(
-                self.highsec_timelock,
-                target.address,
-                0,
-                data,
-                EmptyBytes32,
-                salt,
-            )
+        executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+        if executed:
             assert (
                 self.authority.capabilityFlag(target_address, functionSig) == 2
             )  # 2: Burned
-        else:
-            delay = self.highsec_timelock.getMinDelay()
-            self.schedule_timelock(
-                self.highsec_timelock,
-                target.address,
-                0,
-                data,
-                EmptyBytes32,
-                salt,
-                delay + 1,
-            )
 
     def authority_set_authority(self, new_authority, salt=EmptyBytes32):
         """
@@ -1433,31 +1157,11 @@ class eBTC:
         @param new_authority The address of the new Authority contract.
         @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         """
-        ## Check if tx is already scheduled
+
+        timelock = self.highsec_timelock
         target = self.authority
         data = target.setAuthority.encode_input(new_authority)
-        id = self.highsec_timelock.hashOperation(
-            target.address, 0, data, EmptyBytes32, salt
-        )
 
-        if self.highsec_timelock.isOperation(id):
-            self.execute_timelock(
-                self.highsec_timelock,
-                target.address,
-                0,
-                data,
-                EmptyBytes32,
-                salt,
-            )
+        executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+        if executed:
             assert self.authority.authority() == new_authority
-        else:
-            delay = self.highsec_timelock.getMinDelay()
-            self.schedule_timelock(
-                self.highsec_timelock,
-                target.address,
-                0,
-                data,
-                EmptyBytes32,
-                salt,
-                delay + 1,
-            )
