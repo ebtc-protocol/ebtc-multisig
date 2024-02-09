@@ -1216,9 +1216,7 @@ class eBTC:
 
             if timelock.isOperation(id):
                 token = self.safe.contract(token_address)
-                fee_recipient = (
-                    self.coll_surplus_pool.feeRecipientAddress()
-                )  # Fee recipient will be modified to track the Active Pool's
+                fee_recipient = self.coll_surplus_pool.feeRecipientAddress()
                 balance_before = token.balanceOf(fee_recipient)
                 self.execute_timelock(
                     timelock, target.address, 0, data, EmptyBytes32, salt
@@ -1241,9 +1239,7 @@ class eBTC:
             ), "Error: Not authorized"
             # sweep token
             token = self.safe.contract(token_address)
-            fee_recipient = (
-                self.coll_surplus_pool.feeRecipientAddress()
-            )  # Fee recipient will be modified to track the Active Pool's
+            fee_recipient = self.coll_surplus_pool.feeRecipientAddress()
             balance_before = token.balanceOf(fee_recipient)
             target.sweepToken(token_address, value)
             assert token.balanceOf(fee_recipient) - balance_before == value
