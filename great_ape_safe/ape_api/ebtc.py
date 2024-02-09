@@ -73,6 +73,8 @@ class eBTC:
             interface.ITimelockControllerEnumerable,
         )
         self.fee_recipient = self.active_pool.feeRecipientAddress()
+        self.security_multisig = registry.sepolia.ebtc_wallets.security_multisig
+        self.techops_multisig = registry.sepolia.ebtc_wallets.techops_multisig
 
         ##################################################################
         ##
@@ -86,9 +88,13 @@ class eBTC:
             EBTC_MINTER = 1  # eBTCToken: mint
             EBTC_BURNER = 2  # eBTCToken: burn
             CDP_MANAGER_ALL = 3  # CDPManager: all
-            FALLBACK_ADMIN = 4  # PriceFeed: setFallbackCaller
-            FEE_ADMIN = 5  # BorrowerOperations+ActivePool: setFeeBps, setFlashLoansPaused, setFeeRecipientAddress
-            FEE_RECIPIENT_OPS = 6  # ActivePool: sweep tokens & claim fee recipient coll
+            PAUSER = 4  # CDPManager+BorrowerOperations+ActivePool: pause
+            FL_FEE_ADMIN = 5  # BorrowerOperations+ActivePool: setFeeBps
+            SWEEPER = 6  # ActivePool+CollSurplusPool: sweepToken
+            FEE_CLAIMER = 7 # ActivePool: claimFeeRecipientCollShares
+            PRIMARY_ORACLE_SETTER = 8 # EbtcFeed: setPrimaryOracle
+            SECONDARY_ORACLE_SETTER = 9 # EbtcFeed: setSecondaryOracle
+            FALLBACK_CALLER_SETTER = 10 # PriceFeed: setFallbackCaller
 
         self.governance_roles = governanceRoles
 
@@ -116,6 +122,8 @@ class eBTC:
             "SET_FALLBACK_CALLER_SIG": web3.keccak(
                 text="setFallbackCaller(address)"
             ).hex()[0:10],
+            "SET_PRIMARY_ORACLE_SIG": web3.keccak(text="setPrimaryOracle(address)").hex()[0:10],
+            "SET_SECONDARY_ORACLE_SIG": web3.keccak(text="setSecondaryOracle(address)").hex()[0:10],
             "SET_FEE_BPS_SIG": web3.keccak(text="setFeeBps(uint256)").hex()[0:10],
             "SET_FLASH_LOANS_PAUSED_SIG": web3.keccak(
                 text="setFlashLoansPaused(bool)"
@@ -125,9 +133,6 @@ class eBTC:
             ],
             "CLAIM_FEE_RECIPIENT_COLL_SIG": web3.keccak(
                 text="claimFeeRecipientCollShares(uint256)"
-            ).hex()[0:10],
-            "SET_FEE_RECIPIENT_ADDRESS_SIG": web3.keccak(
-                text="setFeeRecipientAddress(address)"
             ).hex()[0:10],
             "SET_ROLE_NAME_SIG": web3.keccak(text="setRoleName(uint8,string)").hex()[
                 0:10
@@ -225,69 +230,65 @@ class eBTC:
                 },
                 {
                     "target": self.cdp_manager,
-                    "signature": self.governance_signatures[
-                        "SET_REDEMPTIONS_PAUSED_SIG"
-                    ],
-                },
-                {
-                    "target": self.cdp_manager,
                     "signature": self.governance_signatures["SET_GRACE_PERIOD_SIG"],
                 },
             ],
-            governanceRoles.FALLBACK_ADMIN.value: [
+            governanceRoles.PAUSER.value: [
                 {
-                    "target": self.price_feed,
-                    "signature": self.governance_signatures["SET_FALLBACK_CALLER_SIG"],
+                    "target": self.cdp_manager,
+                    "signature": self.governance_signatures["SET_REDEMPTIONS_PAUSED_SIG"],
+                },
+                {
+                    "target": self.active_pool,
+                    "signature": self.governance_signatures["SET_FLASH_LOANS_PAUSED_SIG"],
+                },
+                {
+                    "target": self.borrower_operations,
+                    "signature": self.governance_signatures["SET_FLASH_LOANS_PAUSED_SIG"],
                 },
             ],
-            governanceRoles.FEE_ADMIN.value: [
+            governanceRoles.FL_FEE_ADMIN.value: [
                 {
                     "target": self.borrower_operations,
                     "signature": self.governance_signatures["SET_FEE_BPS_SIG"],
                 },
                 {
-                    "target": self.borrower_operations,
-                    "signature": self.governance_signatures[
-                        "SET_FLASH_LOANS_PAUSED_SIG"
-                    ],
-                },
-                {
-                    "target": self.borrower_operations,
-                    "signature": self.governance_signatures[
-                        "SET_FEE_RECIPIENT_ADDRESS_SIG"
-                    ],
-                },
-                {
                     "target": self.active_pool,
                     "signature": self.governance_signatures["SET_FEE_BPS_SIG"],
                 },
-                {
-                    "target": self.active_pool,
-                    "signature": self.governance_signatures[
-                        "SET_FLASH_LOANS_PAUSED_SIG"
-                    ],
-                },
-                {
-                    "target": self.active_pool,
-                    "signature": self.governance_signatures[
-                        "SET_FEE_RECIPIENT_ADDRESS_SIG"
-                    ],
-                },
             ],
-            governanceRoles.FEE_RECIPIENT_OPS.value: [
+            governanceRoles.SWEEPER.value: [
                 {
                     "target": self.active_pool,
                     "signature": self.governance_signatures["SWEEP_TOKEN_SIG"],
-                },
-                {
-                    "target": self.active_pool,
-                    "signature": self.governance_signatures[
-                        "CLAIM_FEE_RECIPIENT_COLL_SIG"
-                    ],
                 },
                 {
                     "target": self.coll_surplus_pool,
                     "signature": self.governance_signatures["SWEEP_TOKEN_SIG"],
+                },
+            ],
+            governanceRoles.FEE_CLAIMER.value: [
+                {
+                    "target": self.active_pool,
+                    "signature": self.governance_signatures["CLAIM_FEE_RECIPIENT_COLL_SIG"],
+                },
+            ],
+            governanceRoles.PRIMARY_ORACLE_SETTER.value: [
+                {
+                    "target": self.ebtc_feed,
+                    "signature": self.governance_signatures["SET_PRIMARY_ORACLE_SIG"],
+                },
+            ],
+            governanceRoles.SECONDARY_ORACLE_SETTER.value: [
+                {
+                    "target": self.ebtc_feed,
+                    "signature": self.governance_signatures["SET_SECONDARY_ORACLE_SIG"],
+                },
+            ],
+            governanceRoles.FALLBACK_CALLER_SETTER.value: [
+                {
+                    "target": self.price_feed,
+                    "signature": self.governance_signatures["SET_FALLBACK_CALLER_SIG"],
                 },
             ],
         }
@@ -297,18 +298,32 @@ class eBTC:
             self.highsec_timelock.address: [
                 governanceRoles.ADMIN.value,
                 governanceRoles.CDP_MANAGER_ALL.value,
-                governanceRoles.FALLBACK_ADMIN.value,
-                governanceRoles.FEE_ADMIN.value,
-                governanceRoles.FEE_RECIPIENT_OPS.value,
+                governanceRoles.PAUSER.value,
+                governanceRoles.FL_FEE_ADMIN.value,
+                governanceRoles.SWEEPER.value,
+                governanceRoles.FEE_CLAIMER.value,
+                governanceRoles.PRIMARY_ORACLE_SETTER.value,
+                governanceRoles.SECONDARY_ORACLE_SETTER.value,
+                governanceRoles.FALLBACK_CALLER_SETTER.value,
             ],
             self.lowsec_timelock.address: [
                 governanceRoles.CDP_MANAGER_ALL.value,
-                governanceRoles.FALLBACK_ADMIN.value,
-                governanceRoles.FEE_ADMIN.value,
-                governanceRoles.FEE_RECIPIENT_OPS.value,
+                governanceRoles.PAUSER.value,
+                governanceRoles.FL_FEE_ADMIN.value,
+                governanceRoles.SWEEPER.value,
+                governanceRoles.FEE_CLAIMER.value,
+                governanceRoles.SECONDARY_ORACLE_SETTER.value,
+                governanceRoles.FALLBACK_CALLER_SETTER.value,
+            ],
+            self.security_multisig: [
+                governanceRoles.PAUSER.value,
+            ],
+            self.techops_multisig: [
+                governanceRoles.PAUSER.value,
             ],
             self.fee_recipient: [
-                governanceRoles.FEE_RECIPIENT_OPS.value,
+                governanceRoles.FEE_CLAIMER.value,
+                governanceRoles.SWEEPER.value,
             ],
         }
 
