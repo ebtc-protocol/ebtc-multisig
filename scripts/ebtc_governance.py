@@ -242,3 +242,113 @@ def ebtcFeed_set_primary_oracle(address):
     safe.ebtc.ebtcFeed_set_primary_oracle(address)
 
     safe.post_safe_tx()
+
+
+"""
+WAROOM: Pausing operations
+
+The following scripts are meant to be executed by the TechOps or Security multisig and
+are used to pause or unpause certain functions directly.
+"""
+
+
+def cdpManager_set_redemptions_paused_techops(pause):
+    """
+    Pause or unpause redemptions for the CDPManager contract from the TechOps multisig.
+    """
+    safe = GreatApeSafe(r.ebtc_wallets.techops_multisig)
+    safe.init_ebtc()
+    C.print(f"\nUsing {safe.account} for CDPManager.setRedemptionsPaused\n")
+    safe.ebtc.cdpManager_set_redemptions_paused(pause)
+
+    safe.post_safe_tx()
+
+
+def cdpManager_set_redemptions_paused_security(pause):
+    """
+    Pause or unpause redemptions for the CDPManager contract from the Security multisig.
+    """
+    safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
+    safe.init_ebtc()
+    C.print(f"\nUsing {safe.account} for CDPManager.setRedemptionsPaused\n")
+    safe.ebtc.cdpManager_set_redemptions_paused(pause)
+
+    safe.post_safe_tx()
+
+
+def activePool_set_flash_loans_paused_techops(pause):
+    """
+    Pause or unpause flashloans for the ActivePool contract from the TechOps multisig.
+    """
+    safe = GreatApeSafe(r.ebtc_wallets.techops_multisig)
+    safe.init_ebtc()
+    C.print(f"\nUsing {safe.account} for ActivePool.setFlashloansPaused\n")
+    safe.ebtc.activePool_set_flash_loans_paused(pause)
+
+    safe.post_safe_tx()
+
+
+def activePool_set_flash_loans_paused_security(pause):
+    """
+    Pause or unpause flashloans for the ActivePool contract from the Security multisig.
+    """
+    safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
+    safe.init_ebtc()
+    C.print(f"\nUsing {safe.account} for ActivePool.setFlashloansPaused\n")
+    safe.ebtc.activePool_set_flash_loans_paused(pause)
+
+    safe.post_safe_tx()
+
+
+def borrowerOperations_set_flash_loans_paused_techops(pause):
+    """
+    Pause or unpause flashloans for the BorrowerOperations contract from the TechOps multisig.
+    """
+    safe = GreatApeSafe(r.ebtc_wallets.techops_multisig)
+    safe.init_ebtc()
+    C.print(f"\nUsing {safe.account} for BorrowerOperations.setFlashLoansPaused\n")
+    safe.ebtc.borrowerOperations_set_flash_loans_paused(pause)
+
+    safe.post_safe_tx()
+
+
+def borrowerOperations_set_flash_loans_paused_security(pause):
+    """
+    Pause or unpause flashloans for the BorrowerOperations contract from the Security multisig.
+    """
+    safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
+    safe.init_ebtc()
+    C.print(f"\nUsing {safe.account} for BorrowerOperations.setFlashLoansPaused\n")
+    safe.ebtc.borrowerOperations_set_flash_loans_paused(pause)
+
+    safe.post_safe_tx()
+
+
+def pause_flashloans_techops(pause):
+    """
+    Pause or unpause flashloans for the ActivePool and BorrowerOperations contracts from the TechOps multisig.
+    """
+
+    safe = GreatApeSafe(r.ebtc_wallets.techops_multisig)
+    safe.init_ebtc()
+    C.print(f"\nUsing {safe.account} for ActivePool.setFlashloansPaused\n")
+    safe.ebtc.activePool_set_flash_loans_paused(pause)
+    C.print(f"\nUsing {safe.account} for BorrowerOperations.setFlashLoansPaused\n")
+    safe.ebtc.borrowerOperations_set_flash_loans_paused(pause)
+
+    safe.post_safe_tx()
+
+
+def pause_flashloans_security(pause):
+    """
+    Pause or unpause flashloans for the ActivePool and BorrowerOperations contracts from the Security multisig.
+    """
+
+    safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
+    safe.init_ebtc()
+    C.print(f"\nUsing {safe.account} for ActivePool.setFlashloansPaused\n")
+    safe.ebtc.activePool_set_flash_loans_paused(pause)
+    C.print(f"\nUsing {safe.account} for BorrowerOperations.setFlashLoansPaused\n")
+    safe.ebtc.borrowerOperations_set_flash_loans_paused(pause)
+
+    safe.post_safe_tx()

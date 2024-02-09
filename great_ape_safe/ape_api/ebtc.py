@@ -720,32 +720,45 @@ class eBTC:
             )
 
     def cdpManager_set_redemptions_paused(
-        self, pause, salt=EmptyBytes32, use_high_sec=False
+        self, pause, use_timelock=False, salt=EmptyBytes32, use_high_sec=False
     ):
         """
         @dev Sets the redemptions paused state in the CDP Manager.
         @param paused The new redemptions paused state to set (True or False).
+        @param use_timelock If true, use the timelock to schedule the transaction. Otherwise, execute it directly.
         @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
-        if use_high_sec:
-            timelock = self.highsec_timelock
-        else:
-            timelock = self.lowsec_timelock
-
-        ## Check if tx is already scheduled
         target = self.cdp_manager
         data = target.setRedemptionsPaused.encode_input(pause)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
 
-        if timelock.isOperation(id):
-            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
-            assert self.cdp_manager.redemptionsPaused() == pause
+        if use_timelock:
+            if use_high_sec:
+                timelock = self.highsec_timelock
+            else:
+                timelock = self.lowsec_timelock
+
+            ## Check if tx is already scheduled
+            id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
+
+            if timelock.isOperation(id):
+                self.execute_timelock(
+                    timelock, target.address, 0, data, EmptyBytes32, salt
+                )
+                assert self.cdp_manager.redemptionsPaused() == pause
+            else:
+                delay = timelock.getMinDelay()
+                self.schedule_timelock(
+                    timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
+                )
         else:
-            delay = timelock.getMinDelay()
-            self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
-            )
+            assert self.authority.canCall(
+                self.safe.account, target, data[:10]
+            ), "Error: Not authorized"
+
+            # Pause redemptions
+            target.setRedemptionsPaused(pause)
+            assert self.cdp_manager.redemptionsPaused() == pause
 
     def cdpManager_set_grace_period(self, value, salt=EmptyBytes32, use_high_sec=False):
         """
@@ -1016,6 +1029,88 @@ class eBTC:
             )
 
     ## TODO: Function to change the fee recipient on both the AP and the BO through a batched timelock tx
+
+    def activePool_set_flash_loans_paused(
+        self, pause, use_timelock=False, salt=EmptyBytes32, use_high_sec=False
+    ):
+        """
+        @dev Sets the flashloans paused state in the Active Pool.
+        @param paused The new flashloans paused state to set (True or False).
+        @param use_timelock If true, use the timelock to schedule the transaction. Otherwise, execute it directly.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
+        @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
+        """
+        target = self.active_pool
+        data = target.setFlashLoansPaused.encode_input(pause)
+
+        if use_timelock:
+            if use_high_sec:
+                timelock = self.highsec_timelock
+            else:
+                timelock = self.lowsec_timelock
+
+            ## Check if tx is already scheduled
+            id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
+
+            if timelock.isOperation(id):
+                self.execute_timelock(
+                    timelock, target.address, 0, data, EmptyBytes32, salt
+                )
+                assert self.active_pool.flashLoansPaused() == pause
+            else:
+                delay = timelock.getMinDelay()
+                self.schedule_timelock(
+                    timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
+                )
+        else:
+            assert self.authority.canCall(
+                self.safe.account, target, data[:10]
+            ), "Error: Not authorized"
+
+            # Pause flashloans
+            target.setFlashLoansPaused(pause)
+            assert self.active_pool.flashLoansPaused() == pause
+
+    def borrowerOperations_set_flash_loans_paused(
+        self, pause, use_timelock=False, salt=EmptyBytes32, use_high_sec=False
+    ):
+        """
+        @dev Sets the flashloans paused state in the Borrower Operations.
+        @param paused The new flashloans paused state to set (True or False).
+        @param use_timelock If true, use the timelock to schedule the transaction. Otherwise, execute it directly.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
+        @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
+        """
+        target = self.borrower_operations
+        data = target.setFlashLoansPaused.encode_input(pause)
+
+        if use_timelock:
+            if use_high_sec:
+                timelock = self.highsec_timelock
+            else:
+                timelock = self.lowsec_timelock
+
+            ## Check if tx is already scheduled
+            id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
+
+            if timelock.isOperation(id):
+                self.execute_timelock(
+                    timelock, target.address, 0, data, EmptyBytes32, salt
+                )
+                assert self.borrower_operations.flashLoansPaused() == pause
+            else:
+                delay = timelock.getMinDelay()
+                self.schedule_timelock(
+                    timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
+                )
+        else:
+            assert self.authority.canCall(
+                self.safe.account, target, data[:10]
+            ), "Error: Not authorized"
+
+            # Pause flashloans
+            target.setFlashLoansPaused(pause)
+            assert self.borrower_operations.flashLoansPaused() == pause
 
     #### ===== ACTIVE POOL ===== ####
     def activePool_claim_fee_recipient_coll_shares(

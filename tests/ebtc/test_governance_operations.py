@@ -2,6 +2,7 @@ from brownie import chain
 import pytest
 from helpers.constants import (
     AddressZero,
+    EmptyBytes32,
     DECIMAL_PRECISION,
     MAX_REWARD_SPLIT,
     MIN_REDEMPTION_FEE_FLOOR,
@@ -91,17 +92,41 @@ def test_cdpManager_set_beta_happy(techops):
     assert techops.ebtc.cdp_manager.beta() == 1000
 
 
-# Test cdpManager_set_redemptions_paused
-def test_cdpManager_set_redemptions_paused_happy(techops):
+# Test cdpManager_set_redemptions_paused from Timelock
+def test_cdpManager_set_redemptions_paused_happy_timelock(techops):
     techops.init_ebtc()
-    techops.ebtc.cdpManager_set_redemptions_paused(True)
+    techops.ebtc.cdpManager_set_redemptions_paused(
+        True, use_timelock=True, salt=EmptyBytes32, use_high_sec=False
+    )
 
     chain.sleep(techops.ebtc.lowsec_timelock.getMinDelay() + 1)
     chain.mine()
 
-    techops.ebtc.cdpManager_set_redemptions_paused(True)
+    techops.ebtc.cdpManager_set_redemptions_paused(
+        True, use_timelock=True, salt=EmptyBytes32, use_high_sec=False
+    )
 
     assert techops.ebtc.cdp_manager.redemptionsPaused() == True
+
+
+# Test cdpManager_set_redemptions_paused from TechOps
+def test_cdpManager_set_redemptions_paused_happy_techOps(techops):
+    techops.init_ebtc()
+    techops.ebtc.cdpManager_set_redemptions_paused(
+        True, use_timelock=False, salt=EmptyBytes32, use_high_sec=False
+    )
+
+    assert techops.ebtc.cdp_manager.redemptionsPaused() == True
+
+
+# Test cdpManager_set_redemptions_paused from Security Multisig
+def test_cdpManager_set_redemptions_paused_happy_securityMultisig(security_multisig):
+    security_multisig.init_ebtc()
+    security_multisig.ebtc.cdpManager_set_redemptions_paused(
+        True, use_timelock=False, salt=EmptyBytes32, use_high_sec=True
+    )
+
+    assert security_multisig.ebtc.cdp_manager.redemptionsPaused() == True
 
 
 # Test cdpManager_set_grace_period
@@ -241,6 +266,82 @@ def test_borrowerOperations_set_fee_recipient_address_checks(techops):
     techops.init_ebtc()
     with pytest.raises(AssertionError, match="Error: Address cannot be zero"):
         techops.ebtc.borrowerOperations_set_fee_recipient_address(AddressZero)
+
+
+# Test activePool_set_flash_loans_paused from Timelock
+def test_activePool_set_flash_loans_paused_happy_timelock(techops):
+    techops.init_ebtc()
+    techops.ebtc.activePool_set_flash_loans_paused(
+        True, use_timelock=True, salt=EmptyBytes32, use_high_sec=False
+    )
+
+    chain.sleep(techops.ebtc.lowsec_timelock.getMinDelay() + 1)
+    chain.mine()
+
+    techops.ebtc.activePool_set_flash_loans_paused(
+        True, use_timelock=True, salt=EmptyBytes32, use_high_sec=False
+    )
+
+    assert techops.ebtc.active_pool.flashLoansPaused() == True
+
+
+# Test activePool_set_flash_loans_paused from TechOps
+def test_activePool_set_flash_loans_paused_happy_techOps(techops):
+    techops.init_ebtc()
+    techops.ebtc.activePool_set_flash_loans_paused(
+        True, use_timelock=False, salt=EmptyBytes32, use_high_sec=False
+    )
+
+    assert techops.ebtc.active_pool.flashLoansPaused() == True
+
+
+# Test activePool_set_flash_loans_paused from Security Multisig
+def test_activePool_set_flash_loans_paused_happy_securityMultisig(security_multisig):
+    security_multisig.init_ebtc()
+    security_multisig.ebtc.activePool_set_flash_loans_paused(
+        True, use_timelock=False, salt=EmptyBytes32, use_high_sec=True
+    )
+
+    assert security_multisig.ebtc.active_pool.flashLoansPaused() == True
+
+
+# Test borrowerOperations_set_flash_loans_paused from Timelock
+def test_borrowerOperations_set_flash_loans_paused_happy_timelock(techops):
+    techops.init_ebtc()
+    techops.ebtc.borrowerOperations_set_flash_loans_paused(
+        True, use_timelock=True, salt=EmptyBytes32, use_high_sec=False
+    )
+
+    chain.sleep(techops.ebtc.lowsec_timelock.getMinDelay() + 1)
+    chain.mine()
+
+    techops.ebtc.borrowerOperations_set_flash_loans_paused(
+        True, use_timelock=True, salt=EmptyBytes32, use_high_sec=False
+    )
+
+    assert techops.ebtc.borrower_operations.flashLoansPaused() == True
+
+
+# Test borrowerOperations_set_flash_loans_paused from TechOps
+def test_borrowerOperations_set_flash_loans_paused_happy_techOps(techops):
+    techops.init_ebtc()
+    techops.ebtc.borrowerOperations_set_flash_loans_paused(
+        True, use_timelock=False, salt=EmptyBytes32, use_high_sec=False
+    )
+
+    assert techops.ebtc.borrower_operations.flashLoansPaused() == True
+
+
+# Test borrowerOperations_set_flash_loans_paused from Security Multisig
+def test_borrowerOperations_set_flash_loans_paused_happy_securityMultisig(
+    security_multisig,
+):
+    security_multisig.init_ebtc()
+    security_multisig.ebtc.borrowerOperations_set_flash_loans_paused(
+        True, use_timelock=False, salt=EmptyBytes32, use_high_sec=True
+    )
+
+    assert security_multisig.ebtc.borrower_operations.flashLoansPaused() == True
 
 
 # Test activePool_claim_fee_recipient_coll_shares
