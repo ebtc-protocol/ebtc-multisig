@@ -7,9 +7,7 @@ import json
 
 ADDRESSES_ETH = {
     "ebtc": {"placeholder": "0x0000000000000000000000000000000000000000"},
-    "ebtc_wallets": {
-        "placeholder": "0x0000000000000000000000000000000000000000"
-    },
+    "ebtc_wallets": {"placeholder": "0x0000000000000000000000000000000000000000"},
 }
 
 ADDRESSES_SEPOLIA = {
@@ -33,7 +31,7 @@ ADDRESSES_SEPOLIA = {
         "lowsec_timelock": "0x981EF454d1433C664C09F1b8d73B0381D13ac7BD",
         "test_contracts": {
             "test_price_feed": "0xD91c9CF0499ba9A6Eee7BED92c9F938C5fD4eD69"
-        }
+        },
     },
     "ebtc_wallets": {
         "security_multisig": "0xC8A7768D2a9EE15437c981a7130268622083c2BD",
@@ -44,7 +42,7 @@ ADDRESSES_SEPOLIA = {
         "ebtc": "0x0b3e07D082F07d6a8Dba3a6f6aCf32ae1ed16Ea4",
         "steth": "0x97BA9AA7B7DC74f7a74864A62c4fF93b2b22f015",
         "wbtc": "0x84beA728aFb989756B4AF86600C0a95919035849",
-    }
+    },
 }
 
 ADDRESSES_GOERLI = {

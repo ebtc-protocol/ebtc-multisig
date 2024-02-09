@@ -91,10 +91,10 @@ class eBTC:
             PAUSER = 4  # CDPManager+BorrowerOperations+ActivePool: pause
             FL_FEE_ADMIN = 5  # BorrowerOperations+ActivePool: setFeeBps
             SWEEPER = 6  # ActivePool+CollSurplusPool: sweepToken
-            FEE_CLAIMER = 7 # ActivePool: claimFeeRecipientCollShares
-            PRIMARY_ORACLE_SETTER = 8 # EbtcFeed: setPrimaryOracle
-            SECONDARY_ORACLE_SETTER = 9 # EbtcFeed: setSecondaryOracle
-            FALLBACK_CALLER_SETTER = 10 # PriceFeed: setFallbackCaller
+            FEE_CLAIMER = 7  # ActivePool: claimFeeRecipientCollShares
+            PRIMARY_ORACLE_SETTER = 8  # EbtcFeed: setPrimaryOracle
+            SECONDARY_ORACLE_SETTER = 9  # EbtcFeed: setSecondaryOracle
+            FALLBACK_CALLER_SETTER = 10  # PriceFeed: setFallbackCaller
 
         self.governance_roles = governanceRoles
 
@@ -122,8 +122,12 @@ class eBTC:
             "SET_FALLBACK_CALLER_SIG": web3.keccak(
                 text="setFallbackCaller(address)"
             ).hex()[0:10],
-            "SET_PRIMARY_ORACLE_SIG": web3.keccak(text="setPrimaryOracle(address)").hex()[0:10],
-            "SET_SECONDARY_ORACLE_SIG": web3.keccak(text="setSecondaryOracle(address)").hex()[0:10],
+            "SET_PRIMARY_ORACLE_SIG": web3.keccak(
+                text="setPrimaryOracle(address)"
+            ).hex()[0:10],
+            "SET_SECONDARY_ORACLE_SIG": web3.keccak(
+                text="setSecondaryOracle(address)"
+            ).hex()[0:10],
             "SET_FEE_BPS_SIG": web3.keccak(text="setFeeBps(uint256)").hex()[0:10],
             "SET_FLASH_LOANS_PAUSED_SIG": web3.keccak(
                 text="setFlashLoansPaused(bool)"
@@ -236,15 +240,21 @@ class eBTC:
             governanceRoles.PAUSER.value: [
                 {
                     "target": self.cdp_manager,
-                    "signature": self.governance_signatures["SET_REDEMPTIONS_PAUSED_SIG"],
+                    "signature": self.governance_signatures[
+                        "SET_REDEMPTIONS_PAUSED_SIG"
+                    ],
                 },
                 {
                     "target": self.active_pool,
-                    "signature": self.governance_signatures["SET_FLASH_LOANS_PAUSED_SIG"],
+                    "signature": self.governance_signatures[
+                        "SET_FLASH_LOANS_PAUSED_SIG"
+                    ],
                 },
                 {
                     "target": self.borrower_operations,
-                    "signature": self.governance_signatures["SET_FLASH_LOANS_PAUSED_SIG"],
+                    "signature": self.governance_signatures[
+                        "SET_FLASH_LOANS_PAUSED_SIG"
+                    ],
                 },
             ],
             governanceRoles.FL_FEE_ADMIN.value: [
@@ -270,7 +280,9 @@ class eBTC:
             governanceRoles.FEE_CLAIMER.value: [
                 {
                     "target": self.active_pool,
-                    "signature": self.governance_signatures["CLAIM_FEE_RECIPIENT_COLL_SIG"],
+                    "signature": self.governance_signatures[
+                        "CLAIM_FEE_RECIPIENT_COLL_SIG"
+                    ],
                 },
             ],
             governanceRoles.PRIMARY_ORACLE_SETTER.value: [
@@ -980,70 +992,6 @@ class eBTC:
             )
 
     ## TODO: Function to change the fee on both the AP and the BO through a batched timelock tx
-
-    def activePool_set_fee_recipient_address(
-        self, address, salt=EmptyBytes32, use_high_sec=False
-    ):
-        """
-        @dev Sets the new fee recipient address on the Active Pool.
-        @param address The new fee recipient address.
-        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
-        @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
-        """
-
-        assert address != AddressZero, "Error: Address cannot be zero"
-
-        if use_high_sec:
-            timelock = self.highsec_timelock
-        else:
-            timelock = self.lowsec_timelock
-
-        ## Check if tx is already scheduled
-        target = self.active_pool
-        data = target.setFeeRecipientAddress.encode_input(address)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
-
-        if timelock.isOperation(id):
-            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
-            assert self.active_pool.feeRecipientAddress() == address
-        else:
-            delay = timelock.getMinDelay()
-            self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
-            )
-
-    def borrowerOperations_set_fee_recipient_address(
-        self, address, salt=EmptyBytes32, use_high_sec=False
-    ):
-        """
-        @dev Sets the new fee recipient address on the Borrowers Operations.
-        @param address The new fee recipient address.
-        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
-        @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
-        """
-
-        assert address != AddressZero, "Error: Address cannot be zero"
-
-        if use_high_sec:
-            timelock = self.highsec_timelock
-        else:
-            timelock = self.lowsec_timelock
-
-        ## Check if tx is already scheduled
-        target = self.borrower_operations
-        data = target.setFeeRecipientAddress.encode_input(address)
-        id = timelock.hashOperation(target.address, 0, data, EmptyBytes32, salt)
-
-        if timelock.isOperation(id):
-            self.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
-            assert self.borrower_operations.feeRecipientAddress() == address
-        else:
-            delay = timelock.getMinDelay()
-            self.schedule_timelock(
-                timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
-            )
-
-    ## TODO: Function to change the fee recipient on both the AP and the BO through a batched timelock tx
 
     def activePool_set_flash_loans_paused(
         self, pause, use_timelock=False, salt=EmptyBytes32, use_high_sec=False

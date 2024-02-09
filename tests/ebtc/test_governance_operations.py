@@ -228,46 +228,6 @@ def test_borrowerOperations_set_fee_bps_checks(techops):
         techops.ebtc.borrowerOperations_set_fee_bps(MAX_FEE_BPS + 1)
 
 
-# Test activePool_set_fee_recipient_address
-def test_activePool_set_fee_recipient_address_happy(techops):
-    techops.init_ebtc()
-    techops.ebtc.activePool_set_fee_recipient_address(techops.account)
-
-    chain.sleep(techops.ebtc.lowsec_timelock.getMinDelay() + 1)
-    chain.mine()
-
-    techops.ebtc.activePool_set_fee_recipient_address(techops.account)
-
-    assert techops.ebtc.active_pool.feeRecipientAddress() == techops.account
-
-
-# Test activePool_set_fee_recipient_address address checks
-def test_activePool_set_fee_recipient_address_checks(techops):
-    techops.init_ebtc()
-    with pytest.raises(AssertionError, match="Error: Address cannot be zero"):
-        techops.ebtc.activePool_set_fee_recipient_address(AddressZero)
-
-
-# Test borrowerOperations_set_fee_recipient_address
-def test_borrowerOperations_set_fee_recipient_address_happy(techops):
-    techops.init_ebtc()
-    techops.ebtc.borrowerOperations_set_fee_recipient_address(techops.account)
-
-    chain.sleep(techops.ebtc.lowsec_timelock.getMinDelay() + 1)
-    chain.mine()
-
-    techops.ebtc.borrowerOperations_set_fee_recipient_address(techops.account)
-
-    assert techops.ebtc.borrower_operations.feeRecipientAddress() == techops.account
-
-
-# Test borrowerOperations_set_fee_recipient_address address checks
-def test_borrowerOperations_set_fee_recipient_address_checks(techops):
-    techops.init_ebtc()
-    with pytest.raises(AssertionError, match="Error: Address cannot be zero"):
-        techops.ebtc.borrowerOperations_set_fee_recipient_address(AddressZero)
-
-
 # Test activePool_set_flash_loans_paused from Timelock
 def test_activePool_set_flash_loans_paused_happy_timelock(techops):
     techops.init_ebtc()

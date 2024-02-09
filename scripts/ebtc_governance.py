@@ -129,18 +129,6 @@ def borrowerOperations_set_fee_bps(value):
     safe.post_safe_tx()
 
 
-def activePool_set_fee_recipient_address(address):
-    """
-    Set the fee recipient address for the ActivePool contract.
-    """
-    safe = GreatApeSafe(r.ebtc_wallets.techops_multisig)
-    safe.init_ebtc()
-    C.print(f"\nUsing {safe.account} for ActivePool.setFeeRecipientAddress\n")
-    safe.ebtc.activePool_set_fee_recipient_address(address)
-
-    safe.post_safe_tx()
-
-
 def ebtcFeed_set_secondary_oracle(address):
     """
     Set the secondary oracle for the EBTCFeed contract.
