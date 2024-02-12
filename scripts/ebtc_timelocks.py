@@ -63,7 +63,7 @@ def highsec_grant_timelock_role(role_key, account):
     """
     Grant a role to an account for the Low Sec Timelock.
     """
-    safe = GreatApeSafe(r.ebtc_wallets.ecosystem_multisig)
+    safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
     safe.init_ebtc()
     C.print(f"\nUsing {safe.account} for HighSecTimelock.grantRole\n")
     safe.ebtc.grant_timelock_role(role_key, account, True)
@@ -75,7 +75,7 @@ def highsec_revoke_timelock_role(role_key, account):
     """
     Revoke a role from an account for the Low Sec Timelock.
     """
-    safe = GreatApeSafe(r.ebtc_wallets.ecosystem_multisig)
+    safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
     safe.init_ebtc()
     C.print(f"\nUsing {safe.account} for HighSecTimelock.revokeRole\n")
     safe.ebtc.revoke_timelock_role(role_key, account, True)
@@ -87,7 +87,7 @@ def highsec_update_timelock_delay(new_delay):
     """
     Set the new_delay for the Low Sec Timelock.
     """
-    safe = GreatApeSafe(r.ebtc_wallets.ecosystem_multisig)
+    safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
     safe.init_ebtc()
     C.print(f"\nUsing {safe.account} for HighSecTimelock.updateDelay\n")
     safe.ebtc.update_timelock_delay(new_delay, True)
@@ -101,7 +101,7 @@ def lowsec_cancel_timelock(
     """
     Cancel a transaction for the Low Sec Timelock. If ID is unknown, pass 0x0 and provide the parameters instead.
     """
-    safe = GreatApeSafe(r.ebtc_wallets.ecosystem_multisig)
+    safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
     safe.init_ebtc()
     C.print(f"\nUsing {safe.account} for LowSecTimelock.cancel\n")
     safe.ebtc.cancel_lowsec_timelock(id, target, value, data, predecessor, salt)
@@ -115,7 +115,7 @@ def highsec_cancel_timelock(
     """
     Cancel a transaction for the High Sec Timelock. If ID is unknown, pass 0x0 and provide the parameters instead.
     """
-    safe = GreatApeSafe(r.ebtc_wallets.ecosystem_multisig)
+    safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
     safe.init_ebtc()
     C.print(f"\nUsing {safe.account} for HighSecTimelock.cancel\n")
     safe.ebtc.cancel_highsec_timelock(id, target, value, data, predecessor, salt)

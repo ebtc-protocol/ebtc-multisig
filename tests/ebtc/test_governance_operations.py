@@ -2,6 +2,7 @@ from brownie import chain
 import pytest
 from helpers.constants import (
     AddressZero,
+    EmptyBytes32,
     DECIMAL_PRECISION,
     MAX_REWARD_SPLIT,
     MIN_REDEMPTION_FEE_FLOOR,
@@ -91,17 +92,41 @@ def test_cdpManager_set_beta_happy(techops):
     assert techops.ebtc.cdp_manager.beta() == 1000
 
 
-# Test cdpManager_set_redemptions_paused
-def test_cdpManager_set_redemptions_paused_happy(techops):
+# Test cdpManager_set_redemptions_paused from Timelock
+def test_cdpManager_set_redemptions_paused_happy_timelock(techops):
     techops.init_ebtc()
-    techops.ebtc.cdpManager_set_redemptions_paused(True)
+    techops.ebtc.cdpManager_set_redemptions_paused(
+        True, use_timelock=True, salt=EmptyBytes32, use_high_sec=False
+    )
 
     chain.sleep(techops.ebtc.lowsec_timelock.getMinDelay() + 1)
     chain.mine()
 
-    techops.ebtc.cdpManager_set_redemptions_paused(True)
+    techops.ebtc.cdpManager_set_redemptions_paused(
+        True, use_timelock=True, salt=EmptyBytes32, use_high_sec=False
+    )
 
     assert techops.ebtc.cdp_manager.redemptionsPaused() == True
+
+
+# Test cdpManager_set_redemptions_paused from TechOps
+def test_cdpManager_set_redemptions_paused_happy_techOps(techops):
+    techops.init_ebtc()
+    techops.ebtc.cdpManager_set_redemptions_paused(
+        True, use_timelock=False, salt=EmptyBytes32, use_high_sec=False
+    )
+
+    assert techops.ebtc.cdp_manager.redemptionsPaused() == True
+
+
+# Test cdpManager_set_redemptions_paused from Security Multisig
+def test_cdpManager_set_redemptions_paused_happy_securityMultisig(security_multisig):
+    security_multisig.init_ebtc()
+    security_multisig.ebtc.cdpManager_set_redemptions_paused(
+        True, use_timelock=False, salt=EmptyBytes32, use_high_sec=True
+    )
+
+    assert security_multisig.ebtc.cdp_manager.redemptionsPaused() == True
 
 
 # Test cdpManager_set_grace_period
@@ -135,6 +160,32 @@ def test_priceFeed_set_fallback_caller_happy(techops):
     techops.ebtc.priceFeed_set_fallback_caller(techops.account)
 
     assert techops.ebtc.price_feed.fallbackCaller() == techops.account
+
+
+# Test ebtcFeed_set_primary_oracle
+def test_ebtcFeed_set_primary_oracle_happy(security_multisig, test_price_feed):
+    security_multisig.init_ebtc()
+    security_multisig.ebtc.ebtcFeed_set_primary_oracle(test_price_feed)
+
+    chain.sleep(security_multisig.ebtc.highsec_timelock.getMinDelay() + 1)
+    chain.mine()
+
+    security_multisig.ebtc.ebtcFeed_set_primary_oracle(test_price_feed)
+
+    assert security_multisig.ebtc.ebtc_feed.primaryOracle() == test_price_feed
+
+
+# Test ebtcFeed_set_secondary_oracle
+def test_ebtcFeed_set_secondary_oracle_happy(techops, test_price_feed):
+    techops.init_ebtc()
+    techops.ebtc.ebtcFeed_set_secondary_oracle(test_price_feed)
+
+    chain.sleep(techops.ebtc.lowsec_timelock.getMinDelay() + 1)
+    chain.mine()
+
+    techops.ebtc.ebtcFeed_set_secondary_oracle(test_price_feed)
+
+    assert techops.ebtc.ebtc_feed.secondaryOracle() == test_price_feed
 
 
 # Test activePool_set_fee_bps
@@ -177,44 +228,80 @@ def test_borrowerOperations_set_fee_bps_checks(techops):
         techops.ebtc.borrowerOperations_set_fee_bps(MAX_FEE_BPS + 1)
 
 
-# Test activePool_set_fee_recipient_address
-def test_activePool_set_fee_recipient_address_happy(techops):
+# Test activePool_set_flash_loans_paused from Timelock
+def test_activePool_set_flash_loans_paused_happy_timelock(techops):
     techops.init_ebtc()
-    techops.ebtc.activePool_set_fee_recipient_address(techops.account)
+    techops.ebtc.activePool_set_flash_loans_paused(
+        True, use_timelock=True, salt=EmptyBytes32, use_high_sec=False
+    )
 
     chain.sleep(techops.ebtc.lowsec_timelock.getMinDelay() + 1)
     chain.mine()
 
-    techops.ebtc.activePool_set_fee_recipient_address(techops.account)
+    techops.ebtc.activePool_set_flash_loans_paused(
+        True, use_timelock=True, salt=EmptyBytes32, use_high_sec=False
+    )
 
-    assert techops.ebtc.active_pool.feeRecipientAddress() == techops.account
+    assert techops.ebtc.active_pool.flashLoansPaused() == True
 
 
-# Test activePool_set_fee_recipient_address address checks
-def test_activePool_set_fee_recipient_address_checks(techops):
+# Test activePool_set_flash_loans_paused from TechOps
+def test_activePool_set_flash_loans_paused_happy_techOps(techops):
     techops.init_ebtc()
-    with pytest.raises(AssertionError, match="Error: Address cannot be zero"):
-        techops.ebtc.activePool_set_fee_recipient_address(AddressZero)
+    techops.ebtc.activePool_set_flash_loans_paused(
+        True, use_timelock=False, salt=EmptyBytes32, use_high_sec=False
+    )
+
+    assert techops.ebtc.active_pool.flashLoansPaused() == True
 
 
-# Test borrowerOperations_set_fee_recipient_address
-def test_borrowerOperations_set_fee_recipient_address_happy(techops):
+# Test activePool_set_flash_loans_paused from Security Multisig
+def test_activePool_set_flash_loans_paused_happy_securityMultisig(security_multisig):
+    security_multisig.init_ebtc()
+    security_multisig.ebtc.activePool_set_flash_loans_paused(
+        True, use_timelock=False, salt=EmptyBytes32, use_high_sec=True
+    )
+
+    assert security_multisig.ebtc.active_pool.flashLoansPaused() == True
+
+
+# Test borrowerOperations_set_flash_loans_paused from Timelock
+def test_borrowerOperations_set_flash_loans_paused_happy_timelock(techops):
     techops.init_ebtc()
-    techops.ebtc.borrowerOperations_set_fee_recipient_address(techops.account)
+    techops.ebtc.borrowerOperations_set_flash_loans_paused(
+        True, use_timelock=True, salt=EmptyBytes32, use_high_sec=False
+    )
 
     chain.sleep(techops.ebtc.lowsec_timelock.getMinDelay() + 1)
     chain.mine()
 
-    techops.ebtc.borrowerOperations_set_fee_recipient_address(techops.account)
+    techops.ebtc.borrowerOperations_set_flash_loans_paused(
+        True, use_timelock=True, salt=EmptyBytes32, use_high_sec=False
+    )
 
-    assert techops.ebtc.borrower_operations.feeRecipientAddress() == techops.account
+    assert techops.ebtc.borrower_operations.flashLoansPaused() == True
 
 
-# Test borrowerOperations_set_fee_recipient_address address checks
-def test_borrowerOperations_set_fee_recipient_address_checks(techops):
+# Test borrowerOperations_set_flash_loans_paused from TechOps
+def test_borrowerOperations_set_flash_loans_paused_happy_techOps(techops):
     techops.init_ebtc()
-    with pytest.raises(AssertionError, match="Error: Address cannot be zero"):
-        techops.ebtc.borrowerOperations_set_fee_recipient_address(AddressZero)
+    techops.ebtc.borrowerOperations_set_flash_loans_paused(
+        True, use_timelock=False, salt=EmptyBytes32, use_high_sec=False
+    )
+
+    assert techops.ebtc.borrower_operations.flashLoansPaused() == True
+
+
+# Test borrowerOperations_set_flash_loans_paused from Security Multisig
+def test_borrowerOperations_set_flash_loans_paused_happy_securityMultisig(
+    security_multisig,
+):
+    security_multisig.init_ebtc()
+    security_multisig.ebtc.borrowerOperations_set_flash_loans_paused(
+        True, use_timelock=False, salt=EmptyBytes32, use_high_sec=True
+    )
+
+    assert security_multisig.ebtc.borrower_operations.flashLoansPaused() == True
 
 
 # Test activePool_claim_fee_recipient_coll_shares
@@ -239,7 +326,7 @@ def test_activePool_claim_fee_recipient_coll_shares_permissions(random_safe):
 
 
 # Test activePool_sweep_token
-def test_activePool_sweep_token_happy(fee_recipient, wbtc, ecosystem):
+def test_activePool_sweep_token_happy(fee_recipient, wbtc, security_multisig):
     fee_recipient.init_ebtc()
 
     active_pool = fee_recipient.ebtc.active_pool.address
@@ -247,7 +334,9 @@ def test_activePool_sweep_token_happy(fee_recipient, wbtc, ecosystem):
     amount = 500 * 10 ** wbtc.decimals()
 
     wbtc.mint(
-        fee_recipient.ebtc.active_pool.address, amount, {"from": ecosystem.account}
+        fee_recipient.ebtc.active_pool.address,
+        amount,
+        {"from": security_multisig.account},
     )
     assert wbtc.balanceOf(active_pool) == amount
 
@@ -256,13 +345,17 @@ def test_activePool_sweep_token_happy(fee_recipient, wbtc, ecosystem):
     assert wbtc.balanceOf(recipient) - balance_before == amount
 
 
-def test_activePool_sweep_token_permissions(wbtc, ecosystem, random_safe):
+def test_activePool_sweep_token_permissions(wbtc, security_multisig, random_safe):
     random_safe.init_ebtc()
 
     active_pool = random_safe.ebtc.active_pool.address
     amount = 500 * 10 ** wbtc.decimals()
 
-    wbtc.mint(random_safe.ebtc.active_pool.address, amount, {"from": ecosystem.account})
+    wbtc.mint(
+        random_safe.ebtc.active_pool.address,
+        amount,
+        {"from": security_multisig.account},
+    )
     assert wbtc.balanceOf(active_pool) == amount
 
     with pytest.raises(AssertionError, match="Error: Not authorized"):
@@ -270,7 +363,7 @@ def test_activePool_sweep_token_permissions(wbtc, ecosystem, random_safe):
 
 
 # Test activePool_sweep_token
-def test_collSurplusPool_sweep_token_happy(fee_recipient, wbtc, ecosystem):
+def test_collSurplusPool_sweep_token_happy(fee_recipient, wbtc, security_multisig):
     fee_recipient.init_ebtc()
 
     coll_surplus_pool = fee_recipient.ebtc.coll_surplus_pool.address
@@ -280,7 +373,7 @@ def test_collSurplusPool_sweep_token_happy(fee_recipient, wbtc, ecosystem):
     wbtc.mint(
         fee_recipient.ebtc.coll_surplus_pool.address,
         amount,
-        {"from": ecosystem.account},
+        {"from": security_multisig.account},
     )
     assert wbtc.balanceOf(coll_surplus_pool) == amount
 
@@ -289,14 +382,16 @@ def test_collSurplusPool_sweep_token_happy(fee_recipient, wbtc, ecosystem):
     assert wbtc.balanceOf(recipient) - balance_before == amount
 
 
-def test_collSurplusPool_sweep_token_permissions(wbtc, ecosystem, random_safe):
+def test_collSurplusPool_sweep_token_permissions(wbtc, security_multisig, random_safe):
     random_safe.init_ebtc()
 
     coll_surplus_pool = random_safe.ebtc.coll_surplus_pool.address
     amount = 500 * 10 ** wbtc.decimals()
 
     wbtc.mint(
-        random_safe.ebtc.coll_surplus_pool.address, amount, {"from": ecosystem.account}
+        random_safe.ebtc.coll_surplus_pool.address,
+        amount,
+        {"from": security_multisig.account},
     )
     assert wbtc.balanceOf(coll_surplus_pool) == amount
 
