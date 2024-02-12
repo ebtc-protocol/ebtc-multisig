@@ -90,10 +90,6 @@ brownie test --network sepolia-fork
 
 To be deployed
 
-## eBTC Council Signers
-
-To be defined
-
 ## Techops Signers
 
 To be defined

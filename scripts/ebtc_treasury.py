@@ -5,7 +5,7 @@ from rich.console import Console
 C = Console()
 
 """
-The following scripts are meant to provide a convenient access to the multisig treausry operations of the EBTC ecosystem.
+The following scripts are meant to provide a convenient access to the multisig treausry operations of the EBTC security_multisig.
 These script will use the default multisig intended for each of the operations.
 """
 

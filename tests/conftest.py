@@ -16,13 +16,8 @@ def random_safe():
 
 
 @pytest.fixture
-def ecosystem():
-    return GreatApeSafe(registry.sepolia.ebtc_wallets.ecosystem_multisig)
-
-
-@pytest.fixture
-def council():
-    return GreatApeSafe(registry.sepolia.ebtc_wallets.council_multisig)
+def security_multisig():
+    return GreatApeSafe(registry.sepolia.ebtc_wallets.security_multisig)
 
 
 @pytest.fixture
@@ -36,7 +31,12 @@ def fee_recipient():
 
 
 @pytest.fixture
-def wbtc(ecosystem):
+def wbtc(security_multisig):
     return interface.IMintableERC20(
-        registry.sepolia.tokens.wbtc, owner=ecosystem.account
+        registry.sepolia.tokens.wbtc, owner=security_multisig.account
     )
+
+
+@pytest.fixture
+def test_price_feed():
+    return registry.sepolia.ebtc.test_contracts.test_price_feed
