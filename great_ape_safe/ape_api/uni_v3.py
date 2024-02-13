@@ -396,6 +396,8 @@ class UniV3:
             }
             json.dump(tx_data, fp, indent=4, sort_keys=True)
 
+        return token_id
+
     def positions_info(self):
         nfts_owned = self.nonfungible_position_manager.balanceOf(self.safe) - 1
 
