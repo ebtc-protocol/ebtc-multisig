@@ -342,6 +342,9 @@ class UniV3:
 
         pool = interface.IUniswapV3Pool(pool_addr, owner=self.safe.account)
 
+        # @note: each pool depending on its fee tier has a different tick spacing
+        tick_spacing = pool.tickSpacing()
+
         token0 = self.safe.contract(pool.token0())
         token1 = self.safe.contract(pool.token1())
 
@@ -353,8 +356,16 @@ class UniV3:
         decimals_diff = token1.decimals() - token0.decimals()
 
         # params for minting method
-        lower_tick = int(math.log((1 / range1) * 10 ** decimals_diff, BASE) // 60 * 60)
-        upper_tick = int(math.log((1 / range0) * 10 ** decimals_diff, BASE) // 60 * 60)
+        lower_tick = int(
+            math.log((1 / range1) * 10 ** decimals_diff, BASE)
+            // tick_spacing
+            * tick_spacing
+        )
+        upper_tick = int(
+            math.log((1 / range0) * 10 ** decimals_diff, BASE)
+            // tick_spacing
+            * tick_spacing
+        )
         deadline = chain.time() + self.deadline
 
         # calcs for min amounts
