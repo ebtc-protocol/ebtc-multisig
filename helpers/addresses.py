@@ -21,6 +21,7 @@ ADDRESSES_ETH = {
         "NonfungiblePositionManager": "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
         "routerV3": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
         "quoter": "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6",
+        "v3pool_wbtc_badger": "0xe15e6583425700993bd08F51bF6e7B73cd5da91B",
     },
     "cow": {
         "vault_relayer": "0xC92E8bdf79f0507f65a392b0ab4667716BFE0110",
