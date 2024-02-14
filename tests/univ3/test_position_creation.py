@@ -36,8 +36,7 @@ def test_position_creation(treasury, liq, wbtc):
 
     positions = treasury.uni_v3.nonfungible_position_manager.positions(token_id)
 
-    # TODO: rounding to 4 decimal places, values are not matching the expected?
-    price_lower_ticket = round(
+    price_lower_tick = round(
         ((BASE ** positions["tickLower"]) / (10 ** decimals_diff)), 4
     )
     price_higher_tick = round(
@@ -51,4 +50,4 @@ def test_position_creation(treasury, liq, wbtc):
     assert positions["token0"] == wbtc.address
     assert positions["token1"] == liq.address
     assert positions["liquidity"] > 0
-    assert price_lower_ticket < price_higher_tick
+    assert price_lower_tick < price_higher_tick
