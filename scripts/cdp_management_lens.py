@@ -45,14 +45,8 @@ def main(msig_address=r.badger_wallets.treasury_vault_multisig):
     cdps_safe_owned = safe.ebtc.sorted_cdps.getCdpsOf(safe)
     for cdp_id in cdps_safe_owned:
         C.print(f"[green]Inspecting cdp id: {cdp_id}\n[/green]")
-        (
-            cdp_id_debt,
-            cdp_id_coll,
-            _,
-            _,
-            _,
-            _,
-        ) = safe.ebtc.cdp_manager.Cdps(cdp_id)
+        cdp_id_coll = safe.ebtc.cdp_manager.getSyncedCdpCollShares(cdp_id)
+        cdp_id_debt = safe.ebtc.cdp_manager.getSyncedCdpDebt(cdp_id)
         icr = safe.ebtc.cdp_manager.getSyncedICR(cdp_id, feed_price)
 
         # increase global vars
