@@ -234,7 +234,7 @@ def ebtcFeed_set_primary_oracle(address, salt=EmptyBytes32):
 
 
 """
-WAROOM: Pausing operations
+EMERGENCY: Pausing operations
 
 The following scripts are meant to be executed by the TechOps or Security multisig and
 are used to pause or unpause certain functions directly.
