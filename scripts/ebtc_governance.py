@@ -173,26 +173,34 @@ def authority_set_user_role(user, role, enabled, salt=EmptyBytes32):
     safe.post_safe_tx()
 
 
-def authority_set_role_capability(role, target_address, functionSig, enabled, salt=EmptyBytes32):
+def authority_set_role_capability(
+    role, target_address, functionSig, enabled, salt=EmptyBytes32
+):
     """
     Set the role capability for the Authority contract.
     """
     safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
     safe.init_ebtc()
     C.print(f"\nUsing {safe.account} for Authority.setRoleCapability\n")
-    safe.ebtc.authority_set_role_capability(role, target_address, functionSig, enabled, salt)
+    safe.ebtc.authority_set_role_capability(
+        role, target_address, functionSig, enabled, salt
+    )
 
     safe.post_safe_tx()
 
 
-def authority_set_public_capability(target_address, functionSig, enabled, salt=EmptyBytes32):
+def authority_set_public_capability(
+    target_address, functionSig, enabled, salt=EmptyBytes32
+):
     """
     Set the public capability for the Authority contract.
     """
     safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
     safe.init_ebtc()
     C.print(f"\nUsing {safe.account} for Authority.setPublicCapability\n")
-    safe.ebtc.authority_set_public_capability(target_address, functionSig, enabled, salt)
+    safe.ebtc.authority_set_public_capability(
+        target_address, functionSig, enabled, salt
+    )
 
     safe.post_safe_tx()
 
