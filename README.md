@@ -11,6 +11,19 @@ It relies heavily on [`ganache-cli`](https://docs.nethereum.com/en/latest/ethere
 
 eBTC was built by the Badger DAO. Read more about the Badger DAO and its community at https://badger.com/.
 
+## Table of Contents
+- [Installation](#installation)
+  - [OpenSSL Deprecation (macOS)](#openssl-deprecation-macos)
+  - [Arm Chipset Architecture (M1/M2)](#arm-chipset-architecture-m1m2)
+- [Uninstall](#uninstall)
+- [Testing](#running-greatapesafe-tests)
+- [Multisig Addresses](#multisig-addresses)
+- [eBTC Governance Operations Instructions](#ebtc-governance-operations-instructions)
+  - [Low Sec Governance Operations](#low-sec-governance-operations)
+  - [High Sec Governance Operations](#high-sec-governance-operations)
+  - [Timelock Salt](#timelock-salt)
+  - [EMERGENCY: Pausing Operations](#emergency-pausing-operations)
+
 ## Installation
 
 The recommended installation tool for this repository is [`poetry`](https://python-poetry.org/docs/):
@@ -90,6 +103,176 @@ brownie test --network sepolia-fork
 
 To be deployed
 
-## Techops Signers
+## eBTC Governance Operations Instructions
 
-To be defined
+### Low Sec Governance Operations
+
+These operations are executed by the Low Sec TechOps multisig with a Low Sec Timelock (2 day delay). Scripts interacting with the Low Sec Timelock need to be run twice (**with the exact same parameters**) in order to fully execute each transaction: Once to shcedule the transaction and antoher time, once the delay time has elapsed, to execute it. If the parameters don't match when running the script the second time, the script will recognize it as a new operation and new "schedule" transaction will be posted instead. You can verify the parameters used when scheduling the scheduled transaction within the Timelock Transparency Dashboard (WIP).
+
+1. **Set Staking Reward Split for CDPManager Contract**
+   ```bash
+   brownie run scripts/ebtc_governance.py cdpManager_set_staking_reward_split <value>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py cdpManager_set_staking_reward_split 5000`
+
+2. **Set Redemption Fee Floor for CDPManager Contract**
+   ```bash
+   brownie run scripts/ebtc_governance.py cdpManager_set_redemption_fee_floor <value>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py cdpManager_set_redemption_fee_floor 100`
+
+3. **Set Minute Decay Factor for CDPManager Contract**
+   ```bash
+   brownie run scripts/ebtc_governance.py cdpManager_set_minute_decay_factor <value>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py cdpManager_set_minute_decay_factor 900`
+
+4. **Set Minute Beta for CDPManager Contract**
+   ```bash
+   brownie run scripts/ebtc_governance.py cdpManager_set_beta <value>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py cdpManager_set_beta 2000`
+
+5. **Set Redemptions Paused for CDPManager Contract**
+   ```bash
+   brownie run scripts/ebtc_governance.py cdpManager_set_redemptions_paused <value>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py cdpManager_set_redemptions_paused False`
+
+6. **Set Grace Period for CDPManager Contract**
+   ```bash
+   brownie run scripts/ebtc_governance.py cdpManager_set_grace_period <value>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py cdpManager_set_grace_period 140506`
+
+7. **Set FallBack Caller for PriceFeed Contract**
+   ```bash
+   brownie run scripts/ebtc_governance.py priceFeed_set_fallback_caller <address>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py priceFeed_set_fallback_caller 0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1`
+
+8. **Set Fee BPS for ActivePool Contract**
+   ```bash
+   brownie run scripts/ebtc_governance.py activePool_set_fee_bps <value>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py activePool_set_fee_bps 3000`
+
+9. **Set Fee BPS for BorrowerOperations Contract**
+   ```bash
+   brownie run scripts/ebtc_governance.py borrowerOperations_set_fee_bps <value>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py borrowerOperations_set_fee_bps 3000`
+
+10. **Set Secondary Oracle for EBTCFeed Contract**
+   ```bash
+   brownie run scripts/ebtc_governance.py ebtcFeed_set_secondary_oracle <address>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py ebtcFeed_set_secondary_oracle 0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1`
+
+### High Sec Governance Operations
+
+These operations are executed by the High Sec TechOps multisig with a Low Sec Timelock (7 day delay). Scripts interacting with the High Sec Timelock need to be run twice (**with the exact same parameters**) in order to fully execute each transaction: Once to shcedule the transaction and antoher time, once the delay time has elapsed, to execute it. If the parameters don't match when running the script the second time, the script will recognize it as a new operation and new "schedule" transaction will be posted instead. You can verify the parameters used when scheduling the scheduled transaction within the Timelock Transparency Dashboard (WIP).
+
+1. **Set Role Name for Authority Contract**
+   ```bash
+   brownie run scripts/ebtc_governance.py authority_set_role_name <role> <name>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py authority_set_role_name 1 "example role"`
+
+2. **Set User Role for Authority Contract**
+   ```bash
+   brownie run scripts/ebtc_governance.py authority_set_user_role <user> <role> <enabled>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py authority_set_user_role 0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1 1 True`
+
+3. **Set Role Capability for Authority Contract**
+   ```bash
+   brownie run scripts/ebtc_governance.py authority_set_role_capability <role> <target_address> <signature> <enabled>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py authority_set_role_capability 1 0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1 0x12345678`
+
+4. **Set Public Capability for Authority Contract**
+   ```bash
+   brownie run scripts/ebtc_governance.py authority_set_public_capability <target_address> <signature> <enabled>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py authority_set_public_capability 0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1 0x12345678 False`
+
+5. **Burn Capability for Authority Contract**
+   ```bash
+   brownie run scripts/ebtc_governance.py authority_burn_capability <target_address> <signature>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py authority_burn_capability 0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1 0x12345678`
+
+6. **Set Authority for Authority Contract**
+   ```bash
+   brownie run scripts/ebtc_governance.py authority_set_authority <address>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py authority_set_authority 0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1`
+
+7. **Set Primary Oracle for EBTCFeed Contract**
+   ```bash
+   brownie run scripts/ebtc_governance.py ebtcFeed_set_primary_oracle <address>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py ebtcFeed_set_primary_oracle 0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1`
+
+### Timelock Salt
+All Timelock scripts accept an optional *salt* at the end of their parameter list, a unique 32-byte identifier that allows for the distinction of transactions. This is especially useful for queuing transactions that are identical in contract, changes, and values to previous ones. To ensure the correct execution of a scheduled transaction that includes a salt, this same salt must be repeated during the execution phase.
+
+*Example:* `brownie run scripts/ebtc_governance.py borrowerOperations_set_fee_bps 3000 0x0000000000000000000000000000000000000000000000000000000000000001`
+
+### EMERGENCY: Pausing Operations
+
+Operations within the EMERGENCY section are meant to be executed directly without the timelock process.
+
+1. **Pause or Unpause Redemptions for CDPManager Contract from TechOps Multisig**
+   ```bash
+   brownie run scripts/ebtc_governance.py cdpManager_set_redemptions_paused_techops <pause>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py cdpManager_set_redemptions_paused_techops True`
+
+2. **Pause or Unpause Redemptions for CDPManager Contract from Security Multisig**
+   ```bash
+   brownie run scripts/ebtc_governance.py cdpManager_set_redemptions_paused_security <pause>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py cdpManager_set_redemptions_paused_security True`
+
+3. **Pause or Unpause Flash Loans for ActivePool Contract from TechOps Multisig**
+   ```bash
+   brownie run scripts/ebtc_governance.py activePool_set_flash_loans_paused_techops <pause>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py activePool_set_flash_loans_paused_techops True`
+
+4. **Pause or Unpause Flash Loans for ActivePool Contract from Security Multisig**
+   ```bash
+   brownie run scripts/ebtc_governance.py activePool_set_flash_loans_paused_security <pause>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py activePool_set_flash_loans_paused_security True`
+
+5. **Pause or Unpause Flash Loans for BorrowerOperations Contract from TechOps Multisig**
+   ```bash
+   brownie run scripts/ebtc_governance.py borrowerOperations_set_flash_loans_paused_techops <pause>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py borrowerOperations_set_flash_loans_paused_techops True`
+
+6. **Pause or Unpause Flash Loans for BorrowerOperations Contract from Security Multisig**
+   ```bash
+   brownie run scripts/ebtc_governance.py borrowerOperations_set_flash_loans_paused_security <pause>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py borrowerOperations_set_flash_loans_paused_security True`
+
+7. **Pause or Unpause Flash Loans for BorrowerOperations and ActivePool Contract from TechOps Multisig**
+   ```bash
+   brownie run scripts/ebtc_governance.py pause_flashloans_techops <pause>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py pause_flashloans_techops True`
+
+8. **Pause or Unpause Flash Loans for BorrowerOperations and ActivePool Contract from Security Multisig**
+   ```bash
+   brownie run scripts/ebtc_governance.py pause_flashloans_security <pause>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py pause_flashloans_security True`
+
+
+Please note that the specific `<value>`, `<role>`, `<address>`, `<target_address>`, `<signature>`, `<name>`, and `<pause>` should be replaced with the actual parameters you wish to use for each operation. The examples provided are meant to give you an idea of how to structure your commands for the CLI.
+
+In addition, it must also be noted that only delegated accounts with posting access to the multisigs in matter will be able to post these transactions. Delegation can be granted to any EOA from one of the signers via the following [tool](https://gnosis-delegator.badger.com/). Remember that posting the transactions is not enough
