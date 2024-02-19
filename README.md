@@ -23,6 +23,7 @@ eBTC was built by the Badger DAO. Read more about the Badger DAO and its communi
   - [High Sec Governance Operations](#high-sec-governance-operations)
   - [Timelock Salt](#timelock-salt)
   - [EMERGENCY: Pausing Operations](#emergency-pausing-operations)
+- [eBTC Governance Parameters Cheatsheet](#ebtc-governance-parameters-cheatsheet)
 
 ## Installation
 
@@ -275,4 +276,19 @@ Operations within the EMERGENCY section are meant to be executed directly withou
 
 Please note that the specific `<value>`, `<role>`, `<address>`, `<target_address>`, `<signature>`, `<name>`, and `<pause>` should be replaced with the actual parameters you wish to use for each operation. The examples provided are meant to give you an idea of how to structure your commands for the CLI.
 
-In addition, it must also be noted that only delegated accounts with posting access to the multisigs in matter will be able to post these transactions. Delegation can be granted to any EOA from one of the signers via the following [tool](https://gnosis-delegator.badger.com/). Remember that posting the transactions is not enough
+In addition, it must also be noted that only delegated accounts with posting access to the multisigs in matter will be able to post these transactions. Delegation can be granted to any EOA from one of the signers via the following [tool](https://gnosis-delegator.badger.com/). Remember that posting the transactions is not enough, it must also be executed via its respective multisig for it to be loaded into the Timelock.
+
+## eBTC Governance Parameters Cheatsheet
+The section below provides a concise overview and a table detailing the adjustable numerical parameters within the eBTC system. This guide aims to facilitate the execution and review of changes. The table includes essential information such as the parameter name, its base value, both the upper and lower bounds that define the limits within which these parameters can be adjusted and an example for each. Additional notes are provided to give context or specific details relevant to each parameter.
+
+Parameter | Base (conversion from decimal) | Upper Bound | Lower Bound | Example | Notes
+----------|--------------------------------|-------------|-------------|---------|------
+Staking Reward Split | 10_000 | 10_000 (100%) | 0  | 5_000 (50%) | Protocol Yield Share: Percentage of collateral's yield taken as fee
+Redemption Fee Floor | 1e18 | 1e18 (100%) | 5e15 (0.5%) | 1e16 (1%) | Determines the minimum redemption fee possible
+Minute Decay Factor (Delta) | 1 | 999999999999999999 | 1 | 999037758833783000 (720 min) | 12 hr (720 min) halflife -> d = (1/2)^(1/720)
+Beta | 1 | - | - (⚠️ NOT ZERO) | 2 (Initial) | Corresponds to 1 / ALPHA, determines the fee increase steepness
+Grace Period | 1 | - | 900 | 1200 (20 minutes) | Length of recovery mode's Grace Period's duration
+Active Pool FL Fee | 10_000 | 1_000 (10%) | 0 | 3 (0.03%) | Determines the fee charged on a Flashloan
+Borrower Operations FL Fee | 10_000 | 1_000 (10%) | 0 | 3 (0.03%) | Determines the fee charged on a Flashloan
+
+This cheat sheet serves as a handy reference for anyone involved in the governance of eBTC, from developers and contributors to users interested in understanding the parameters that shape the protocol's functionality and security. 
