@@ -26,6 +26,11 @@ def techops():
 
 
 @pytest.fixture
+def treasury():
+    return GreatApeSafe(registry.eth.badger_wallets.treasury_vault_multisig)
+
+
+@pytest.fixture
 def fee_recipient():
     return GreatApeSafe(registry.sepolia.ebtc_wallets.fee_recipient_multisig)
 
