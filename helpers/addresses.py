@@ -6,16 +6,40 @@ from web3 import Web3
 import json
 
 ADDRESSES_ETH = {
-    "assets": {
-        "wbtc": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
-        "ebtc": "0x0000000000000000000000000000000000000000",
-        "liq": "0xD82fd4D6D62f89A1E50b1db69AD19932314aa408",
+    "ebtc": {
+        "collateral": "0xae7ab96520de3a18e5e111b5eaab095312d7fe84",
+        "authority": "0x93d4f82903B87E94796Ec3665efa5f67F2072c6e",
+        "liquidation_library": "0x55262e1128FafD9Bb0B0fD59A8998c13299c4AD4",
+        "cdp_manager": "0x3c672ee8e13Cde7617923658138B111e157C8997",
+        "borrower_operations": "0x99c4ea5d7aDF5d115c85AEEDD98Bd26DdBa714Cb",
+        "ebtc_token": "0xead18fD27CAa1CFf909B5f2BD26ac9a46a6Ab1b5",
+        "price_feed": "0x12A7897Cb1a2Ce8A2F1Bf221c1E6ef9bb11ECA8D",
+        "ebtc_feed": "0x4039ca03Ce49021655c9B7C52Ab817d42DB7325e",
+        "active_pool": "0x1e3Bf0965dca89Cd057d63c0cD65A37Acf920590",
+        "coll_surplus_pool": "0x596EfaF17dFb3fd2CAE7543Ffa399F6e31658E4D",
+        "sorted_cdps": "0x6cb99cF839c5AD3C24431c85da5Fdb7c7ab66d97",
+        "hint_helpers": "0xE5A25E39A95750326322175249699eC5Cd66919F",
+        "fee_recipient": "0x522ef088d94BD2125eC47F0967bf5B4E79Af4ed8",
+        "multi_cdp_getter": "0x4e638aA073cAB30Ef2Ba63AA38ca5795Ada48E82",
+        "ebtc_deployer": "0xA93A9CBBD47AA7B57853D460f442E2de2FB1dA4D",
+        "highsec_timelock": "0xaDDeE229Bd103bb5B10C3CdB595A01c425dd3264",
+        "lowsec_timelock": "0xE2F2D9e226e5236BeC4531FcBf1A22A7a2bD0602",
+    },
+    "ebtc_wallets": {
+        "security_multisig": "0xB3d3B6482fb50C82aa042A710775c72dfa23F7B4",
+        "techops_multisig": "0x690C74AF48BE029e763E61b4aDeB10E06119D3ba",
+        "fee_recipient_multisig": "0x2CEB95D4A67Bf771f1165659Df3D11D8871E906f",
     },
     "badger_wallets": {
         "treasury_ops_multisig": "0x042B32Ac6b453485e357938bdC38e0340d4b9276",
         "treasury_vault_multisig": "0xD0A7A8B98957b9CD3cFB9c0425AbE44551158e9e",
     },
-    "ebtc_wallets": {"placeholder": "0x0000000000000000000000000000000000000000"},
+    "assets": {
+        "wbtc": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+        "ebtc": "0xead18fD27CAa1CFf909B5f2BD26ac9a46a6Ab1b5",
+        "liq": "0xD82fd4D6D62f89A1E50b1db69AD19932314aa408",
+        "steth": "0xae7ab96520de3a18e5e111b5eaab095312d7fe84",
+    },
     "uniswap": {
         "factoryV3": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
         "NonfungiblePositionManager": "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
@@ -26,6 +50,12 @@ ADDRESSES_ETH = {
     "cow": {
         "vault_relayer": "0xC92E8bdf79f0507f65a392b0ab4667716BFE0110",
         "settlement": "0x9008D19f58AAbD9eD0D60971565AA8510560ab41",
+    },
+    "chainlink": {
+        "collEthCLFeed": "0x86392dC19c0b719886221c78AB11eb8Cf5c52812",
+        "btcUsdCLFeed": "0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c",
+        "ethUsdCLFeed": "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
+        "chainlinkAdapter": "0x791a60EfEB402187852BdCDeC6Df3BEDd429fd81",
     },
 }
 
@@ -57,7 +87,7 @@ ADDRESSES_SEPOLIA = {
         "techops_multisig": "0x664F43229dDa9fdEE00e723753f88f3Ba81967F6",
         "fee_recipient_multisig": "0x5C1246E0b464060919301273781a266Ac119A0Bb",
     },
-    "tokens": {
+    "assets": {
         "ebtc": "0xeA2D83AA5e7da0668AdbddADAAc28e51318DDd86",
         "steth": "0x97BA9AA7B7DC74f7a74864A62c4fF93b2b22f015",
         "wbtc": "0x84beA728aFb989756B4AF86600C0a95919035849",
