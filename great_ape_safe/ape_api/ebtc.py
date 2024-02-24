@@ -549,7 +549,7 @@ class eBTC:
         for target in targets:
             if target != timelock.address:
                 assert self.authority.canCall(
-                    timelock.address, target, data[:10]
+                    timelock.address, target, data[targets.index(target)][:10]
                 ), "Error: Not authorized"
 
         ## Schedule tx
@@ -584,7 +584,7 @@ class eBTC:
         for target in targets:
             if target != timelock.address:
                 assert self.authority.canCall(
-                    timelock.address, target, data[:10]
+                    timelock.address, target, data[targets.index(target)][:10]
                 ), "Error: Not authorized"
 
         ## Check that valid tx and execute if so

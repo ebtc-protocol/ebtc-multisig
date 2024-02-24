@@ -249,3 +249,31 @@ def test_repeated_operations_with_salt(techops):
     techops.ebtc.execute_timelock(timelock, target.address, 0, data, EmptyBytes32, salt)
     assert target.feeBps() == 100
     assert techops.ebtc.lowsec_timelock.isOperationDone(id3)
+
+
+def test_schedule_batch_timelock(techops):
+    techops.init_ebtc()
+
+    targets = [techops.ebtc.active_pool, techops.ebtc.borrower_operations]
+    data = [
+        targets[0].setFeeBps.encode_input(100),
+        targets[1].setFeeBps.encode_input(50),
+    ]
+    timelock = techops.ebtc.lowsec_timelock
+    delay = timelock.getMinDelay()
+
+    ## Schedule both operations in batch
+    techops.ebtc.schedule_or_execute_batch_timelock(
+        timelock, targets, [0, 0], data, EmptyBytes32
+    )
+
+    chain.sleep(delay + 1)
+    chain.mine()
+
+    ## Execute both operations in batch
+    techops.ebtc.schedule_or_execute_batch_timelock(
+        timelock, targets, [0, 0], data, EmptyBytes32
+    )
+
+    assert targets[0].feeBps() == 100
+    assert targets[1].feeBps() == 50
