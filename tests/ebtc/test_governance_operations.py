@@ -397,3 +397,21 @@ def test_collSurplusPool_sweep_token_permissions(wbtc, security_multisig, random
 
     with pytest.raises(AssertionError, match="Error: Not authorized"):
         random_safe.ebtc.collSurplusPool_sweep_token(wbtc.address, amount)
+
+# Test batch_collateral_feed_source_and_redemption_fee_floor
+def test_batch_collateral_feed_source_and_redemption_fee_floor_happy(techops):
+    techops.init_ebtc()
+    new_status = not techops.ebtc.price_feed.useDynamicFeed()
+    techops.ebtc.batch_collateral_feed_source_and_redemption_fee_floor(
+        new_status, 0.006e18
+    )
+
+    chain.sleep(techops.ebtc.lowsec_timelock.getMinDelay() + 1)
+    chain.mine()
+
+    techops.ebtc.batch_collateral_feed_source_and_redemption_fee_floor(
+        new_status, 0.006e18
+    )
+
+    assert techops.ebtc.price_feed.useDynamicFeed() == new_status
+    assert techops.ebtc.cdp_manager.redemptionFeeFloor() == 0.006e18
