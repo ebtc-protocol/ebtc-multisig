@@ -107,6 +107,9 @@ class eBTC:
             PRIMARY_ORACLE_SETTER = 8  # EbtcFeed: setPrimaryOracle
             SECONDARY_ORACLE_SETTER = 9  # EbtcFeed: setSecondaryOracle
             FALLBACK_CALLER_SETTER = 10  # PriceFeed: setFallbackCaller
+            STETH_MARKET_RATE_SWITCHER = (
+                11  # PriceFeed+CDPManager: CollFeedSource & RedemptionFeeFloor
+            )
 
         self.governance_roles = governanceRoles
 
@@ -149,6 +152,9 @@ class eBTC:
             "BURN_CAPABILITY_SIG": encode_signature("burnCapability(address,bytes4)"),
             "TRANSFER_OWNERSHIP_SIG": encode_signature("transferOwnership(address)"),
             "SET_AUTHORITY_SIG": encode_signature("setAuthority(address)"),
+            "SET_COLLATERAL_FEED_SOURCE_SIG": encode_signature(
+                "setCollateralFeedSource(bool)"
+            ),
         }
 
         # Mapping of the governance roles to the list of permissions (signatures within contracts) that they have
@@ -295,6 +301,20 @@ class eBTC:
                     "signature": self.governance_signatures["SET_FALLBACK_CALLER_SIG"],
                 },
             ],
+            governanceRoles.STETH_MARKET_RATE_SWITCHER.value: [
+                {
+                    "target": self.price_feed,
+                    "signature": self.governance_signatures[
+                        "SET_COLLATERAL_FEED_SOURCE_SIG"
+                    ],
+                },
+                {
+                    "target": self.cdp_manager,
+                    "signature": self.governance_signatures[
+                        "SET_REDEMPTION_FEE_FLOOR_SIG"
+                    ],
+                },
+            ],
         }
 
         # Mapping of the permissioned actors to their assigned roles
@@ -309,6 +329,7 @@ class eBTC:
                 governanceRoles.PRIMARY_ORACLE_SETTER.value,
                 governanceRoles.SECONDARY_ORACLE_SETTER.value,
                 governanceRoles.FALLBACK_CALLER_SETTER.value,
+                governanceRoles.STETH_MARKET_RATE_SWITCHER.value,
             ],
             self.lowsec_timelock.address: [
                 governanceRoles.CDP_MANAGER_ALL.value,
@@ -318,6 +339,7 @@ class eBTC:
                 governanceRoles.FEE_CLAIMER.value,
                 governanceRoles.SECONDARY_ORACLE_SETTER.value,
                 governanceRoles.FALLBACK_CALLER_SETTER.value,
+                governanceRoles.STETH_MARKET_RATE_SWITCHER.value,
             ],
             self.security_multisig: [
                 governanceRoles.PAUSER.value,
@@ -506,6 +528,105 @@ class eBTC:
             delay = timelock.getMinDelay()
             self.schedule_timelock(
                 timelock, target.address, 0, data, EmptyBytes32, salt, delay + 1
+            )
+
+    def schedule_batch_timelock(self, timelock, targets, values, data, salt, delay):
+        """
+        @dev Schedules a batch of timelock transactions.
+        @param timelock The timelock contract to execute the transaction on.
+        @param targets The targets of the timelock transactions (contract instances).
+        @param values The ETH value to pass for each transaction.
+        @param data The data of each of the timelock transactions (encoding of function signatures and parameters).
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
+        @param delay The time delay at which the transaction will be executable. Must be higher than the min delay.
+        """
+        ## Check that safe has PROPOSER_ROLE on timelock
+        assert timelock.hasRole(
+            timelock.PROPOSER_ROLE(), self.safe.account
+        ), "Error: No role"
+
+        ## Check that timelock has the appropiate permissions
+        for target in targets:
+            if target != timelock.address:
+                assert self.authority.canCall(
+                    timelock.address, target, data[:10]
+                ), "Error: Not authorized"
+
+        ## Schedule tx
+        tx = timelock.scheduleBatch(targets, values, data, EmptyBytes32, salt, delay)
+        id = timelock.hashOperationBatch(targets, values, data, EmptyBytes32, salt)
+        assert timelock.isOperationPending(id)
+        exec_date = datetime.utcfromtimestamp(timelock.getTimestamp(id)).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+
+        C.print(
+            f"[green]Operation {id} has been scheduled! Execution available at {exec_date}[/green]"
+        )
+        return tx
+
+    def execute_batch_timelock(self, timelock, targets, values, data, salt):
+        """
+        @dev Executes a batch of timelock transactions.
+        @param timelock The timelock contract to execute the transaction on.
+        @param targets The targets of the timelock transactions (contract instances).
+        @param values The ETH value to pass for each transaction.
+        @param data The data of each of the timelock transactions (encoding of function signatures and parameters).
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
+        """
+
+        ## Check that safe has EXECUTOR_ROLE on timelock
+        assert timelock.hasRole(
+            timelock.EXECUTOR_ROLE(), self.safe.account
+        ), "Error: No role"
+
+        ## Check that timelock has the appropiate permissions
+        for target in targets:
+            if target != timelock.address:
+                assert self.authority.canCall(
+                    timelock.address, target, data[:10]
+                ), "Error: Not authorized"
+
+        ## Check that valid tx and execute if so
+        id = timelock.hashOperationBatch(targets, values, data, EmptyBytes32, salt)
+        if timelock.isOperationReady(id):
+            tx = timelock.executeBatch(targets, values, data, EmptyBytes32, salt)
+            assert timelock.isOperationDone(id)
+            C.print(f"[green]Operation {id} has been executed![/green]")
+            return tx
+        elif timelock.isOperationPending(id):
+            exec_date = datetime.utcfromtimestamp(timelock.getTimestamp(id)).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
+            C.print(
+                f"[red]Operation {id} is still pending! Execution available at {exec_date}[/red]"
+            )
+            raise
+        elif timelock.isOperationDone(id):
+            C.print(f"[green]Operation {id} has already been executed![/green]")
+            raise
+        else:
+            C.print(f"[red]Operation {id} hasn't been scheduled![/red]")
+            raise
+
+    def schedule_or_execute_batch_timelock(self, timelock, targets, values, data, salt):
+        """
+        @dev Schedules or executes a batch of timelock transactions according to their state.
+        @param timelock The timelock contract to execute the transaction on.
+        @param targets The targets of the timelock transactions (contract instances).
+        @param values The ETH value to pass for each transaction.
+        @param data The data of each of the timelock transactions (encoding of function signatures and parameters).
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
+        """
+        id = timelock.hashOperationBatch(targets, values, data, EmptyBytes32, salt)
+
+        if timelock.isOperation(id):
+            self.execute_batch_timelock(timelock, targets, values, data, salt)
+            return True
+        else:
+            delay = timelock.getMinDelay()
+            self.schedule_batch_timelock(
+                timelock, targets, values, data, salt, delay + 1
             )
 
     ##################################################################
@@ -784,6 +905,31 @@ class eBTC:
         if executed:
             assert self.price_feed.fallbackCaller() == address
 
+    def priceFeed_set_collateral_feed_source(
+        self, value, salt=EmptyBytes32, use_high_sec=False
+    ):
+        """
+        @dev Toggles the usage of the dynamic collateral feed source in the PriceFeed. If set to True, the priceFeed
+            will aggregate the price using the stETH/ETH feed. Otherwise it will consider stETH 1:1 with ETH.
+        @note Should be used in conjunction with the setRedemptionFeeFloor function in the CDP Manager. If redemptions are enabled,
+            the fee floor should be set to the new maximum deviation threshold of the aggregated feed.
+        @param value Boolean value to set the collateral feed source to its dynamic mode.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
+        @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
+        """
+
+        if use_high_sec:
+            timelock = self.highsec_timelock
+        else:
+            timelock = self.lowsec_timelock
+
+        target = self.price_feed
+        data = target.setCollateralFeedSource.encode_input(value)
+
+        executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
+        if executed:
+            assert self.price_feed.useDynamicFeed() == value
+
     #### ===== EBTC FEED ===== ####
 
     def ebtcFeed_set_primary_oracle(self, address, salt=EmptyBytes32):
@@ -1059,6 +1205,38 @@ class eBTC:
             # sweep token
             target.sweepToken(token_address, value)
             assert token.balanceOf(fee_recipient) - balance_before == value
+
+    #### ===== BATCH OPERATIONS ===== ####
+
+    def batch_collateral_feed_source_and_redemption_fee_floor(
+        self, value, new_fee_floor, salt=EmptyBytes32, use_high_sec=False
+    ):
+        """
+        @dev Sets the collateral feed source and the redemption fee floor in a single timelock transaction.
+        @param value Boolean value to set the collateral feed source to its dynamic mode.
+        @param new_fee_floor The new redemption fee floor to set. Must be estimated off-chain and set accordingly.
+        @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
+        @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
+        """
+
+        if use_high_sec:
+            timelock = self.highsec_timelock
+        else:
+            timelock = self.lowsec_timelock
+
+        targets = [self.price_feed, self.cdp_manager]
+        values = [0, 0]
+        data = [
+            self.price_feed.setCollateralFeedSource.encode_input(value),
+            self.cdp_manager.setRedemptionFeeFloor.encode_input(new_fee_floor),
+        ]
+
+        executed = self.schedule_or_execute_batch_timelock(
+            timelock, targets, values, data, salt
+        )
+        if executed:
+            assert self.price_feed.useDynamicFeed() == value
+            assert self.cdp_manager.redemptionFeeFloor() == new_fee_floor
 
     #### ===== GOVERNANCE CONFIGURATION (Only high sec) ===== ####
 
