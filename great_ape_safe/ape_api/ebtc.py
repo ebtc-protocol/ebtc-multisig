@@ -38,7 +38,7 @@ class eBTC:
 
         # contracts
         self.collateral = safe.contract(
-            registry.sepolia.ebtc.collateral, interface.ILido
+            registry.sepolia.ebtc.collateral, interface.ICollateralToken
         )
         self.authority = safe.contract(
             registry.sepolia.ebtc.authority, interface.IGovernor

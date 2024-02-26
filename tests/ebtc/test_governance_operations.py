@@ -152,14 +152,15 @@ def test_cdpManager_set_grace_period_checks(techops):
 # Test priceFeed_set_fallback_caller
 def test_priceFeed_set_fallback_caller_happy(techops):
     techops.init_ebtc()
-    techops.ebtc.priceFeed_set_fallback_caller(techops.account)
+    fallback_caller = "0x9283D34b5559218C3E36a1fc53c78356D8DFEa30"
+    techops.ebtc.priceFeed_set_fallback_caller(fallback_caller)
 
     chain.sleep(techops.ebtc.lowsec_timelock.getMinDelay() + 1)
     chain.mine()
 
-    techops.ebtc.priceFeed_set_fallback_caller(techops.account)
+    techops.ebtc.priceFeed_set_fallback_caller(fallback_caller)
 
-    assert techops.ebtc.price_feed.fallbackCaller() == techops.account
+    assert techops.ebtc.price_feed.fallbackCaller() == fallback_caller
 
 
 # Test ebtcFeed_set_primary_oracle
