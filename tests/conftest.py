@@ -45,3 +45,10 @@ def wbtc(security_multisig):
 @pytest.fixture
 def test_price_feed():
     return registry.sepolia.ebtc.test_contracts.test_price_feed
+
+
+@pytest.fixture
+def mock_fallback_caller():
+    return interface.IMockFallbackCaller(
+        registry.sepolia.ebtc.test_contracts.mock_fallback_caller
+    )

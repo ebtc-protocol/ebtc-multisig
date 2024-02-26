@@ -150,17 +150,23 @@ def test_cdpManager_set_grace_period_checks(techops):
 
 
 # Test priceFeed_set_fallback_caller
-def test_priceFeed_set_fallback_caller_happy(techops):
+def test_priceFeed_set_fallback_caller_happy(techops, mock_fallback_caller):
     techops.init_ebtc()
-    fallback_caller = "0x9283D34b5559218C3E36a1fc53c78356D8DFEa30"
-    techops.ebtc.priceFeed_set_fallback_caller(fallback_caller)
+
+    ## Setup mock fallback caller with current price
+    current_price = techops.ebtc.ebtc_feed.lastGoodPrice()
+    current_time = chain.time()
+    mock_fallback_caller.setFallbackResponse(
+        current_price, current_time, True, {"from": techops.account}
+    )
+    techops.ebtc.priceFeed_set_fallback_caller(mock_fallback_caller)
 
     chain.sleep(techops.ebtc.lowsec_timelock.getMinDelay() + 1)
     chain.mine()
 
-    techops.ebtc.priceFeed_set_fallback_caller(fallback_caller)
+    techops.ebtc.priceFeed_set_fallback_caller(mock_fallback_caller)
 
-    assert techops.ebtc.price_feed.fallbackCaller() == fallback_caller
+    assert techops.ebtc.price_feed.fallbackCaller() == mock_fallback_caller
 
 
 # Test ebtcFeed_set_primary_oracle
@@ -398,6 +404,7 @@ def test_collSurplusPool_sweep_token_permissions(wbtc, security_multisig, random
 
     with pytest.raises(AssertionError, match="Error: Not authorized"):
         random_safe.ebtc.collSurplusPool_sweep_token(wbtc.address, amount)
+
 
 # Test batch_collateral_feed_source_and_redemption_fee_floor
 def test_batch_collateral_feed_source_and_redemption_fee_floor_happy(techops):

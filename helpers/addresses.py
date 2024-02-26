@@ -79,7 +79,8 @@ ADDRESSES_SEPOLIA = {
         "highsec_timelock": "0x0393846e97ab5Ec1DC8CB7A59Ee8505F72A6aEEb",
         "lowsec_timelock": "0xaADf07C98E2420E4d995Ba41Db53399648f50076",
         "test_contracts": {
-            "test_price_feed": "0xD91c9CF0499ba9A6Eee7BED92c9F938C5fD4eD69"
+            "test_price_feed": "0xD91c9CF0499ba9A6Eee7BED92c9F938C5fD4eD69",
+            "mock_fallback_caller": "0x9283D34b5559218C3E36a1fc53c78356D8DFEa30"
         },
     },
     "ebtc_wallets": {
