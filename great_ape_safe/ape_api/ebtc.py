@@ -1361,7 +1361,7 @@ class eBTC:
         total_coll_bal = self.collateral.balanceOf(self.safe.address)
         # if total collateral balance is greater than the amount to be deposited, return True
         # else, assert that the total collateral balance is approximately equal to the amount to be deposited
-        # This is due to the fact that stETH has a 1 wei rounding error: https://github.com/lidofinance/lido-dao/issues/442 
+        # This is due to the fact that stETH has a 1 wei rounding error: https://github.com/lidofinance/lido-dao/issues/442
         if total_coll_bal > coll_amount:
             return True
         else:
