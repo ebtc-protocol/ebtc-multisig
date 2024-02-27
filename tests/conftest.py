@@ -52,3 +52,12 @@ def mock_fallback_caller():
     return interface.IMockFallbackCaller(
         registry.sepolia.ebtc.test_contracts.mock_fallback_caller
     )
+
+
+@pytest.fixture
+def setup_test_coll(random_safe):
+    random_safe.init_ebtc()
+    collateral = random_safe.ebtc.collateral
+    owner = accounts.at(collateral.owner(), force=True)
+    collateral.addUncappedMinter(random_safe.account, {"from": owner})
+    return random_safe

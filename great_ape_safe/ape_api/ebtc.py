@@ -4,7 +4,7 @@ from enum import Enum
 from brownie import interface, web3
 from rich.console import Console
 from helpers.addresses import registry
-from helpers.utils import encode_signature
+from helpers.utils import encode_signature, approx
 from helpers.constants import (
     EmptyBytes32,
     AddressZero,
@@ -38,7 +38,7 @@ class eBTC:
 
         # contracts
         self.collateral = safe.contract(
-            registry.sepolia.ebtc.collateral, interface.ICollateralToken
+            registry.sepolia.ebtc.collateral, interface.ICollateralTokenTester
         )
         self.authority = safe.contract(
             registry.sepolia.ebtc.authority, interface.IGovernor
@@ -1359,8 +1359,13 @@ class eBTC:
 
     def _assert_collateral_balance(self, coll_amount):
         total_coll_bal = self.collateral.balanceOf(self.safe.address)
-        # NOTE: ongoing work on solidity side for at https://github.com/ebtc-protocol/ebtc/pull/739. new deployment incoming
-        assert total_coll_bal >= self.collateral.getSharesByPooledEth(coll_amount)
+        # if total collateral balance is greater than the amount to be deposited, return True
+        # else, assert that the total collateral balance is approximately equal to the amount to be deposited
+        # This is due to the fact that stETH has a 1 wei rounding error: https://github.com/lidofinance/lido-dao/issues/442 
+        if total_coll_bal > coll_amount:
+            return True
+        else:
+            assert approx(total_coll_bal, coll_amount, 0.001)
 
     def _assert_debt_balance(self, debt_amount):
         total_debt_bal = self.ebtc_token.balanceOf(self.safe.address)
@@ -1451,12 +1456,14 @@ class eBTC:
         assert cdp_id_status == CdpStatus.CLOSED.value
 
         # 2.2. verify that enough collateral was returned + gas stipend, assertion denominated in common `shares` unit
-        assert self.collateral.getSharesByPooledEth(
-            self.collateral.balanceOf(self.safe.address)
-        ) == (
+        assert approx(
+            self.collateral.getSharesByPooledEth(
+                self.collateral.balanceOf(self.safe.address)
+            ),
             cdp_id_coll
             + cdp_id_liquidator_reward_shares
-            + self.collateral.getSharesByPooledEth(collateral_balance_before)
+            + self.collateral.getSharesByPooledEth(collateral_balance_before),
+            0.001,
         )
 
         # 2.3. verify expected values are 0 at readings from the cdp manager
@@ -1465,14 +1472,14 @@ class eBTC:
             cdp_id_coll,
             cdp_id_stake,
             cdp_id_liq_reward_shares,
-            _,
-            _,
+            cdp_id_status,
         ) = self.cdp_manager.Cdps(cdp_id)
         assert self.cdp_manager.cdpStEthFeePerUnitIndex(cdp_id) == 0
         assert cdp_id_debt == 0
         assert cdp_id_coll == 0
         assert cdp_id_stake == 0
         assert cdp_id_liq_reward_shares == 0
+        assert cdp_id_status == CdpStatus.CLOSED.value
 
     def cdp_add_collateral(self, cdp_id, coll_amount):
         """
