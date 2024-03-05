@@ -151,19 +151,31 @@ These operations are executed by the Low Sec TechOps multisig with a Low Sec Tim
    ```
    *Example:* `brownie run scripts/ebtc_governance.py priceFeed_set_fallback_caller 0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1`
 
-8. **Set Fee BPS for ActivePool Contract**
+8. **Set Collateral Feed Source for PriceFeed Contract**
+   ```bash
+   brownie run scripts/ebtc_governance.py priceFeed_set_collateral_feed_source <enable_dynamic_feed>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py priceFeed_set_collateral_feed_source True`
+
+9. **Batch the Collateral Feed Source for PriceFeed Contract and Redemption Fee Floor for the CDPManager Contract**
+   ```bash
+   brownie run scripts/ebtc_governance.py batch_collateral_feed_source_and_redemption_fee_floor <enable_dynamic_feed> <new_fee_floor>
+   ```
+   *Example:* `brownie run scripts/ebtc_governance.py batch_collateral_feed_source_and_redemption_fee_floor True 100000`   
+
+10. **Set Fee BPS for ActivePool Contract**
    ```bash
    brownie run scripts/ebtc_governance.py activePool_set_fee_bps <value>
    ```
    *Example:* `brownie run scripts/ebtc_governance.py activePool_set_fee_bps 3000`
 
-9. **Set Fee BPS for BorrowerOperations Contract**
+11. **Set Fee BPS for BorrowerOperations Contract**
    ```bash
    brownie run scripts/ebtc_governance.py borrowerOperations_set_fee_bps <value>
    ```
    *Example:* `brownie run scripts/ebtc_governance.py borrowerOperations_set_fee_bps 3000`
 
-10. **Set Secondary Oracle for EBTCFeed Contract**
+12. **Set Secondary Oracle for EBTCFeed Contract**
    ```bash
    brownie run scripts/ebtc_governance.py ebtcFeed_set_secondary_oracle <address>
    ```
