@@ -912,14 +912,14 @@ class eBTC:
             assert self.price_feed.fallbackCaller() == address
 
     def priceFeed_set_collateral_feed_source(
-        self, value, salt=EmptyBytes32, use_high_sec=False
+        self, enable_dynamic_feed, salt=EmptyBytes32, use_high_sec=False
     ):
         """
         @dev Toggles the usage of the dynamic collateral feed source in the PriceFeed. If set to True, the priceFeed
             will aggregate the price using the stETH/ETH feed. Otherwise it will consider stETH 1:1 with ETH.
         @note Should be used in conjunction with the setRedemptionFeeFloor function in the CDP Manager. If redemptions are enabled,
             the fee floor should be set to the new maximum deviation threshold of the aggregated feed.
-        @param value Boolean value to set the collateral feed source to its dynamic mode.
+        @param enable_dynamic_feed Boolean value to set the collateral feed source to its dynamic mode.
         @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
         """
@@ -930,11 +930,11 @@ class eBTC:
             timelock = self.lowsec_timelock
 
         target = self.price_feed
-        data = target.setCollateralFeedSource.encode_input(value)
+        data = target.setCollateralFeedSource.encode_input(enable_dynamic_feed)
 
         executed = self.schedule_or_execute_timelock(timelock, target, data, salt)
         if executed:
-            assert self.price_feed.useDynamicFeed() == value
+            assert self.price_feed.useDynamicFeed() == enable_dynamic_feed
 
     #### ===== EBTC FEED ===== ####
 
