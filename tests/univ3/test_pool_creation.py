@@ -36,7 +36,7 @@ def test_pool_creation(treasury, liq, wbtc):
     common_decimal_denominator = liq.decimals() - wbtc.decimals()
 
     # rounding here since in essence should be 0.99999...
-    p = round(((BASE**initialized_tick) / (10**common_decimal_denominator)))
+    p = round(((BASE ** initialized_tick) / (10 ** common_decimal_denominator)))
 
     # assert the following conditions against the pool after initialization state
     assert initialized_tick > 0 and initialized_sqrt_price_x96 > 0
