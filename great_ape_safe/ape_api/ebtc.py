@@ -1364,14 +1364,8 @@ class eBTC:
     #### ===== CDP OPS ===== ####
 
     def _assert_collateral_balance(self, coll_amount):
-        total_coll_bal = self.collateral.balanceOf(self.safe.address)
-        # if total collateral balance is greater than the amount to be deposited, return True
-        # else, assert that the total collateral balance is approximately equal to the amount to be deposited
-        # This is due to the fact that stETH has a 1 wei rounding error: https://github.com/lidofinance/lido-dao/issues/442
-        if total_coll_bal > coll_amount:
-            return True
-        else:
-            assert approx(total_coll_bal, coll_amount, 0.001)
+        total_coll_shares = self.collateral.sharesOf(self.safe.address)
+        assert total_coll_shares >= self.collateral.getSharesByPooledEth(coll_amount)
 
     def _assert_debt_balance(self, debt_amount):
         total_debt_bal = self.ebtc_token.balanceOf(self.safe.address)
@@ -1413,7 +1407,7 @@ class eBTC:
         self.collateral.approve(self.borrower_operations.address, coll_amount)
 
         # 2. decide borrow amount based on: collateral, feed price & CR
-        feed_price = self.price_feed.fetchPrice.call()
+        feed_price = self.ebtc_feed.fetchPrice.call()
         borrow_amount = (coll_amount * feed_price) / target_cr
 
         # 3. open cdp with args
@@ -1498,7 +1492,7 @@ class eBTC:
         # verify: cdp id ownership from caller
         self._assert_cdp_id_ownership(cdp_id)
 
-        feed_price = self.price_feed.fetchPrice.call()
+        feed_price = self.ebtc_feed.fetchPrice.call()
         prev_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
         prev_tcr = self.cdp_manager.getSyncedTCR(feed_price)
         prev_coll_balance = self.cdp_manager.getCdpCollShares(cdp_id)
@@ -1535,7 +1529,7 @@ class eBTC:
         assert cdp_id_coll > coll_amount
 
         # verify: check recovery mode status. use sync tcr so accounts for split fee
-        feed_price = self.price_feed.fetchPrice.call()
+        feed_price = self.ebtc_feed.fetchPrice.call()
         prev_tcr = self.cdp_manager.getSyncedTCR(feed_price)
         assert prev_tcr > self.CCR
 
@@ -1574,7 +1568,7 @@ class eBTC:
         # verify: check debt caller balance
         prev_debt_balance = self._assert_debt_balance(debt_repay_amount)
 
-        feed_price = self.price_feed.fetchPrice.call()
+        feed_price = self.ebtc_feed.fetchPrice.call()
         prev_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
 
         # 1. repay debt
@@ -1598,7 +1592,7 @@ class eBTC:
         self._assert_cdp_id_ownership(cdp_id)
 
         # verify: check recovery mode status. use sync tcr so accounts for split fee
-        feed_price = self.price_feed.fetchPrice.call()
+        feed_price = self.ebtc_feed.fetchPrice.call()
         sync_tcr = self.cdp_manager.getSyncedTCR(feed_price)
         assert sync_tcr > self.CCR
 
