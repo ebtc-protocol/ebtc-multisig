@@ -1456,14 +1456,10 @@ class eBTC:
         assert cdp_id_status == CdpStatus.CLOSED.value
 
         # 2.2. verify that enough collateral was returned + gas stipend, assertion denominated in common `shares` unit
-        assert approx(
-            self.collateral.getSharesByPooledEth(
-                self.collateral.balanceOf(self.safe.address)
-            ),
+        assert self.collateral.sharesOf(self.safe.address) == (
             cdp_id_coll
             + cdp_id_liquidator_reward_shares
-            + self.collateral.getSharesByPooledEth(collateral_balance_before),
-            0.001,
+            + self.collateral.getSharesByPooledEth(collateral_balance_before)
         )
 
         # 2.3. verify expected values are 0 at readings from the cdp manager
