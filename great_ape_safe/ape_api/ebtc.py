@@ -1209,11 +1209,11 @@ class eBTC:
     #### ===== BATCH OPERATIONS ===== ####
 
     def batch_collateral_feed_source_and_redemption_fee_floor(
-        self, value, new_fee_floor, salt=EmptyBytes32, use_high_sec=False
+        self, enable_dynamic_feed, new_fee_floor, salt=EmptyBytes32, use_high_sec=False
     ):
         """
         @dev Sets the collateral feed source and the redemption fee floor in a single timelock transaction.
-        @param value Boolean value to set the collateral feed source to its dynamic mode.
+        @param enable_dynamic_feed Boolean value to set the collateral feed source to its dynamic mode.
         @param new_fee_floor The new redemption fee floor to set. Must be estimated off-chain and set accordingly.
         @param salt Value used to generate a unique ID for a transaction with identical parameters than an existing.
         @param use_high_sec If true, use the high security timelock. Otherwise, use the low security timelock.
@@ -1227,7 +1227,7 @@ class eBTC:
         targets = [self.price_feed, self.cdp_manager]
         values = [0, 0]
         data = [
-            self.price_feed.setCollateralFeedSource.encode_input(value),
+            self.price_feed.setCollateralFeedSource.encode_input(enable_dynamic_feed),
             self.cdp_manager.setRedemptionFeeFloor.encode_input(new_fee_floor),
         ]
 
@@ -1235,7 +1235,7 @@ class eBTC:
             timelock, targets, values, data, salt
         )
         if executed:
-            assert self.price_feed.useDynamicFeed() == value
+            assert self.price_feed.useDynamicFeed() == enable_dynamic_feed
             assert self.cdp_manager.redemptionFeeFloor() == new_fee_floor
 
     #### ===== GOVERNANCE CONFIGURATION (Only high sec) ===== ####
