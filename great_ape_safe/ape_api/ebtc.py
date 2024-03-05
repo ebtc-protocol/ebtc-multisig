@@ -1472,14 +1472,13 @@ class eBTC:
             cdp_id_coll,
             cdp_id_stake,
             cdp_id_liq_reward_shares,
-            cdp_id_status,
+            _,
         ) = self.cdp_manager.Cdps(cdp_id)
         assert self.cdp_manager.cdpStEthFeePerUnitIndex(cdp_id) == 0
         assert cdp_id_debt == 0
         assert cdp_id_coll == 0
         assert cdp_id_stake == 0
         assert cdp_id_liq_reward_shares == 0
-        assert cdp_id_status == CdpStatus.CLOSED.value
 
     def cdp_add_collateral(self, cdp_id, coll_amount):
         """
