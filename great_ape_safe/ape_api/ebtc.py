@@ -377,6 +377,9 @@ class eBTC:
             timelock.PROPOSER_ROLE(), self.safe.account
         ), "Error: No role"
 
+        ## Ensures that delay is higher than the min delay
+        assert delay > timelock.getMinDelay(), "Error: Delay too low"
+
         ## Check that timelock has the appropiate permissions
         if target != timelock.address:
             assert self.authority.canCall(
@@ -544,6 +547,9 @@ class eBTC:
         assert timelock.hasRole(
             timelock.PROPOSER_ROLE(), self.safe.account
         ), "Error: No role"
+
+        ## Ensures that delay is higher than the min delay
+        assert delay > timelock.getMinDelay(), "Error: Delay too low"
 
         ## Check that timelock has the appropiate permissions
         for target in targets:
