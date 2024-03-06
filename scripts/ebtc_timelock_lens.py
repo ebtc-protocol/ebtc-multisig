@@ -1,8 +1,8 @@
 from great_ape_safe import GreatApeSafe
-from brownie import accounts, network
+from brownie import network
 import pandas as pd
 from tabulate import tabulate
-from helpers.addresses import reverse
+from helpers.addresses import reverse, r
 import os
 from rich.console import Console
 
@@ -10,7 +10,7 @@ C = Console()
 
 
 def main(export_csv=False):
-    safe = GreatApeSafe(accounts[0].address)
+    safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
     safe.init_ebtc()
 
     timelocks = {

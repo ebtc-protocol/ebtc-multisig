@@ -1,7 +1,7 @@
 from great_ape_safe import GreatApeSafe
-from brownie import accounts, network
+from brownie import network
 from rich.console import Console
-from helpers.addresses import reverse, registry
+from helpers.addresses import reverse, r
 import pandas as pd
 from tabulate import tabulate
 import os
@@ -15,7 +15,7 @@ def main(export_csv=False):
     This includes al exisiting roles, their names, the users they are assigned to, as well as the target and capabilities for each.
     """
 
-    safe = GreatApeSafe(accounts[0].address)
+    safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
     safe.init_ebtc()
     authority = safe.ebtc.authority
 
@@ -49,8 +49,8 @@ def main(export_csv=False):
     ## Gets df for roles, their targets and capabilities
     enabled_data = []
     ebtc_section = (
-        registry.sepolia.ebtc
-    )  # Swap for Mainnet (Chain.ID currently failig for me, can't use "r" from addresses.py)
+        r.ebtc
+    )
     ebtc_section.pop("test_contracts", None)  # For testnets
     targets = list(ebtc_section.values())
 
