@@ -1,9 +1,10 @@
 from great_ape_safe import GreatApeSafe
-from brownie import accounts
+from brownie import accounts, network
 from rich.console import Console
 from helpers.addresses import reverse, registry
 import pandas as pd
 from tabulate import tabulate
+import os
 
 C = Console()
 
@@ -116,8 +117,11 @@ def main(export_csv=False):
     C.print(merged_table)
 
     if export_csv:
+        # Dump result
+        os.makedirs("data/authority_audit/", exist_ok=True)
         merged_df.to_csv(
-            f"data/authority_audit/Authority_Audit_{authority.address}.csv", index=False
+            f"data/authority_audit/authority_audit_{network.show_active()}.csv",
+            index=False,
         )
 
 

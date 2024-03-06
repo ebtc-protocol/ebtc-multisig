@@ -8,6 +8,7 @@ from rich.console import Console
 
 C = Console()
 
+
 def main(export_csv=False):
     safe = GreatApeSafe(accounts[0].address)
     safe.init_ebtc()
