@@ -5,6 +5,7 @@ from rich.console import Console
 
 C = Console()
 
+
 def main():
     C.print("[yellow]Initial timelocks state:\n[/yellow]")
     lens.main()
@@ -33,8 +34,12 @@ def main():
         assert timelock.hasRole(timelock.TIMELOCK_ADMIN_ROLE(), timelock.address)
         C.print(f"[yellow]{id} has TIMELOCK_ADMIN_ROLE[/yellow]")
         ## Remove security multisig as TIMELOCK_ADMIN_ROLE
-        C.print(f"[yellow]Removing security multisig from {id} TIMELOCK_ADMIN_ROLE[/yellow]")
-        timelock.revokeRole(timelock.TIMELOCK_ADMIN_ROLE(), registry.eth.ebtc_wallets.security_multisig)
+        C.print(
+            f"[yellow]Removing security multisig from {id} TIMELOCK_ADMIN_ROLE[/yellow]"
+        )
+        timelock.revokeRole(
+            timelock.TIMELOCK_ADMIN_ROLE(), registry.eth.ebtc_wallets.security_multisig
+        )
 
     C.print("[yellow]\nFinal timelocks state:\n[/yellow]")
     # Print out new state

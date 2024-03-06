@@ -48,9 +48,7 @@ def main(export_csv=False):
 
     ## Gets df for roles, their targets and capabilities
     enabled_data = []
-    ebtc_section = (
-        r.ebtc
-    )
+    ebtc_section = r.ebtc
     ebtc_section.pop("test_contracts", None)  # For testnets
     targets = list(ebtc_section.values())
 
