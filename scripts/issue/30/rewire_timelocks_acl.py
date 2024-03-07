@@ -1,7 +1,8 @@
 from great_ape_safe import GreatApeSafe
-from helpers.addresses import registry
+from helpers.addresses import r
 from scripts import ebtc_timelock_lens as lens
 from rich.console import Console
+from helpers.constants import EmptyBytes32
 
 C = Console()
 
@@ -10,7 +11,7 @@ def main():
     C.print("[yellow]Initial timelocks state:\n[/yellow]")
     lens.main()
 
-    safe = GreatApeSafe(registry.eth.ebtc_wallets.security_multisig)
+    safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
     safe.init_ebtc()
 
     timelocks = {
@@ -37,12 +38,19 @@ def main():
         C.print(
             f"[yellow]Removing security multisig from {id} TIMELOCK_ADMIN_ROLE[/yellow]"
         )
-        timelock.revokeRole(
-            timelock.TIMELOCK_ADMIN_ROLE(), registry.eth.ebtc_wallets.security_multisig
+        ## We could revoke the TIMELOCK_ADMIN_ROLE from the security multisig directly but will do
+        ## through the Timelocks instead in order to test the flows. Will require exection once both time periods are met.
+        ## Execution can be handled by using the lowsec_revoke_timelock_role() and highsec_revoke_timelock_role() scripts
+        ## within the scripts/ebtc_timelocks.py file.
+        safe.ebtc.revoke_timelock_role(
+            "TIMELOCK_ADMIN_ROLE",
+            r.ebtc_wallets.security_multisig,
+            EmptyBytes32,
+            timelock.address == timelocks["highsec_timelock"],  # Use highSec
         )
 
     C.print("[yellow]\nFinal timelocks state:\n[/yellow]")
     # Print out new state
     lens.main()
 
-    safe.post_safe_tx()
+    safe.post_safe_tx(skip_preview=True)
