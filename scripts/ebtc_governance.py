@@ -106,6 +106,36 @@ def priceFeed_set_fallback_caller(address, salt=EmptyBytes32):
     safe.post_safe_tx()
 
 
+def priceFeed_set_collateral_feed_source(enable_dynamic_feed, salt=EmptyBytes32):
+    """
+    Set the collateral feed source for the PriceFeed contract.
+    """
+    safe = GreatApeSafe(r.ebtc_wallets.techops_multisig)
+    safe.init_ebtc()
+    C.print(f"\nUsing {safe.account} for PriceFeed.setCollateralFeedSource\n")
+    safe.ebtc.priceFeed_set_collateral_feed_source(enable_dynamic_feed, salt)
+
+    safe.post_safe_tx()
+
+
+def batch_collateral_feed_source_and_redemption_fee_floor(
+    enable_dynamic_feed, new_fee_floor, salt=EmptyBytes32
+):
+    """
+    Set the collateral feed source and redemption fee floor for the PriceFeed contract.
+    """
+    safe = GreatApeSafe(r.ebtc_wallets.techops_multisig)
+    safe.init_ebtc()
+    C.print(
+        f"\nUsing {safe.account} for PriceFeed.setCollateralFeedSource and CDPManager.setRedemptionFeeFloor\n"
+    )
+    safe.ebtc.batch_collateral_feed_source_and_redemption_fee_floor(
+        enable_dynamic_feed, new_fee_floor, salt
+    )
+
+    safe.post_safe_tx()
+
+
 def activePool_set_fee_bps(value, salt=EmptyBytes32):
     """
     Set the fee basis points for the ActivePool contract.
