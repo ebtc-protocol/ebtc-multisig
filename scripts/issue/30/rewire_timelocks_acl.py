@@ -1,6 +1,6 @@
 from great_ape_safe import GreatApeSafe
 from helpers.addresses import r
-from scripts import ebtc_timelock_lens as lens
+from scripts import ebtc_timelocks_lens as lens
 from rich.console import Console
 from helpers.constants import EmptyBytes32
 
