@@ -5,6 +5,7 @@ from tabulate import tabulate
 from helpers.addresses import reverse, r
 import os
 from rich.console import Console
+import time
 
 C = Console()
 
@@ -57,6 +58,7 @@ def main(export_csv=False):
             df = pd.DataFrame(timelock_data)
             # Dump result
             os.makedirs("data/timelocks_audit", exist_ok=True)
+            timestamp = int(time.time())  # Get current Unix timestamp
             df.to_csv(
-                f"data/timelocks_audit/{timelock_key}_audit_{network.show_active()}.csv"
+                f"data/timelocks_audit/{timelock_key}_audit_{network.show_active()}_{timestamp}.csv"
             )

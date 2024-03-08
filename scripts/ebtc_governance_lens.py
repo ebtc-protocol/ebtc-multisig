@@ -5,6 +5,7 @@ from helpers.addresses import reverse, r
 import pandas as pd
 from tabulate import tabulate
 import os
+import time
 
 C = Console()
 
@@ -35,7 +36,7 @@ def main(export_csv=False):
             users = authority.getUsersByRole(roles)
             user_addresses = "\n".join(users)  # Replace comma with new line
             user_ids = "\n".join(
-                reverse[user] for user in users
+                reverse[user] if user in reverse else "Unknown" for user in users
             )  # Replace comma with new line
             roles_data.append([roles, name, user_addresses, user_ids])
             roles += 1
@@ -117,8 +118,9 @@ def main(export_csv=False):
     if export_csv:
         # Dump result
         os.makedirs("data/authority_audit/", exist_ok=True)
+        timestamp = int(time.time())  # Get current Unix timestamp
         merged_df.to_csv(
-            f"data/authority_audit/authority_audit_{network.show_active()}.csv",
+            f"data/authority_audit/authority_audit_{network.show_active()}_{timestamp}.csv",
             index=False,
         )
 
