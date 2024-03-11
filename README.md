@@ -303,4 +303,67 @@ Grace Period | 1 | - | 900 | 1200 (20 minutes) | Length of recovery mode's Grace
 Active Pool FL Fee | 10_000 | 1_000 (10%) | 0 | 3 (0.03%) | Determines the fee charged on a Flashloan
 Borrower Operations FL Fee | 10_000 | 1_000 (10%) | 0 | 3 (0.03%) | Determines the fee charged on a Flashloan
 
-This cheat sheet serves as a handy reference for anyone involved in the governance of eBTC, from developers and contributors to users interested in understanding the parameters that shape the protocol's functionality and security. 
+This cheat sheet serves as a handy reference for anyone involved in the governance of eBTC, from developers and contributors to users interested in understanding the parameters that shape the protocol's functionality and security.
+
+## eBTC Treasury Operations Instructions
+
+Scope of the operations are: CDP, LPs and incentives management.
+
+### CDP management
+
+1. **Open a CDP given an amount of collateral and target collateral ratio**
+   ```bash
+      brownie run scripts/ebtc_cdp_ops.py open_cdp <collateral_amount> <target_collateral_ratio>
+   ```
+
+   *Example:* `brownie run scripts/ebtc_cdp_ops.py open_cdp 5 160`
+
+2. **Close target CDP id**
+   ```bash
+      brownie run scripts/ebtc_cdp_ops.py close_cdp <cdp_id>
+   ```
+   
+   *Example:* `brownie run scripts/ebtc_cdp_ops.py close_cdp 0x68682e8857d24a5bb71fcd5c6dc5867731226b620125dde40000000000000001`
+
+3. **Increase collateral for an existing CPD id**
+   ```bash
+      brownie run scripts/ebtc_cdp_ops.py cdp_add_collateral <cdp_id> <collateral_amount>
+   ```
+   
+   *Example:* `brownie run scripts/ebtc_cdp_ops.py cdp_add_collateral 0x68682e8857d24a5bb71fcd5c6dc5867731226b620125dde40000000000000001 50`
+
+4. **Reduce collateral from an existing CDP id**
+   ```bash
+      brownie run scripts/ebtc_cdp_ops.py cdp_withdraw_collateral <cdp_id> <collateral_amount>
+   ```
+   
+   *Example:* `brownie run scripts/ebtc_cdp_ops.py cdp_withdraw_collateral 0x68682e8857d24a5bb71fcd5c6dc5867731226b620125dde40000000000000001 20`
+
+5. **Repay a specific amount of debt for target CDP id**
+   ```bash
+      brownie run scripts/ebtc_cdp_ops.py cdp_repay_debt <cdp_id> <debt_repay_amount>
+   ```
+   
+   *Example:* `brownie run scripts/ebtc_cdp_ops.py cdp_repay_debt 0x68682e8857d24a5bb71fcd5c6dc5867731226b620125dde40000000000000001 3`
+
+5. **Borrow further debt from target CDP id**
+   ```bash
+      brownie run scripts/ebtc_cdp_ops.py cdp_withdraw_debt <cdp_id> <debt_withdrawable_amount>
+   ```
+   
+   *Example:* `brownie run scripts/ebtc_cdp_ops.py cdp_withdraw_debt 0x68682e8857d24a5bb71fcd5c6dc5867731226b620125dde40000000000000001 2`
+
+### LPs management
+
+1. **Creates pool for eBTC/WBTC following [BIP guideline](https://forum.badger.finance/t/ebtc-launch-planning-peg-management-and-monetary-policy/6129#protocol-owned-liquidity-6)**
+   ```bash
+   brownie run scripts/univ3_management.py pool_creation_and_init_seeding
+   ```
+
+TBD (pendant of further discussion)
+
+
+### Incentives management
+
+TBD (pendant of PR#20 getting merged)
+
