@@ -92,7 +92,7 @@ def main(
     C.print(f"[green]start_date_ts={start_date_ts}\n[/green]")
 
     # actions
-    fee = distribution_creator.fees()  # fees is on base 10 ** 9
+    fee = distribution_creator.BASE_9()  # fees is on base 10 ** 9
     fee_mantissa = (token_amount_mantissa * fee) / 1e9
     token_amount_mantissa_and_fee = token_amount_mantissa + fee_mantissa
 
@@ -144,7 +144,7 @@ def sim():
         weight_token_a=20,
         weight_token_b=20,
         weight_fees=60,
-        starting_date="2024-2-7 13:00",
+        starting_date="2024-3-22 13:00",
         duration_campaign=1,
         sim=True,
     )
