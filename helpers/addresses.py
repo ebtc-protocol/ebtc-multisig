@@ -47,7 +47,7 @@ ADDRESSES_ETH = {
         "quoter": "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6",
         "v3pool_wbtc_badger": "0xe15e6583425700993bd08F51bF6e7B73cd5da91B",
         "v3pool_wbtc_ebtc": "0x0000000000000000000000000000000000000000",  # @note TBD!
-        "v3pool_wbtc_weth": "0xCBCdF9626bC03E24f779434178A73a0B4bad62eD", 
+        "v3pool_wbtc_weth": "0xCBCdF9626bC03E24f779434178A73a0B4bad62eD",
     },
     "cow": {
         "vault_relayer": "0xC92E8bdf79f0507f65a392b0ab4667716BFE0110",
