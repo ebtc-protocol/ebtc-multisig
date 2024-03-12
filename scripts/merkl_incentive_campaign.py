@@ -8,12 +8,19 @@ from rich.console import Console
 C = Console()
 
 """
-The following methods are meant to provide the interface for:
+The following methods are meant to provide the interface for the `DistributionCreator` contract
+
+## `distribute_incentives_concentrated_liquidity_pool` method:
+    - it is meant to be used to create a new campaign for incentivising a univ3 pool (less flexible method)
     - incentive a selected univ3 pool
     - set token to incentivise with
     - determine the weights for each of the components (token A, token B & fees)
     - timestamp when the campaign will kick off by passing date in string format UTC based
     - length of the campaign defined in weeks
+
+## `create_campaign` method:
+    - more flexible as it allows us to put almost any configuration we want in the campaign data
+    - incentivize holders of an specific behaviour: erc20, CR of $eBTC holders
 
 Errors map:
 - InvalidReward(): typed error: 0x28829e82
@@ -24,7 +31,7 @@ HOURS_PER_DAY = 24
 WEIGHTS_TOTAL_BASE = 10_000
 
 
-def main(
+def distribute_incentives_concentrated_liquidity_pool(
     incentive_token=r.assets.weth,
     token_amount=0,  # in ether denomination. sc expects on wei
     weight_token_a=0,  # format in cli: %. sc expects on base 10 ** 4
@@ -138,7 +145,7 @@ def sim():
     distribution_creator.setRewardTokenMinAmounts([r.assets.weth], [10000000000000000])
 
     # run script
-    main(
+    distribute_incentives_concentrated_liquidity_pool(
         incentive_token=r.assets.weth,
         token_amount=2,
         weight_token_a=20,
