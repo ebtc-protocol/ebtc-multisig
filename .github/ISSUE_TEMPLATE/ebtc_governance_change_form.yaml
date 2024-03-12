@@ -1,0 +1,71 @@
+name: eBTC Governance Parameter Change Request
+description: Submit a request for parameter changes within the eBTC governance system.
+title: "Parameter Change Request: [Parameter Change Selected]"
+labels: ["parameter-change", "governance"]
+projects: ["ebtc-protocol/1"] # eBTC Multisig Ops Board 
+assignees: 
+  - sajanrajdev # Multisig lead for triage
+
+body:
+  - type: markdown
+    attributes:
+      value: "## Change Request Details\nFill out the form to submit your parameter change request to the technical execution team."
+
+  - type: dropdown
+    id: parameter-change
+    attributes:
+      label: "Protocol Parameter Change"
+      description: "Select the parameter change you are requesting."
+      options:
+        - "Set Recovery Mode Grace Period Duration"
+        - "Set All Redemption Fee Parameters"
+        - "Set Redemption Fee Floor"
+        - "Set Redemption Fee Minute Decay Factor"
+        - "Set Redemption Fee Beta"
+        - "Set Protocol Yield Share %"
+        - "Set Flash loans Fee"
+        - "Set Secondary Oracle"
+        - "Set Primary Oracle"
+        - "Set Fallback Caller"
+        - "Set minter/burner"
+        - "Pause/Unpause Flashloans"
+        - "Pause/Unpause Redemptions"
+        - "Other (Please specify in details)"
+    validations:
+      required: true
+
+  - type: input
+    id: parameter-values
+    attributes:
+      label: "Parameter Value(s)"
+      description: "Input the value(s) for the selected parameter change."
+      placeholder: "e.g., 250 or True/False for toggles"
+    validations:
+      required: true
+
+  - type: textarea
+    id: justification
+    attributes:
+      label: "Justification and Details"
+      description: "Provide a detailed justification for the parameter change."
+      placeholder: "Explain why this change is necessary."
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-notes
+    attributes:
+      label: "Additional Notes"
+      description: "Include any other relevant information or dependencies."
+      placeholder: "Any additional context or information."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: verification
+    attributes:
+      label: "Verification"
+      description: "Confirm your understanding and accuracy of the information provided:"
+      options:
+        - label: "I have verified the parameter values and details are correct."
+          required: true

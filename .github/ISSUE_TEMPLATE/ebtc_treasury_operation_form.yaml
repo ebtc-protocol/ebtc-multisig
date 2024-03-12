@@ -1,0 +1,65 @@
+name: eBTC Treasury Operations Request
+description: Submit a request for treasury operations within the eBTC system.
+title: "Treasury Operation Request: [Operation Selected]"
+labels: ["treasury-operation", "finance"]
+projects: ["ebtc-protocol/1"] # eBTC Multisig Ops Board 
+assignees: 
+  - sajanrajdev # Multisig lead for triage
+
+body:
+  - type: markdown
+    attributes:
+      value: "## Treasury Operation Request Details\nFill out the form to submit your treasury operation request to the technical execution team."
+
+  - type: dropdown
+    id: treasury-operation
+    attributes:
+      label: "Treasury Operation"
+      description: "Select the treasury operation you are requesting."
+      options:
+        - "UniV3 LP Management"
+        - "Treasury CDP Adjustment"
+        - "CDP Creation"
+        - "Asset Swap"
+        - "Protocol Fees Management"
+        - "Partner Incentives Management"
+        - "Liquidity Incentives"
+        - "Other (Please specify in details)"
+    validations:
+      required: true
+
+  - type: input
+    id: operation-details
+    attributes:
+      label: "Operation Details"
+      description: "Input the details for the selected treasury operation (e.g., amounts, addresses)."
+      placeholder: "Detail the operation specifics here"
+    validations:
+      required: true
+
+  - type: textarea
+    id: justification
+    attributes:
+      label: "Justification and Rationale"
+      description: "Provide a detailed justification for the treasury operation."
+      placeholder: "Explain why this operation is necessary."
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-notes
+    attributes:
+      label: "Additional Notes"
+      description: "Include any other relevant information or dependencies related to this operation."
+      placeholder: "Any additional context or information."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: verification
+    attributes:
+      label: "Verification"
+      description: "Confirm your understanding and accuracy of the information provided:"
+      options:
+        - label: "I have verified the operation details and justification are correct."
+          required: true
