@@ -10,7 +10,8 @@ SENTINEL_OWNERS = "0x0000000000000000000000000000000000000001"
 TECHOPS_SINGERS = r.ebtc_wallets.techops_signers
 TREASURY_SIGNERS = r.badger_wallets.treasury_signers
 
-TECHOPS_MULTISIGS = [r.ebtc_wallets.security_multisig, r.ebtc_wallets.techops_multisig]
+HIGHSEC_TECHOPS_MULTISIG = r.ebtc_wallets.security_multisig
+LOWSEC_TECHOPS_MULTISIG = r.ebtc_wallets.techops_multisig
 FEE_RECIPIENT_MULTISIG = r.ebtc_wallets.fee_recipient_multisig
 
 LOWSEC_POLICY = 3
@@ -25,8 +26,8 @@ FEE_RECIPIENT_POLICY = 3
 
 
 def highsec_config():
-    safe = GreatApeSafe(TECHOPS_MULTISIGS[0])
-    highsec_techops = safe.contract(TECHOPS_MULTISIGS[0], interface.IGnosisSafe_v1_3_0)
+    safe = GreatApeSafe(HIGHSEC_TECHOPS_MULTISIG)
+    highsec_techops = safe.contract(HIGHSEC_TECHOPS_MULTISIG, interface.IGnosisSafe_v1_3_0)
 
     configure_multisig(highsec_techops, TECHOPS_SINGERS, HIGHSEC_POLICY)
 
@@ -34,8 +35,8 @@ def highsec_config():
 
 
 def lowsec_config():
-    safe = GreatApeSafe(TECHOPS_MULTISIGS[1])
-    lowsec_techops = safe.contract(TECHOPS_MULTISIGS[1], interface.IGnosisSafe_v1_3_0)
+    safe = GreatApeSafe(LOWSEC_TECHOPS_MULTISIG)
+    lowsec_techops = safe.contract(LOWSEC_TECHOPS_MULTISIG, interface.IGnosisSafe_v1_3_0)
 
     configure_multisig(lowsec_techops, TECHOPS_SINGERS, LOWSEC_POLICY)
 
