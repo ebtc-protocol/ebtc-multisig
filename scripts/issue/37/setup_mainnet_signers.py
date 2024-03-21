@@ -27,7 +27,9 @@ FEE_RECIPIENT_POLICY = 3
 
 def highsec_config():
     safe = GreatApeSafe(HIGHSEC_TECHOPS_MULTISIG)
-    highsec_techops = safe.contract(HIGHSEC_TECHOPS_MULTISIG, interface.IGnosisSafe_v1_3_0)
+    highsec_techops = safe.contract(
+        HIGHSEC_TECHOPS_MULTISIG, interface.IGnosisSafe_v1_3_0
+    )
 
     configure_multisig(highsec_techops, TECHOPS_SINGERS, HIGHSEC_POLICY)
 
@@ -36,7 +38,9 @@ def highsec_config():
 
 def lowsec_config():
     safe = GreatApeSafe(LOWSEC_TECHOPS_MULTISIG)
-    lowsec_techops = safe.contract(LOWSEC_TECHOPS_MULTISIG, interface.IGnosisSafe_v1_3_0)
+    lowsec_techops = safe.contract(
+        LOWSEC_TECHOPS_MULTISIG, interface.IGnosisSafe_v1_3_0
+    )
 
     configure_multisig(lowsec_techops, TECHOPS_SINGERS, LOWSEC_POLICY)
 
