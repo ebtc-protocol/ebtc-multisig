@@ -229,9 +229,9 @@ These operations are executed by the High Sec TechOps multisig with a Low Sec Ti
    *Example:* `brownie run scripts/ebtc_governance.py ebtcFeed_set_primary_oracle 0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1`
 
 ### Timelock Salt
-All Timelock scripts accept an optional *salt* at the end of their parameter list, a unique 32-byte identifier that allows for the distinction of transactions. This is especially useful for queuing transactions that are identical in contract, changes, and values to previous ones. To ensure the correct execution of a scheduled transaction that includes a salt, this same salt must be repeated during the execution phase.
+All Timelock scripts accept an optional *salt* at the end of their parameter list, a unique integer identifier that allows for the distinction of transactions. This is especially useful for queuing transactions that are identical in contract, changes, and values to previous ones. To ensure the correct execution of a scheduled transaction that includes a salt, this same salt must be repeated during the execution phase. Note that these scripts convert the salt integers into 32 byte strings, as this is the format expected by the Timelock contracts.
 
-*Example:* `brownie run scripts/ebtc_governance.py borrowerOperations_set_fee_bps 3000 0x0000000000000000000000000000000000000000000000000000000000000001`
+*Example:* `brownie run scripts/ebtc_governance.py borrowerOperations_set_fee_bps 3000 1`
 
 ### EMERGENCY: Pausing Operations
 
