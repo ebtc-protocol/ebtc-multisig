@@ -238,7 +238,7 @@ def _verify_cli_args(
     incentive_token_balance = incentive_token.balanceOf(safe)
     assert (
         token_amount_mantissa > 0 and token_amount_mantissa <= incentive_token_balance,
-        "amount greater than balancer or zero",
+        "amount greater than balance or zero",
     )
     C.print(f"[blue]reward_token_min_amount={reward_token_min_amount}\n[/blue]")
     C.print(f"[green]token_amount_mantissa={token_amount_mantissa}\n[/green]")
