@@ -39,7 +39,7 @@ safe = GreatApeSafe(r.badger_wallets.treasury_vault_multisig)
 safe.init_uni_v3()
 
 
-def prep_():
+def prep():
     safe.init_cow(prod=True)
 
     # tokens
@@ -130,8 +130,8 @@ def seed_pool_w1(sim=False):
         )
 
 
-# @note same method can be called for W2 & W3
-def seed_pool_w2(sim=False, nfts_list_sim=[]):
+# @note same method can be called for W3 & W4
+def seed_pool_w3(sim=False, nfts_list_sim=[]):
     safe.init_ebtc()
 
     # week 2 targets
@@ -227,8 +227,8 @@ def sim_seed_pool_w1_and_w2():
         nft_from_1_to_101,
         nft_from_101_to_108,
     ) = seed_pool_w1(sim=True)
-    # sim week 2
-    seed_pool_w2(
+    # sim week 3
+    seed_pool_w3(
         sim=True,
         nfts_list_sim=[
             nft_from_0925_to_099,
