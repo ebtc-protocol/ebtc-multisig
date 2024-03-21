@@ -139,8 +139,8 @@ def seed_pool_w1(sim=False):
 def seed_pool_w3(sim=False, nfts_list_sim=[]):
     safe.init_ebtc()
 
-    # week 2 targets
-    collateral_amount_week_2 = 200
+    # week 3 targets
+    collateral_amount_week_3 = 200
 
     # tokens
     wbtc = safe.contract(r.assets.wbtc)
@@ -150,7 +150,7 @@ def seed_pool_w3(sim=False, nfts_list_sim=[]):
     # sim
     if sim:
         # 1. fake enough $steth balance
-        _provide_collateral(steth, collateral_amount_week_2)
+        _provide_collateral(steth, collateral_amount_week_3)
         nft_from_0925_to_099 = nfts_list_sim[0]
         nft_from_099_to_1 = nfts_list_sim[1]
         nft_from_1_to_101 = nfts_list_sim[2]
@@ -166,7 +166,7 @@ def seed_pool_w3(sim=False, nfts_list_sim=[]):
     cdp_id = safe.ebtc.sorted_cdps.getCdpsOf(safe)[
         0
     ]  # @note assuming there is only one cdp belong to treasury!
-    safe.ebtc.cdp_add_collateral(cdp_id, collateral_amount_week_2 * 1e18)
+    safe.ebtc.cdp_add_collateral(cdp_id, collateral_amount_week_3 * 1e18)
 
     # 2. increase liquidity in existing nft's
     ebtc_bal = ebtc.balanceOf(safe.account)
