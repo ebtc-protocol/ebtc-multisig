@@ -9,6 +9,9 @@ from rich.console import Console
 
 C = Console()
 
+# misc.univ3
+FEE_TIER = 500
+
 # misc.cow
 COEF = 0.98
 DEADLINE = 60 * 60 * 3
