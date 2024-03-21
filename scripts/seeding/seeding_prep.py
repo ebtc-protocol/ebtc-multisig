@@ -3,6 +3,8 @@ from math import sqrt
 from great_ape_safe import GreatApeSafe
 from great_ape_safe.ape_api.helpers.uni_v3.uni_v3_sdk import Q96
 
+from great_ape_safe.ape_api.helpers.coingecko import get_cg_price
+
 from brownie import interface
 from helpers.addresses import r
 from rich.console import Console
@@ -16,8 +18,8 @@ FEE_TIER = 500
 COEF = 0.98
 DEADLINE = 60 * 60 * 3
 
-# misc.coll amount (it should equate at current rates into 800 $steth)
-RETH_AMOUNT = 730
+# misc.coll amount
+STETH_TARGET_AMOUNT = 800
 
 safe = GreatApeSafe(r.badger_wallets.treasury_vault_multisig)
 safe.init_uni_v3()
@@ -32,9 +34,18 @@ def prep():
     reth = safe.contract(r.assets.reth)
     steth = safe.contract(r.assets.steth)
 
+    # prices of $eth versions
+    reth_price = get_cg_price(reth.address)
+    steth_price = get_cg_price(steth.address)
+
+    # @note adding a minor multiplier to ensure the swap hits the $steth target amount
+    reth_amount = (STETH_TARGET_AMOUNT * steth_price / reth_price) * 1.03
+
     # =========== $reth -> $steth swap (happens async) ===========
-    reth_amount = RETH_AMOUNT * 10 ** reth.decimals()
-    safe.cow.market_sell(reth, steth, reth_amount, deadline=DEADLINE, coef=COEF)
+    reth_amount_mantissa = reth_amount * 10 ** reth.decimals()
+    safe.cow.market_sell(
+        reth, steth, reth_amount_mantissa, deadline=DEADLINE, coef=COEF
+    )
 
     # =========== pool creation & initialization ===========
 
