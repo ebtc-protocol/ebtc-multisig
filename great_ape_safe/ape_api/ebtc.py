@@ -1582,9 +1582,7 @@ class eBTC:
         sync_tcr = self.cdp_manager.getSyncedTCR(feed_price)
         assert sync_tcr > self.CCR
 
-        # verify: existing debt in cdp id is greater than amount to wd
         debt_before = self.cdp_manager.getCdpDebt(cdp_id)
-        assert debt_before > debt_withdrawable_amount
 
         prev_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
 

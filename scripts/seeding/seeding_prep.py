@@ -163,10 +163,15 @@ def seed_pool_w3(sim=False, nfts_list_sim=[]):
         nft_from_101_to_108 = 0
 
     # 1. top-up cdp
+    collateral_mantissa = collateral_amount_week_3 * 1e18
     cdp_id = safe.ebtc.sorted_cdps.getCdpsOf(safe)[
         0
     ]  # @note assuming there is only one cdp belong to treasury!
-    safe.ebtc.cdp_add_collateral(cdp_id, collateral_amount_week_3 * 1e18)
+    safe.ebtc.cdp_add_collateral(cdp_id, collateral_mantissa)
+
+    feed_price = safe.ebtc.ebtc_feed.fetchPrice.call()
+    borrow_amount = collateral_mantissa * feed_price / (COLLATERAL_TARGET_RATIO * 1e16)
+    safe.ebtc.safe.ebtc.cdp_withdraw_debt(cdp_id, borrow_amount)
 
     # 2. increase liquidity in existing nft's
     ebtc_bal = ebtc.balanceOf(safe.account)
