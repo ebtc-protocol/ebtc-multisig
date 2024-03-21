@@ -39,6 +39,8 @@ ADDRESSES_ETH = {
         "ebtc": "0x661c70333AA1850CcDBAe82776Bb436A0fCfeEfB",
         "liq": "0xD82fd4D6D62f89A1E50b1db69AD19932314aa408",
         "steth": "0xae7ab96520de3a18e5e111b5eaab095312d7fe84",
+        "wsteth": "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0",
+        "reth": "0xae78736Cd615f374D3085123A210448E74Fc6393",
     },
     "uniswap": {
         "factoryV3": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
@@ -46,6 +48,7 @@ ADDRESSES_ETH = {
         "routerV3": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
         "quoter": "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6",
         "v3pool_wbtc_badger": "0xe15e6583425700993bd08F51bF6e7B73cd5da91B",
+        "v3pool_wbtc_ebtc": "0x0000000000000000000000000000000000000000",  # @note to be replaced by official!
     },
     "cow": {
         "vault_relayer": "0xC92E8bdf79f0507f65a392b0ab4667716BFE0110",
