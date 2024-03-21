@@ -51,7 +51,7 @@ ADDRESSES_ETH = {
             "treasury_signer6": "0x9c8C8bcD625Ed2903823b0b60DeaB2D70B92aFd9",
             "treasury_signer7": "0xaC7B5f4E631b7b5638B9b41d07f1eBED30753f16",
             "treasury_signer8": "0x2afc096981c2CFe3501bE4054160048718F6C0C8",
-            "treasury_signer9": "0xaF94D299a73c4545ff702E79D16d9fb1AB5BDAbF",            
+            "treasury_signer9": "0xaF94D299a73c4545ff702E79D16d9fb1AB5BDAbF",
         },
     },
     "assets": {

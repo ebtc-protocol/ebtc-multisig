@@ -74,7 +74,9 @@ def configure_multisig(target, signers, policy):
             target.removeOwner(prev_owner, owner, policy)  # Change the policy here
 
     if target.getThreshold() != policy:
-        target.changeThreshold(policy) # Just to tripple check the policy is set correctly
+        target.changeThreshold(
+            policy
+        )  # Just to tripple check the policy is set correctly
 
     C.print(f"New signers: {target.getOwners()}")
     C.print(f"New policy: {target.getThreshold()}")
