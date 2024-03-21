@@ -64,15 +64,17 @@ def configure_multisig(target, signers, policy):
 
     for signer in signers.values():
         if signer not in current_owners:
-            target.addOwnerWithThreshold(signer, policy)
+            target.addOwnerWithThreshold(
+                signer, current_policy
+            )  # Don't change the policy until all signers are added (otherwise will fail attempting to set the policy higher than amount of signers)
 
     for owner in current_owners:
         if owner not in signers.values():
             prev_owner = get_previous_owner(target, owner)
-            target.removeOwner(prev_owner, owner, policy)
+            target.removeOwner(prev_owner, owner, policy)  # Change the policy here
 
     if target.getThreshold() != policy:
-        target.changeThreshold(policy)
+        target.changeThreshold(policy) # Just to tripple check the policy is set correctly
 
     C.print(f"New signers: {target.getOwners()}")
     C.print(f"New policy: {target.getThreshold()}")
