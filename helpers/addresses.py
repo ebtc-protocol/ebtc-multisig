@@ -42,6 +42,7 @@ ADDRESSES_ETH = {
     "badger_wallets": {
         "treasury_ops_multisig": "0x042B32Ac6b453485e357938bdC38e0340d4b9276",
         "treasury_vault_multisig": "0xD0A7A8B98957b9CD3cFB9c0425AbE44551158e9e",
+        "ibbtc_multisig_incentives": "0xB76782B51BFf9C27bA69C77027e20Abd92Bcf3a8",
         "treasury_signers": {
             "treasury_signer1": "0xaFD01c6161729aa857404763c9577498327c6Aee",
             "treasury_signer2": "0x0a9af7FAba0d5DF7A8C881e1B9cd679ee07Af8A2",
@@ -55,6 +56,7 @@ ADDRESSES_ETH = {
         },
     },
     "assets": {
+        "weth": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
         "wbtc": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
         "ebtc": "0x661c70333AA1850CcDBAe82776Bb436A0fCfeEfB",
         "liq": "0xD82fd4D6D62f89A1E50b1db69AD19932314aa408",

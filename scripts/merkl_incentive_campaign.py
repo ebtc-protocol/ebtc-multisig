@@ -1,6 +1,6 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from eth_abi import encode_abi
-from brownie import interface, web3
+from brownie import interface, web3, accounts
 from great_ape_safe import GreatApeSafe
 from helpers.addresses import r
 from helpers.constants import AddressZero, EmptyBytes32
@@ -247,9 +247,9 @@ def _verify_cli_args(
     assert duration_campaign >= HOURS_PER_DAY, "campaign duration smaller than 1 day"
     C.print(f"[green]duration_campaign={duration_campaign}\n[/green]")
 
-    weight_token_a = int(weight_token_a) * 10 ** 2
-    weight_token_b = int(weight_token_b) * 10 ** 2
-    weight_fees = int(weight_fees) * 10 ** 2
+    weight_token_a = int(weight_token_a) * 10**2
+    weight_token_b = int(weight_token_b) * 10**2
+    weight_fees = int(weight_fees) * 10**2
     assert (
         weight_token_a + weight_token_b + weight_fees == WEIGHTS_TOTAL_BASE
     ), "total weights does not match 10_000"
@@ -279,7 +279,9 @@ def _verify_cli_args(
 
 
 def _sim_prep():
-    governance_distributor_contract = "0x529619a10129396a2F642cae32099C1eA7FA2834"
+    governance_distributor_contract = accounts.at(
+        "0x529619a10129396a2F642cae32099C1eA7FA2834", force=True
+    )
     distribution_creator = interface.IDistributorCreator(
         r.merkl.distribution_creator, owner=governance_distributor_contract
     )
@@ -296,6 +298,9 @@ def _sim_prep():
 def sim_distribute_incentives_concentrated_liquidity_pool():
     _sim_prep()
 
+    # Dummy start time 2 days into the future
+    start = (datetime.now() + timedelta(days=2)).strftime("%Y-%m-%d %H:%M")
+
     # run script
     distribute_incentives_concentrated_liquidity_pool(
         incentive_token=r.assets.weth,
@@ -303,7 +308,7 @@ def sim_distribute_incentives_concentrated_liquidity_pool():
         weight_token_a=20,
         weight_token_b=20,
         weight_fees=60,
-        starting_date="2024-3-22 13:00",
+        starting_date=start,
         duration_campaign=1,
         sim=True,
     )
@@ -312,6 +317,9 @@ def sim_distribute_incentives_concentrated_liquidity_pool():
 def sim_create_campaign():
     _sim_prep()
 
+    # Dummy start time 2 days into the future
+    start = (datetime.now() + timedelta(days=2)).strftime("%Y-%m-%d %H:%M")
+
     # run script
     create_campaign(
         incentive_token=r.assets.weth,
@@ -319,7 +327,7 @@ def sim_create_campaign():
         weight_token_a=20,
         weight_token_b=20,
         weight_fees=60,
-        starting_date="2024-3-22 13:00",
+        starting_date=start,
         duration_campaign=1,
         sim=True,
     )
