@@ -1,9 +1,9 @@
 from datetime import datetime
 from enum import Enum
 
-from brownie import interface, web3
+from brownie import interface, chain
 from rich.console import Console
-from helpers.addresses import registry
+from helpers.addresses import registry, r
 from helpers.utils import encode_signature, approx
 from helpers.constants import (
     EmptyBytes32,
@@ -37,56 +37,46 @@ class eBTC:
         self.LIQUIDATOR_REWARD = 2e17
 
         # contracts
-        self.collateral = safe.contract(
-            registry.sepolia.ebtc.collateral, interface.ICollateralTokenTester
-        )
-        self.authority = safe.contract(
-            registry.sepolia.ebtc.authority, interface.IGovernor
-        )
+        if chain.id == 1:
+            self.collateral = safe.contract(r.ebtc.collateral, interface.ILido)
+            self.price_feed = safe.contract(r.ebtc.price_feed, interface.IPriceFeed)
+        else:
+            self.collateral = safe.contract(
+                r.ebtc.collateral, interface.ICollateralTokenTester
+            )
+            self.price_feed = safe.contract(
+                r.ebtc.price_feed, interface.IPriceFeedTestnet
+            )
+        self.authority = safe.contract(r.ebtc.authority, interface.IGovernor)
         self.liquidation_library = safe.contract(
-            registry.sepolia.ebtc.liquidation_library, interface.ILiquidationLibrary
+            r.ebtc.liquidation_library, interface.ILiquidationLibrary
         )
-        self.cdp_manager = safe.contract(
-            registry.sepolia.ebtc.cdp_manager, interface.ICdpManager
-        )
+        self.cdp_manager = safe.contract(r.ebtc.cdp_manager, interface.ICdpManager)
         self.borrower_operations = safe.contract(
-            registry.sepolia.ebtc.borrower_operations, interface.IBorrowerOperations
+            r.ebtc.borrower_operations, interface.IBorrowerOperations
         )
-        self.ebtc_token = safe.contract(
-            registry.sepolia.ebtc.ebtc_token, interface.IEBTCToken
-        )
-        self.price_feed = safe.contract(
-            registry.sepolia.ebtc.price_feed, interface.IPriceFeedTestnet
-        )
-        self.ebtc_feed = safe.contract(
-            registry.sepolia.ebtc.ebtc_feed, interface.IEbtcFeed
-        )
-        self.active_pool = safe.contract(
-            registry.sepolia.ebtc.active_pool, interface.IActivePool
-        )
+        self.ebtc_token = safe.contract(r.ebtc.ebtc_token, interface.IEBTCToken)
+        self.ebtc_feed = safe.contract(r.ebtc.ebtc_feed, interface.IEbtcFeed)
+        self.active_pool = safe.contract(r.ebtc.active_pool, interface.IActivePool)
         self.coll_surplus_pool = safe.contract(
-            registry.sepolia.ebtc.coll_surplus_pool, interface.ICollSurplusPool
+            r.ebtc.coll_surplus_pool, interface.ICollSurplusPool
         )
-        self.sorted_cdps = safe.contract(
-            registry.sepolia.ebtc.sorted_cdps, interface.ISortedCdps
-        )
-        self.hint_helpers = safe.contract(
-            registry.sepolia.ebtc.hint_helpers, interface.IHintHelpers
-        )
+        self.sorted_cdps = safe.contract(r.ebtc.sorted_cdps, interface.ISortedCdps)
+        self.hint_helpers = safe.contract(r.ebtc.hint_helpers, interface.IHintHelpers)
         self.multi_cdp_getter = safe.contract(
-            registry.sepolia.ebtc.multi_cdp_getter, interface.IMultiCdpGetter
+            r.ebtc.multi_cdp_getter, interface.IMultiCdpGetter
         )
         self.highsec_timelock = safe.contract(
-            registry.sepolia.ebtc.highsec_timelock,
+            r.ebtc.highsec_timelock,
             interface.ITimelockControllerEnumerable,
         )
         self.lowsec_timelock = safe.contract(
-            registry.sepolia.ebtc.lowsec_timelock,
+            r.ebtc.lowsec_timelock,
             interface.ITimelockControllerEnumerable,
         )
         self.fee_recipient = self.active_pool.feeRecipientAddress()
-        self.security_multisig = registry.sepolia.ebtc_wallets.security_multisig
-        self.techops_multisig = registry.sepolia.ebtc_wallets.techops_multisig
+        self.security_multisig = r.ebtc_wallets.security_multisig
+        self.techops_multisig = r.ebtc_wallets.techops_multisig
 
         ##################################################################
         ##
@@ -1592,9 +1582,7 @@ class eBTC:
         sync_tcr = self.cdp_manager.getSyncedTCR(feed_price)
         assert sync_tcr > self.CCR
 
-        # verify: existing debt in cdp id is greater than amount to wd
         debt_before = self.cdp_manager.getCdpDebt(cdp_id)
-        assert debt_before > debt_withdrawable_amount
 
         prev_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
 

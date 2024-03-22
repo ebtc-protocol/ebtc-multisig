@@ -100,9 +100,35 @@ brownie networks import network-config.yaml
 brownie test --network sepolia-fork
 ```
 
-## Multisig Addresses
+## eBTC TechOps Signers
 
-To be deployed
+The following is a list of all signers on eBTC HighSec and LowSec TechOps:
+
+| Signer | Profiles | Address |
+|-|-|-|
+| dapp-whisperer | [GitHub](https://github.com/dapp-whisperer/) | `0xaF94D299a73c4545ff702E79D16d9fb1AB5BDAbF` |
+| saj | [GitHub](https://github.com/sajanrajdev) | `0xfA5bb45895Cb3C0aE5B1583Fe068f009A48F0187` |
+| mrbasado | [GitHub](https://github.com/mrbasado) | `0xE78e3E1668D42FfCa767e22e57d7d249e02B5F0e` |
+| jwei | [GitHub](https://github.com/wtj2021) | `0xDA82F543613f90deA718c46D02Ca15e05e88e4aC` |
+| abdullah | [GitHub](https://github.com/abdullah-almesbahi) | `0xE2C5B2008d9cc8F8E1FDa8552f7df63Af1f747f8` |
+| adcv | [Twitter](https://twitter.com/adcv_) | `0xcC692077C65dd464cAA7e7ae614328914f8469b3` |
+| monetsupply | [Twitter](https://twitter.com/MonetSupply) | `0x20359b5f320Ee24FA0B1000D80DAc4aFBF49738C` |
+
+## Treasury Signers
+
+The following is a list of all Treasury Council members and therefore the signers on `treasuryvault.badgerdao.eth`, `treasuryops.badgerdao.eth`, `treasuryvoter.badgerdao.eth` and `ebtcfeerecipient.badgerdao.eth`:
+
+| Signer | Profiles | Address |
+|-|-|-|
+| petrovska | [GitHub](https://github.com/petrovska-petro) | `0x0a9af7FAba0d5DF7A8C881e1B9cd679ee07Af8A2` |
+| adcv | [Twitter](https://twitter.com/adcv_) | `0x2afc096981c2CFe3501bE4054160048718F6C0C8` |
+| 1500$Badger | [Twitter](https://twitter.com/haal69k) | `0x66496eBB9d848C6A8F19612a6Dd10E09954532D0` |
+| gosuto | [GitHub](https://github.com/gosuto-inzasheru/) | `0x6C6238309f4f36DFF9942e655A678bbd4EA3BC5d` |
+| Po | [Forum](https://forum.badger.finance/u/mr_po/summary) | `0x9c8C8bcD625Ed2903823b0b60DeaB2D70B92aFd9` |
+| lipp | [Twitter](https://twitter.com/lipp_brian) | `0xaC7B5f4E631b7b5638B9b41d07f1eBED30753f16` |
+| dapp-whisperer | [GitHub](https://github.com/dapp-whisperer/) | `0xaF94D299a73c4545ff702E79D16d9fb1AB5BDAbF` |
+| saj | [GitHub](https://github.com/sajanrajdev) | `0xD10617AE4Da733d79eF0371aa44cd7fa74C41f6B` |
+| Freddy the Filosopher | [Forum](https://forum.badger.finance/u/freddythefilosopher/summary) | `0xaFD01c6161729aa857404763c9577498327c6Aee` |
 
 ## eBTC Governance Operations Instructions
 
@@ -229,9 +255,9 @@ These operations are executed by the High Sec TechOps multisig with a Low Sec Ti
    *Example:* `brownie run scripts/ebtc_governance.py ebtcFeed_set_primary_oracle 0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1`
 
 ### Timelock Salt
-All Timelock scripts accept an optional *salt* at the end of their parameter list, a unique 32-byte identifier that allows for the distinction of transactions. This is especially useful for queuing transactions that are identical in contract, changes, and values to previous ones. To ensure the correct execution of a scheduled transaction that includes a salt, this same salt must be repeated during the execution phase.
+All Timelock scripts accept an optional *salt* at the end of their parameter list, a unique integer identifier that allows for the distinction of transactions. This is especially useful for queuing transactions that are identical in contract, changes, and values to previous ones. To ensure the correct execution of a scheduled transaction that includes a salt, this same salt must be repeated during the execution phase. Note that these scripts convert the salt integers into 32 byte strings, as this is the format expected by the Timelock contracts.
 
-*Example:* `brownie run scripts/ebtc_governance.py borrowerOperations_set_fee_bps 3000 0x0000000000000000000000000000000000000000000000000000000000000001`
+*Example:* `brownie run scripts/ebtc_governance.py borrowerOperations_set_fee_bps 3000 1`
 
 ### EMERGENCY: Pausing Operations
 
