@@ -86,7 +86,7 @@ def distribute_incentives_concentrated_liquidity_pool(
     distribution_creator.createDistribution(
         (
             EmptyBytes32,
-            r.uniswap.v3pool_wbtc_weth,  # @note TBD! using a placeholder for script testing
+            r.uniswap.v3pool_wbtc_ebtc,
             incentive_token,
             token_amount_mantissa_and_fee,
             [],  # positionWrappers
@@ -159,7 +159,7 @@ def create_campaign(
             "string",  # reason
         ],
         [
-            r.uniswap.v3pool_wbtc_weth,  # @note TBD! using a placeholder for script testing
+            r.uniswap.v3pool_wbtc_ebtc,
             weight_fees,  # propFees
             weight_token_a,  # propToken0
             weight_token_b,  # propToken1
@@ -247,9 +247,9 @@ def _verify_cli_args(
     assert duration_campaign >= HOURS_PER_DAY, "campaign duration smaller than 1 day"
     C.print(f"[green]duration_campaign={duration_campaign}\n[/green]")
 
-    weight_token_a = int(weight_token_a) * 10 ** 2
-    weight_token_b = int(weight_token_b) * 10 ** 2
-    weight_fees = int(weight_fees) * 10 ** 2
+    weight_token_a = int(weight_token_a) * 10**2
+    weight_token_b = int(weight_token_b) * 10**2
+    weight_fees = int(weight_fees) * 10**2
     assert (
         weight_token_a + weight_token_b + weight_fees == WEIGHTS_TOTAL_BASE
     ), "total weights does not match 10_000"

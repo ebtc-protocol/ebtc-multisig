@@ -70,7 +70,7 @@ ADDRESSES_ETH = {
         "routerV3": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
         "quoter": "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6",
         "v3pool_wbtc_badger": "0xe15e6583425700993bd08F51bF6e7B73cd5da91B",
-        "v3pool_wbtc_ebtc": "0xEf9b4FddD861aa2F00eE039C323b7FAbd7AFE239",  # @note TBD!
+        "v3pool_wbtc_ebtc": "0xEf9b4FddD861aa2F00eE039C323b7FAbd7AFE239",
         "v3pool_wbtc_weth": "0xCBCdF9626bC03E24f779434178A73a0B4bad62eD",
     },
     "cow": {
