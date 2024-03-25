@@ -2,6 +2,7 @@ import pytest
 from brownie import accounts, interface, MockFallbackCaller, PriceFeedTestnet, chain
 from great_ape_safe import GreatApeSafe
 from helpers.addresses import registry
+from helpers.constants import AddressZero
 
 
 @pytest.fixture(autouse=True)
@@ -83,7 +84,22 @@ def mock_fallback_caller(security_multisig):
 @pytest.fixture
 def setup_test_coll(random_safe):
     random_safe.init_ebtc()
+    assert random_safe.account.balance() > 0
+
     collateral = random_safe.ebtc.collateral
-    owner = accounts.at(collateral.owner(), force=True)
-    collateral.addUncappedMinter(random_safe.account, {"from": owner})
+    # Depositing ETH into stETH via submit
+    collateral.submit(
+        AddressZero,
+        {"value": random_safe.account.balance(), "from": random_safe.account},
+    )
+    assert collateral.balanceOf(random_safe) > 0
+
     return random_safe
+
+
+@pytest.fixture
+def setup_base_cdp(random_safe):
+    # The system requires at least on CDP to be open, so we open one here
+    # in order to test closing of others. This CDP will basically act as the base CDP
+    random_safe.init_ebtc()
+    random_safe.ebtc.open_cdp(5e18, 160e16)
