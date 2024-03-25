@@ -35,6 +35,28 @@ def fee_recipient():
 
 
 @pytest.fixture
+def canceller(security_multisig):
+    security_multisig.init_ebtc()
+    lowsec_timelock = security_multisig.ebtc.lowsec_timelock
+    highsec_timelock = security_multisig.ebtc.highsec_timelock
+
+    # Grant CANCELLER_ROLE to account on both timelocks
+    role = lowsec_timelock.CANCELLER_ROLE()
+    canceller = accounts[8].address
+    lowsec_timelock.grantRole(
+        role,
+        canceller,
+        {"from": accounts.at(lowsec_timelock.address, force=True)},
+    )
+    highsec_timelock.grantRole(
+        role,
+        canceller,
+        {"from": accounts.at(highsec_timelock.address, force=True)},
+    )
+    return GreatApeSafe(canceller)
+
+
+@pytest.fixture
 def wbtc(security_multisig):
     wbtc = interface.IMintableERC20(registry.eth.assets.wbtc)
     owner = accounts.at(wbtc.owner(), force=True)
