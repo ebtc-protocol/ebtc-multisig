@@ -1,8 +1,7 @@
 import pytest
-from brownie import accounts, interface
+from brownie import accounts, interface, MockFallbackCaller, PriceFeedTestnet, chain
 from great_ape_safe import GreatApeSafe
 from helpers.addresses import registry
-from brownie_tokens import MintableForkToken
 
 
 @pytest.fixture(autouse=True)
@@ -17,12 +16,12 @@ def random_safe():
 
 @pytest.fixture
 def security_multisig():
-    return GreatApeSafe(registry.sepolia.ebtc_wallets.security_multisig)
+    return GreatApeSafe(registry.eth.ebtc_wallets.security_multisig)
 
 
 @pytest.fixture
 def techops():
-    return GreatApeSafe(registry.sepolia.ebtc_wallets.techops_multisig)
+    return GreatApeSafe(registry.eth.ebtc_wallets.techops_multisig)
 
 
 @pytest.fixture
@@ -32,26 +31,31 @@ def treasury():
 
 @pytest.fixture
 def fee_recipient():
-    return GreatApeSafe(registry.sepolia.ebtc_wallets.fee_recipient_multisig)
+    return GreatApeSafe(registry.eth.ebtc_wallets.fee_recipient_multisig)
 
 
 @pytest.fixture
 def wbtc(security_multisig):
-    return interface.IMintableERC20(
-        registry.sepolia.assets.wbtc, owner=security_multisig.account
-    )
+    wbtc = interface.IMintableERC20(registry.eth.assets.wbtc)
+    owner = accounts.at(wbtc.owner(), force=True)
+    wbtc.mint(security_multisig.address, 10000e8, {"from": owner})
+    return wbtc
 
 
 @pytest.fixture
 def test_price_feed():
-    return registry.sepolia.ebtc.test_contracts.test_price_feed
+    return PriceFeedTestnet.deploy(registry.eth.ebtc.authority, {"from": accounts[0]})
 
 
 @pytest.fixture
-def mock_fallback_caller():
-    return interface.IMockFallbackCaller(
-        registry.sepolia.ebtc.test_contracts.mock_fallback_caller
+def mock_fallback_caller(security_multisig):
+    security_multisig.init_ebtc()
+    price = security_multisig.ebtc.ebtc_feed.fetchPrice.call()
+    caller = MockFallbackCaller.deploy(price, {"from": accounts[0]})
+    caller.setFallbackResponse(
+        price, chain.time(), True, {"from": security_multisig.account}
     )
+    return caller
 
 
 @pytest.fixture
