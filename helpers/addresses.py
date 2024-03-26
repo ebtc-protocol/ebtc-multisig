@@ -42,6 +42,7 @@ ADDRESSES_ETH = {
     "badger_wallets": {
         "treasury_ops_multisig": "0x042B32Ac6b453485e357938bdC38e0340d4b9276",
         "treasury_vault_multisig": "0xD0A7A8B98957b9CD3cFB9c0425AbE44551158e9e",
+        "ibbtc_multisig_incentives": "0xB76782B51BFf9C27bA69C77027e20Abd92Bcf3a8",
         "treasury_signers": {
             "treasury_signer1": "0xaFD01c6161729aa857404763c9577498327c6Aee",
             "treasury_signer2": "0x0a9af7FAba0d5DF7A8C881e1B9cd679ee07Af8A2",
@@ -55,6 +56,7 @@ ADDRESSES_ETH = {
         },
     },
     "assets": {
+        "weth": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
         "wbtc": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
         "ebtc": "0x661c70333AA1850CcDBAe82776Bb436A0fCfeEfB",
         "liq": "0xD82fd4D6D62f89A1E50b1db69AD19932314aa408",
@@ -68,7 +70,8 @@ ADDRESSES_ETH = {
         "routerV3": "0xE592427A0AEce92De3Edee1F18E0157C05861564",
         "quoter": "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6",
         "v3pool_wbtc_badger": "0xe15e6583425700993bd08F51bF6e7B73cd5da91B",
-        "v3pool_wbtc_ebtc": "0x0000000000000000000000000000000000000000",  # @note to be replaced by official!
+        "v3pool_wbtc_ebtc": "0xEf9b4FddD861aa2F00eE039C323b7FAbd7AFE239",
+        "v3pool_wbtc_weth": "0xCBCdF9626bC03E24f779434178A73a0B4bad62eD",
     },
     "cow": {
         "vault_relayer": "0xC92E8bdf79f0507f65a392b0ab4667716BFE0110",
@@ -79,6 +82,9 @@ ADDRESSES_ETH = {
         "btcUsdCLFeed": "0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c",
         "ethUsdCLFeed": "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
         "chainlinkAdapter": "0x791a60EfEB402187852BdCDeC6Df3BEDd429fd81",
+    },
+    "merkl": {
+        "distribution_creator": "0x8BB4C975Ff3c250e0ceEA271728547f3802B36Fd",
     },
 }
 
