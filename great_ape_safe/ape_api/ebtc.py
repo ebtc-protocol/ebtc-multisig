@@ -1481,7 +1481,7 @@ class eBTC:
         feed_price = self.ebtc_feed.fetchPrice.call()
         prev_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
         prev_tcr = self.cdp_manager.getSyncedTCR(feed_price)
-        prev_coll_balance = self.cdp_manager.getCdpCollShares(cdp_id)
+        _, prev_coll_balance = self.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
 
         # 1. collateral approval for BO
         self.collateral.approve(self.borrower_operations.address, coll_amount)
@@ -1497,9 +1497,11 @@ class eBTC:
 
         # 3.2 collateral in cdp at storage is exact on "shares" terms, following internal cdp accounting
         # after increase should be equal to final = initial + top-up collateral
-        assert self.cdp_manager.getCdpCollShares(
-            cdp_id
-        ) == prev_coll_balance + self.collateral.getSharesByPooledEth(coll_amount)
+        _, post_coll_balance = self.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
+        assert (
+            post_coll_balance
+            == prev_coll_balance + self.collateral.getSharesByPooledEth(coll_amount)
+        )
 
     def cdp_withdraw_collateral(self, cdp_id, coll_amount):
         """

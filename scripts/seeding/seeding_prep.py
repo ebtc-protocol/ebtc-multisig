@@ -1,4 +1,7 @@
+import json
+import os
 from math import sqrt
+from pathlib import Path
 
 from great_ape_safe import GreatApeSafe
 from great_ape_safe.ape_api.helpers.uni_v3.uni_v3_sdk import Q96
@@ -16,6 +19,8 @@ FEE_TIER = 500
 PCT_10 = 0.1
 PCT_40 = 0.4
 
+LIQUIDITY_MULTIPLIER = 2
+
 PRICE_0925 = 0.925
 PRICE_099 = 0.99
 PRICE_1 = 1
@@ -31,6 +36,7 @@ STETH_TARGET_AMOUNT = 800
 
 # misc.ebtc
 COLLATERAL_TARGET_RATIO = 200
+CR_FACTOR = 1e16
 
 safe = GreatApeSafe(r.badger_wallets.treasury_vault_multisig)
 safe.init_uni_v3()
@@ -88,7 +94,9 @@ def seed_pool_w1(sim=False):
     pool = interface.IUniswapV3Pool(pool_address, owner=safe.account)
 
     # 1. open cdp
-    safe.ebtc.open_cdp(collateral_amount_week_1 * 1e18, COLLATERAL_TARGET_RATIO * 1e16)
+    safe.ebtc.open_cdp(
+        collateral_amount_week_1 * 1e18, COLLATERAL_TARGET_RATIO * CR_FACTOR
+    )
 
     # 2. pool seeding, mint nft's. Deposit equal 1:1 (ebtc:wbtc)
     ebtc_bal = ebtc.balanceOf(safe.account)
@@ -97,7 +105,7 @@ def seed_pool_w1(sim=False):
     C.print(f"[green]$wbtc balance to seed the pool: {wbtc_bal}[/green]")
 
     nft_from_0925_to_099 = safe.uni_v3.mint_position(
-        pool, PRICE_0925, PRICE_099, wbtc_bal * PCT_10 * 2, 0
+        pool, PRICE_0925, PRICE_099, wbtc_bal * PCT_10 * LIQUIDITY_MULTIPLIER, 0
     )
     C.print(f"[green]nft_from_0925_to_099 token id: {nft_from_0925_to_099}[/green]")
 
@@ -105,8 +113,8 @@ def seed_pool_w1(sim=False):
         pool,
         PRICE_099,
         PRICE_1,
-        wbtc_bal * PCT_40,  # token0: $wbtc
-        ebtc_bal * PCT_40,  # token1: $ebtc
+        wbtc_bal * PCT_40 * LIQUIDITY_MULTIPLIER,  # token0: $wbtc
+        ebtc_bal * PCT_40 * LIQUIDITY_MULTIPLIER,  # token1: $ebtc
     )
     C.print(f"[green]nft_from_099_to_1 token id: {nft_from_099_to_1}[/green]")
 
@@ -114,13 +122,14 @@ def seed_pool_w1(sim=False):
         pool,
         PRICE_1,
         PRICE_101,
-        wbtc_bal * PCT_40,  # token0: $wbtc
-        ebtc_bal * PCT_40,  # token1: $ebtc
+        wbtc_bal * PCT_40 * LIQUIDITY_MULTIPLIER,  # token0: $wbtc
+        ebtc_bal * PCT_40 * LIQUIDITY_MULTIPLIER,  # token1: $ebtc
     )
     C.print(f"[green]nft_from_1_to_101 token id: {nft_from_1_to_101}[/green]")
 
+    remaining_ebtc_balance = ebtc.balanceOf(safe.account)
     nft_from_101_to_108 = safe.uni_v3.mint_position(
-        pool, PRICE_101, PRICE_108, 0, ebtc_bal * PCT_10 * 2
+        pool, PRICE_101, PRICE_108, 0, remaining_ebtc_balance
     )
     C.print(f"[green]nft_from_101_to_108 token id: {nft_from_101_to_108}[/green]")
 
@@ -147,6 +156,11 @@ def seed_pool_w3(sim=False, nfts_list_sim=[]):
     ebtc = safe.contract(r.assets.ebtc)
     steth = safe.contract(r.assets.steth)
 
+    # pool
+    pool = interface.IUniswapV3Pool(r.uniswap.v3pool_wbtc_ebtc, owner=safe.account)
+    current_tick = pool.slot0()[1]
+    C.print(f"[green]Current tick in the pool: {current_tick} \n[/green]")
+
     # sim
     if sim:
         # 1. fake enough $steth balance
@@ -156,11 +170,14 @@ def seed_pool_w3(sim=False, nfts_list_sim=[]):
         nft_from_1_to_101 = nfts_list_sim[2]
         nft_from_101_to_108 = nfts_list_sim[3]
     else:
-        # @note here the real nft ids should be retrieve ideal from json files once week 1 is executed!
-        nft_from_0925_to_099 = 0
-        nft_from_099_to_1 = 0
-        nft_from_1_to_101 = 0
-        nft_from_101_to_108 = 0
+        # @note the token ids are retrieved from json files in `scripts/TCL/positionData` directory
+        nft_from_0925_to_099 = _retrive_token_id("0925_to_099", current_tick)
+        nft_from_099_to_1 = _retrive_token_id("099_to_1", current_tick)
+        nft_from_1_to_101 = _retrive_token_id("1_to_101", current_tick)
+        nft_from_101_to_108 = _retrive_token_id("101_to_108", current_tick)
+
+    feed_price = safe.ebtc.ebtc_feed.fetchPrice.call()
+    prev_tcr = safe.ebtc.cdp_manager.getSyncedTCR(feed_price)
 
     # 1. top-up cdp
     collateral_mantissa = collateral_amount_week_3 * 1e18
@@ -169,27 +186,49 @@ def seed_pool_w3(sim=False, nfts_list_sim=[]):
     ]  # @note assuming there is only one cdp belong to treasury!
     safe.ebtc.cdp_add_collateral(cdp_id, collateral_mantissa)
 
-    feed_price = safe.ebtc.ebtc_feed.fetchPrice.call()
-    borrow_amount = collateral_mantissa * feed_price / (COLLATERAL_TARGET_RATIO * 1e16)
+    borrow_amount = (
+        collateral_mantissa * feed_price / (COLLATERAL_TARGET_RATIO * CR_FACTOR)
+    )
     safe.ebtc.safe.ebtc.cdp_withdraw_debt(cdp_id, borrow_amount)
+
+    post_actions_tcr = safe.ebtc.cdp_manager.getSyncedTCR(feed_price)
+    C.print(
+        f"[blue]System TCR before treasury actions {(prev_tcr / CR_FACTOR):.3f}% and after actions {(post_actions_tcr / CR_FACTOR):.3f}% [/blue]"
+    )
 
     # 2. increase liquidity in existing nft's
     ebtc_bal = ebtc.balanceOf(safe.account)
-    wbtc_bal = int(ebtc_bal / 10 ** (ebtc.decimals() - wbtc.decimals()))
-    C.print(f"[green]$ebtc balance to seed the pool: {ebtc_bal}[/green]")
-    C.print(f"[green]$wbtc balance to seed the pool: {wbtc_bal}[/green]")
+    ebtc_decimals = ebtc.decimals()
+    wbtc_decimals = wbtc.decimals()
+    wbtc_bal = int(ebtc_bal / 10 ** (ebtc_decimals - wbtc_decimals))
+    C.print(
+        f"[green]$ebtc balance to seed the pool: {ebtc_bal / 10 ** ebtc_decimals}[/green]"
+    )
+    C.print(
+        f"[green]$wbtc balance to seed the pool: {wbtc_bal / 10 ** wbtc_decimals}[/green]"
+    )
 
     safe.uni_v3.increase_liquidity(
-        nft_from_0925_to_099, wbtc, ebtc, wbtc_bal * PCT_10 * 2, 0
+        nft_from_0925_to_099, wbtc, ebtc, wbtc_bal * PCT_10 * LIQUIDITY_MULTIPLIER, 0
     )
     safe.uni_v3.increase_liquidity(
-        nft_from_099_to_1, wbtc, ebtc, wbtc_bal * PCT_40, ebtc_bal * PCT_40
+        nft_from_099_to_1,
+        wbtc,
+        ebtc,
+        wbtc_bal * PCT_40,
+        ebtc_bal * PCT_40,
     )
     safe.uni_v3.increase_liquidity(
-        nft_from_1_to_101, wbtc, ebtc, wbtc_bal * PCT_40, ebtc_bal * PCT_40
+        nft_from_1_to_101,
+        wbtc,
+        ebtc,
+        wbtc_bal
+        * PCT_40,  # @note this is currently out of range, it will not top up $wbtc portion!
+        ebtc_bal * PCT_40,
     )
+    remaining_ebtc_balance = ebtc.balanceOf(safe.account)
     safe.uni_v3.increase_liquidity(
-        nft_from_101_to_108, wbtc, ebtc, 0, ebtc_bal * PCT_10 * 2
+        nft_from_101_to_108, wbtc, ebtc, 0, remaining_ebtc_balance
     )
 
     if not sim:
@@ -222,6 +261,30 @@ def _pool_creation(ebtc, wbtc):
     C.print(f"[green]tick={tick}\n[/green]")
 
     return pool_address
+
+
+def _retrive_token_id(file_matching_pattern_str, current_tick):
+    path = os.path.dirname("scripts/TCL/positionData/")
+    directory = os.fsencode(path)
+
+    token_id = 0
+
+    for file in os.listdir(directory):
+        file_name = os.fsdecode(file)
+
+        if str(file_matching_pattern_str) in file_name:
+            data = open(f"scripts/TCL/positionData/{file_name}")
+            json_file = json.load(data)
+            token_id = json_file["tokenId"]
+            if json_file["lowerTick"] <= current_tick <= json_file["upperTick"]:
+                C.print(f"[red]Range {file_matching_pattern_str} is in range![/red]")
+            break
+
+    assert token_id > 0
+    C.print(
+        f"[green]token id for range {file_matching_pattern_str} is: {token_id} \n[/green]"
+    )
+    return token_id
 
 
 # ================ SIMULATIONS ================
