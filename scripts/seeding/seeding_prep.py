@@ -134,7 +134,7 @@ def seed_pool_w1(sim=False):
     C.print(f"[green]nft_from_101_to_108 token id: {nft_from_101_to_108}[/green]")
 
     if not sim:
-        safe.post_safe_tx()
+        safe.post_safe_tx(skip_preview=True)  # it gets stuck otherwise
     else:
         return (
             nft_from_0925_to_099,
@@ -184,12 +184,13 @@ def seed_pool_w3(sim=False, nfts_list_sim=[]):
     cdp_id = safe.ebtc.sorted_cdps.getCdpsOf(safe)[
         0
     ]  # @note assuming there is only one cdp belong to treasury!
-    safe.ebtc.cdp_add_collateral(cdp_id, collateral_mantissa)
 
     borrow_amount = (
         collateral_mantissa * feed_price / (COLLATERAL_TARGET_RATIO * CR_FACTOR)
     )
-    safe.ebtc.safe.ebtc.cdp_withdraw_debt(cdp_id, borrow_amount)
+    safe.ebtc.adjust_cdp_with_collateral(
+        cdp_id, 0, borrow_amount, True, collateral_mantissa
+    )
 
     post_actions_tcr = safe.ebtc.cdp_manager.getSyncedTCR(feed_price)
     C.print(
@@ -232,7 +233,7 @@ def seed_pool_w3(sim=False, nfts_list_sim=[]):
     )
 
     if not sim:
-        safe.post_safe_tx()
+        safe.post_safe_tx(skip_preview=True)  # it gets stuck otherwise
 
 
 def _pool_creation(ebtc, wbtc):
