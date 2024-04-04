@@ -59,7 +59,7 @@ class UniV3:
         # https://docs.uniswap.org/protocol/guides/swaps/multihop-swaps#input-parameters
         multihop = [path[0].address]
         for i in range(len(path) - 1):
-            fee_tiers = {100: 0, 3000: 0, 10000: 0}
+            fee_tiers = {100: 0, 500: 0, 3000: 0, 10000: 0}
             for tier in fee_tiers.keys():
                 pool_addr = self.factory.getPool(path[i], path[i + 1], tier)
 
@@ -69,7 +69,7 @@ class UniV3:
                 pool = interface.IUniswapV3Pool(pool_addr)
                 fee_tiers[tier] = pool.liquidity()
 
-            if list(fee_tiers.values()).count(0) == 3:
+            if list(fee_tiers.values()).count(0) == len(fee_tiers):
                 raise Exception(
                     f"No liquidity found for {path[i].symbol()} - {path[i+1].symbol()}"
                 )

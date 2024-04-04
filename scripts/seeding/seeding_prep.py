@@ -8,7 +8,7 @@ from great_ape_safe.ape_api.helpers.uni_v3.uni_v3_sdk import Q96
 
 from great_ape_safe.ape_api.helpers.coingecko import get_cg_price
 
-from brownie import accounts, interface
+from brownie import accounts, chain, interface
 from helpers.addresses import r
 from rich.console import Console
 
@@ -27,6 +27,8 @@ PRICE_1 = 1
 PRICE_101 = 1.01
 PRICE_108 = 1.08
 
+THEORETICAL_TICK_PEG = 230270  # calc: 1/(1.0001**230270)*1e10 ~ 1.0000022031945093
+
 # misc.cow
 COEF = 0.98
 DEADLINE = 60 * 60 * 3
@@ -41,15 +43,18 @@ CR_FACTOR = 1e16
 safe = GreatApeSafe(r.badger_wallets.treasury_vault_multisig)
 safe.init_uni_v3()
 
+# tokens
+wbtc = safe.contract(r.assets.wbtc)
+ebtc = safe.contract(r.assets.ebtc)
+reth = safe.contract(r.assets.reth)
+steth = safe.contract(r.assets.steth)
+
+# pool
+pool = interface.IUniswapV3Pool(r.uniswap.v3pool_wbtc_ebtc, owner=safe.account)
+
 
 def prep():
     safe.init_cow(prod=True)
-
-    # tokens
-    wbtc = safe.contract(r.assets.wbtc)
-    ebtc = safe.contract(r.assets.ebtc)
-    reth = safe.contract(r.assets.reth)
-    steth = safe.contract(r.assets.steth)
 
     # prices of $eth versions
     reth_price = get_cg_price(reth.address)
@@ -145,19 +150,12 @@ def seed_pool_w1(sim=False):
 
 
 # @note same method can be called for W3 & W4
-def seed_pool_w3(sim=False, nfts_list_sim=[]):
+def seed_pool_w3(sim=False, nfts_list_sim=[], steth_amount_used_in_swap=0):
     safe.init_ebtc()
 
     # week 3 targets
-    collateral_amount_week_3 = 200
+    collateral_amount_week_3 = 200 - steth_amount_used_in_swap
 
-    # tokens
-    wbtc = safe.contract(r.assets.wbtc)
-    ebtc = safe.contract(r.assets.ebtc)
-    steth = safe.contract(r.assets.steth)
-
-    # pool
-    pool = interface.IUniswapV3Pool(r.uniswap.v3pool_wbtc_ebtc, owner=safe.account)
     current_tick = pool.slot0()[1]
     C.print(f"[green]Current tick in the pool: {current_tick} \n[/green]")
 
@@ -255,6 +253,21 @@ def seed_pool_w3(sim=False, nfts_list_sim=[]):
         safe.post_safe_tx(skip_preview=True)  # it gets stuck otherwise
 
 
+def swap_steth_for_ebtc():
+    safe.init_cow(prod=True)
+
+    # check amount of steth expected to be used for swap
+    steth_amount_for_swap = _calc_steth_out_to_peg_tick(pool, wbtc, ebtc, steth)
+
+    steth_amount_mantissa = steth_amount_for_swap * (10 ** steth.decimals())
+
+    safe.cow.market_sell(
+        steth, ebtc, steth_amount_mantissa, deadline=DEADLINE, coef=COEF
+    )
+
+    safe.post_safe_tx()
+
+
 def _pool_creation(ebtc, wbtc):
     # 1. pool creation: tick spacing should be end-up being `10`
     # ref: https://github.com/Uniswap/v3-core/blob/main/contracts/UniswapV3Factory.sol#L26
@@ -305,6 +318,47 @@ def _retrive_token_id(file_matching_pattern_str, current_tick):
         f"[green]token id for range {file_matching_pattern_str} is: {token_id} \n[/green]"
     )
     return token_id
+
+
+def _calc_steth_out_to_peg_tick(pool, wbtc, ebtc, collateral):
+    path = [wbtc, ebtc]
+    step_increase = 0.05
+    min_wbtc_amount = 0.5
+    max_wbtc_amount = 4.5  # @note swapping anything above 4.5 certainly will have negative price impact
+    wbtc_amount_for_swap = 0
+
+    chain.snapshot()
+    while min_wbtc_amount < max_wbtc_amount:
+        mid_amount = (min_wbtc_amount + max_wbtc_amount) / 2
+
+        # swap
+        safe.uni_v3.swap(path, mid_amount * 1e8)
+
+        current_tick = pool.slot0()[1]
+        C.print(f"[green]Pool tick after swap: {current_tick} \n[/green]")
+        C.print(f"[blue]mid_amount={mid_amount} \n[/blue]")
+
+        if current_tick > THEORETICAL_TICK_PEG:  # under peg
+            wbtc_amount_for_swap = mid_amount
+            min_wbtc_amount = mid_amount + step_increase
+        elif current_tick == THEORETICAL_TICK_PEG:  # theoretical peg
+            wbtc_amount_for_swap = mid_amount
+            chain.revert()
+            break
+        else:  # over peg
+            max_wbtc_amount = mid_amount - step_increase
+
+        chain.revert()
+
+    # convert $wbtc amount into $steth denominated
+    wbtc_price = get_cg_price(wbtc.address)
+    steth_price = get_cg_price(collateral.address)
+    steth_amount_for_swap = wbtc_amount_for_swap * wbtc_price / steth_price
+    C.print(
+        f"[green]$steth amount used for swap will be: {steth_amount_for_swap} \n[/green]"
+    )
+
+    return steth_amount_for_swap
 
 
 # ================ SIMULATIONS ================
