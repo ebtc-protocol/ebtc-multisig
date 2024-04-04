@@ -184,12 +184,28 @@ def seed_pool_w3(sim=False, nfts_list_sim=[]):
     cdp_id = safe.ebtc.sorted_cdps.getCdpsOf(safe)[
         0
     ]  # @note assuming there is only one cdp belong to treasury!
+    prev_icr = safe.ebtc.cdp_manager.getSyncedICR(cdp_id, feed_price)
+
+    # Get current debt and collateral for the CDP
+    current_debt, current_coll_shares = (
+        safe.ebtc.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
+    )
+
+    current_coll = safe.ebtc.collateral.getPooledEthByShares(current_coll_shares)
 
     borrow_amount = (
-        collateral_mantissa * feed_price / (COLLATERAL_TARGET_RATIO * CR_FACTOR)
-    )
+        -(COLLATERAL_TARGET_RATIO * CR_FACTOR) * current_debt
+        + current_coll * feed_price
+        + feed_price * collateral_mantissa
+    ) / (COLLATERAL_TARGET_RATIO * CR_FACTOR)
+
     safe.ebtc.adjust_cdp_with_collateral(
         cdp_id, 0, borrow_amount, True, collateral_mantissa
+    )
+
+    post_actions_icr = safe.ebtc.cdp_manager.getSyncedICR(cdp_id, feed_price)
+    C.print(
+        f"[blue]CDP ICR before treasury actions {(prev_icr / CR_FACTOR):.3f}% and after actions {(post_actions_icr / CR_FACTOR):.3f}% [/blue]"
     )
 
     post_actions_tcr = safe.ebtc.cdp_manager.getSyncedTCR(feed_price)
@@ -198,7 +214,9 @@ def seed_pool_w3(sim=False, nfts_list_sim=[]):
     )
 
     # 2. increase liquidity in existing nft's
-    ebtc_bal = ebtc.balanceOf(safe.account)
+    ebtc_bal = ebtc.balanceOf(
+        safe.account
+    )  # Includes other eBTC acquired externally (e.g. from swaps)
     ebtc_decimals = ebtc.decimals()
     wbtc_decimals = wbtc.decimals()
     wbtc_bal = int(ebtc_bal / 10 ** (ebtc_decimals - wbtc_decimals))
