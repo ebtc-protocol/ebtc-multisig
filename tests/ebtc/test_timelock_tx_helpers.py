@@ -66,9 +66,9 @@ def test_execute_timelock_permissions_on_target(techops):
         )
 
 
-def test_cancel_timelock_before_scheduling(techops, security_multisig, random_safe):
+def test_cancel_timelock_before_scheduling(techops, canceller):
     techops.init_ebtc()
-    security_multisig.init_ebtc()
+    canceller.init_ebtc()
 
     target = techops.ebtc.active_pool
     data = target.setFeeBps.encode_input(100)
@@ -78,12 +78,11 @@ def test_cancel_timelock_before_scheduling(techops, security_multisig, random_sa
 
     ## Attempts to cancel the operation before scheduled
     with pytest.raises(Exception, match="Error: operation does not exist"):
-        security_multisig.ebtc.cancel_lowsec_timelock(id)
+        canceller.ebtc.cancel_lowsec_timelock(id)
 
 
-def test_cancel_timelock_permissions(techops, security_multisig, random_safe):
+def test_cancel_timelock_permissions(techops, random_safe):
     techops.init_ebtc()
-    security_multisig.init_ebtc()
     random_safe.init_ebtc()
 
     target = techops.ebtc.active_pool
@@ -103,9 +102,9 @@ def test_cancel_timelock_permissions(techops, security_multisig, random_safe):
         random_safe.ebtc.cancel_lowsec_timelock(id)
 
 
-def test_cancel_pending_operation(techops, security_multisig):
+def test_cancel_pending_operation(techops, canceller):
     techops.init_ebtc()
-    security_multisig.init_ebtc()
+    canceller.init_ebtc()
 
     target = techops.ebtc.active_pool
     data = target.setFeeBps.encode_input(100)
@@ -126,14 +125,14 @@ def test_cancel_pending_operation(techops, security_multisig):
     assert techops.ebtc.lowsec_timelock.isOperationPending(id)
 
     ## Permissioned account can cancel pending operation
-    security_multisig.ebtc.cancel_lowsec_timelock(id)
+    canceller.ebtc.cancel_lowsec_timelock(id)
 
     assert techops.ebtc.lowsec_timelock.isOperationPending(id) == False
 
 
-def test_cancel_ready_operation(techops, security_multisig):
+def test_cancel_ready_operation(techops, canceller):
     techops.init_ebtc()
-    security_multisig.init_ebtc()
+    canceller.init_ebtc()
 
     target = techops.ebtc.active_pool
     data = target.setFeeBps.encode_input(100)
@@ -154,14 +153,14 @@ def test_cancel_ready_operation(techops, security_multisig):
     assert techops.ebtc.lowsec_timelock.isOperationReady(id)
 
     ## Permissioned account can cancel ready operation
-    security_multisig.ebtc.cancel_lowsec_timelock(id)
+    canceller.ebtc.cancel_lowsec_timelock(id)
 
     assert techops.ebtc.lowsec_timelock.isOperationReady(id) == False
 
 
-def test_cancel_operation_from_parameters(techops, security_multisig):
+def test_cancel_operation_from_parameters(techops, canceller):
     techops.init_ebtc()
-    security_multisig.init_ebtc()
+    canceller.init_ebtc()
 
     target = techops.ebtc.active_pool
     data = target.setFeeBps.encode_input(100)
@@ -182,7 +181,7 @@ def test_cancel_operation_from_parameters(techops, security_multisig):
     assert techops.ebtc.lowsec_timelock.isOperationReady(id)
 
     ## Permissioned account can cancel ready operation
-    security_multisig.ebtc.cancel_lowsec_timelock(
+    canceller.ebtc.cancel_lowsec_timelock(
         "0x0", target.address, 0, data, EmptyBytes32, EmptyBytes32
     )
 

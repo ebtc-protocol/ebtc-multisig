@@ -1432,8 +1432,8 @@ class eBTC:
         cdp_id_debt, cdp_id_coll = self.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
         self._assert_debt_balance(cdp_id_debt)
 
-        # cached prev collateral balance
-        collateral_balance_before = self.collateral.balanceOf(self.safe.address)
+        # cached prev collateral shares
+        collateral_shares_before = self.collateral.sharesOf(self.safe.address)
 
         # 1. close target cdp id
         self.borrower_operations.closeCdp(cdp_id)
@@ -1447,9 +1447,7 @@ class eBTC:
 
         # 2.2. verify that enough collateral was returned + gas stipend, assertion denominated in common `shares` unit
         assert self.collateral.sharesOf(self.safe.address) == (
-            cdp_id_coll
-            + cdp_id_liquidator_reward_shares
-            + self.collateral.getSharesByPooledEth(collateral_balance_before)
+            cdp_id_coll + cdp_id_liquidator_reward_shares + collateral_shares_before
         )
 
         # 2.3. verify expected values are 0 at readings from the cdp manager
