@@ -187,9 +187,10 @@ def seed_pool_w3(sim=False, nfts_list_sim=[]):
     prev_icr = safe.ebtc.cdp_manager.getSyncedICR(cdp_id, feed_price)
 
     # Get current debt and collateral for the CDP
-    current_debt, current_coll_shares = (
-        safe.ebtc.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
-    )
+    (
+        current_debt,
+        current_coll_shares,
+    ) = safe.ebtc.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
 
     current_coll = safe.ebtc.collateral.getPooledEthByShares(current_coll_shares)
 
