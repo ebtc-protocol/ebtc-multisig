@@ -1479,7 +1479,7 @@ class eBTC:
         feed_price = self.ebtc_feed.fetchPrice.call()
         prev_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
         prev_tcr = self.cdp_manager.getSyncedTCR(feed_price)
-        prev_coll_balance = self.cdp_manager.getCdpCollShares(cdp_id)
+        _, prev_coll_balance = self.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
 
         # 1. collateral approval for BO
         self.collateral.approve(self.borrower_operations.address, coll_amount)
@@ -1495,9 +1495,11 @@ class eBTC:
 
         # 3.2 collateral in cdp at storage is exact on "shares" terms, following internal cdp accounting
         # after increase should be equal to final = initial + top-up collateral
-        assert self.cdp_manager.getCdpCollShares(
-            cdp_id
-        ) == prev_coll_balance + self.collateral.getSharesByPooledEth(coll_amount)
+        _, post_coll_balance = self.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
+        assert (
+            post_coll_balance
+            == prev_coll_balance + self.collateral.getSharesByPooledEth(coll_amount)
+        )
 
     def cdp_withdraw_collateral(self, cdp_id, coll_amount):
         """
@@ -1604,3 +1606,86 @@ class eBTC:
 
         # 2.2. icr decreased
         assert new_icr < prev_icr
+
+    def adjust_cdp_with_collateral(
+        self,
+        cdp_id,
+        coll_decrease_amount,
+        debt_amount,
+        is_debt_increase,
+        coll_increase_amount,
+    ):
+        """
+        @notice Function that allows various operations which might change both collateral and debt.
+        @param cdp_id The CdpId on which this operation is operated.
+        @param coll_decrease_amount  The total stETH collateral amount withdrawn from the specified Cdp.
+        @param debt_amount The total eBTC debt amount withdrawn or repaid for the specified Cdp.
+        @param is_debt_increase Boolean flag to determine if debt is increased or decreased.
+        @param coll_increase_amount The total stETH collateral amount deposited for the specified Cdp.
+        """
+        # verify: cdp id ownership from caller
+        self._assert_cdp_id_ownership(cdp_id)
+        feed_price = self.ebtc_feed.fetchPrice.call()
+
+        if is_debt_increase:
+            prev_sync_tcr = self.cdp_manager.getSyncedTCR(feed_price)
+            assert prev_sync_tcr > self.CCR
+
+        (
+            prev_debt_balance,
+            prev_coll_balance,
+        ) = self.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
+
+        # 1. collateral approval for BO
+        if coll_increase_amount > 0:
+            self.collateral.approve(
+                self.borrower_operations.address, coll_increase_amount
+            )
+
+        # 2. prep hints
+        coll_amount_hint = (
+            prev_coll_balance + coll_increase_amount
+            if coll_increase_amount > 0
+            else prev_coll_balance - coll_decrease_amount
+        )
+        borrow_amount_hint = (
+            prev_debt_balance + debt_amount
+            if is_debt_increase
+            else prev_debt_balance - debt_amount
+        )
+        upper_hint, lower_hint = self._hint_helper_values(
+            coll_amount_hint, borrow_amount_hint
+        )
+
+        # 3. adjust cdp
+        self.borrower_operations.adjustCdpWithColl(
+            cdp_id,
+            coll_decrease_amount,
+            debt_amount,
+            is_debt_increase,
+            upper_hint,
+            lower_hint,
+            coll_increase_amount,
+        )
+
+        # 4. assertions
+        new_icr = self.cdp_manager.getSyncedICR(cdp_id, feed_price)
+        C.print(f"[green]ICR post-adjustment is {(new_icr/1e16):.3f}%[/green]")
+
+        # 4.1 verify icr not below `SAFE_ICR_THRESHOLD`
+        self._assert_health_new_icr(new_icr)
+
+        # 4.2 verify debt and/or coll changes
+        (
+            post_debt_balance,
+            post_coll_balance,
+        ) = self.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
+        if is_debt_increase:
+            assert post_debt_balance > prev_debt_balance
+        else:
+            assert post_debt_balance < prev_debt_balance
+
+        if coll_decrease_amount > 0:
+            assert post_coll_balance < prev_coll_balance
+        else:
+            assert post_coll_balance > prev_coll_balance
