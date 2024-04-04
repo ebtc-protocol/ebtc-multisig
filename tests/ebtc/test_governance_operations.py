@@ -153,16 +153,15 @@ def test_cdpManager_set_grace_period_checks(techops):
 def test_priceFeed_set_fallback_caller_happy(techops, mock_fallback_caller):
     techops.init_ebtc()
 
-    ## Setup mock fallback caller with current price
-    current_price = techops.ebtc.ebtc_feed.lastGoodPrice()
-    current_time = chain.time()
-    mock_fallback_caller.setFallbackResponse(
-        current_price, current_time, True, {"from": techops.account}
-    )
     techops.ebtc.priceFeed_set_fallback_caller(mock_fallback_caller)
 
     chain.sleep(techops.ebtc.lowsec_timelock.getMinDelay() + 1)
     chain.mine()
+
+    price = techops.ebtc.ebtc_feed.fetchPrice.call()
+    mock_fallback_caller.setFallbackResponse(
+        price, chain.time(), True, {"from": techops.account}
+    )
 
     techops.ebtc.priceFeed_set_fallback_caller(mock_fallback_caller)
 
@@ -340,7 +339,7 @@ def test_activePool_sweep_token_happy(fee_recipient, wbtc, security_multisig):
     recipient = fee_recipient.ebtc.active_pool.feeRecipientAddress()
     amount = 500 * 10 ** wbtc.decimals()
 
-    wbtc.mint(
+    wbtc.transfer(
         fee_recipient.ebtc.active_pool.address,
         amount,
         {"from": security_multisig.account},
@@ -358,7 +357,7 @@ def test_activePool_sweep_token_permissions(wbtc, security_multisig, random_safe
     active_pool = random_safe.ebtc.active_pool.address
     amount = 500 * 10 ** wbtc.decimals()
 
-    wbtc.mint(
+    wbtc.transfer(
         random_safe.ebtc.active_pool.address,
         amount,
         {"from": security_multisig.account},
@@ -377,7 +376,7 @@ def test_collSurplusPool_sweep_token_happy(fee_recipient, wbtc, security_multisi
     recipient = fee_recipient.ebtc.coll_surplus_pool.feeRecipientAddress()
     amount = 500 * 10 ** wbtc.decimals()
 
-    wbtc.mint(
+    wbtc.transfer(
         fee_recipient.ebtc.coll_surplus_pool.address,
         amount,
         {"from": security_multisig.account},
@@ -395,7 +394,7 @@ def test_collSurplusPool_sweep_token_permissions(wbtc, security_multisig, random
     coll_surplus_pool = random_safe.ebtc.coll_surplus_pool.address
     amount = 500 * 10 ** wbtc.decimals()
 
-    wbtc.mint(
+    wbtc.transfer(
         random_safe.ebtc.coll_surplus_pool.address,
         amount,
         {"from": security_multisig.account},
