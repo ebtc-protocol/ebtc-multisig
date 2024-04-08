@@ -67,9 +67,10 @@ def test_adjust_cdp_with_collateral_increase_debt_and_collateral(
 
     cdp_id = random_safe.ebtc.open_cdp(coll_amount, 160e16)
 
-    prev_debt, prev_coll_shares = (
-        random_safe.ebtc.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
-    )
+    (
+        prev_debt,
+        prev_coll_shares,
+    ) = random_safe.ebtc.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
 
     # Increase the collateral amount and increase the debt
     random_safe.ebtc.adjust_cdp_with_collateral(
@@ -80,9 +81,10 @@ def test_adjust_cdp_with_collateral_increase_debt_and_collateral(
         coll_amount,
     )
 
-    final_debt, final_coll_shares = (
-        random_safe.ebtc.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
-    )
+    (
+        final_debt,
+        final_coll_shares,
+    ) = random_safe.ebtc.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
 
     assert final_debt == prev_debt + debt_amount
     assert final_coll_shares == prev_coll_shares + coll_shares
@@ -101,9 +103,10 @@ def test_adjust_cdp_with_collateral_decrease_debt_and_collateral(
 
     cdp_id = random_safe.ebtc.open_cdp(coll_amount, 160e16)
 
-    prev_debt, prev_coll_shares = (
-        random_safe.ebtc.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
-    )
+    (
+        prev_debt,
+        prev_coll_shares,
+    ) = random_safe.ebtc.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
 
     # Reduce the collateral amount and repay some debt
     random_safe.ebtc.adjust_cdp_with_collateral(
@@ -114,9 +117,10 @@ def test_adjust_cdp_with_collateral_decrease_debt_and_collateral(
         0,
     )
 
-    final_debt, final_coll_shares = (
-        random_safe.ebtc.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
-    )
+    (
+        final_debt,
+        final_coll_shares,
+    ) = random_safe.ebtc.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
 
     assert final_debt == prev_debt - debt_amount
     assert final_coll_shares == prev_coll_shares - coll_reduction_shares
@@ -135,9 +139,10 @@ def test_adjust_cdp_with_collateral_decrease_debt_and_increase_collateral(
 
     cdp_id = random_safe.ebtc.open_cdp(coll_amount, 160e16)
 
-    prev_debt, prev_coll_shares = (
-        random_safe.ebtc.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
-    )
+    (
+        prev_debt,
+        prev_coll_shares,
+    ) = random_safe.ebtc.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
 
     # Increase the collateral amount and repay some debt
     random_safe.ebtc.adjust_cdp_with_collateral(
@@ -148,9 +153,10 @@ def test_adjust_cdp_with_collateral_decrease_debt_and_increase_collateral(
         coll_increase,
     )
 
-    final_debt, final_coll_shares = (
-        random_safe.ebtc.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
-    )
+    (
+        final_debt,
+        final_coll_shares,
+    ) = random_safe.ebtc.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
 
     assert final_debt == prev_debt - debt_amount
     assert final_coll_shares == prev_coll_shares + coll_increase_shares
@@ -169,9 +175,10 @@ def test_adjust_cdp_with_collateral_increase_debt_and_decrease_collateral(
 
     cdp_id = random_safe.ebtc.open_cdp(coll_amount, 160e16)
 
-    prev_debt, prev_coll_shares = (
-        random_safe.ebtc.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
-    )
+    (
+        prev_debt,
+        prev_coll_shares,
+    ) = random_safe.ebtc.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
 
     # Reduce the collateral amount and increase the debt
     random_safe.ebtc.adjust_cdp_with_collateral(
@@ -182,9 +189,10 @@ def test_adjust_cdp_with_collateral_increase_debt_and_decrease_collateral(
         0,
     )
 
-    final_debt, final_coll_shares = (
-        random_safe.ebtc.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
-    )
+    (
+        final_debt,
+        final_coll_shares,
+    ) = random_safe.ebtc.cdp_manager.getSyncedDebtAndCollShares(cdp_id)
 
     assert final_debt == prev_debt + debt_amount
     assert final_coll_shares == prev_coll_shares - coll_reduction_shares

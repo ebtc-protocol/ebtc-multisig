@@ -43,7 +43,7 @@ class UniV3:
 
         # constant helpers
         self.Q128 = 2 ** 128
-        self.deadline = 60 * 180
+        self.deadline = 60 * 60 * 24
         self.slippage = 0.98
 
     def _get_pool(self, position):

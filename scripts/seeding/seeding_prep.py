@@ -150,7 +150,9 @@ def seed_pool_w1(sim=False):
 
 
 # @note same method can be called for W3 & W4
-def seed_pool_w3(sim=False, nfts_list_sim=[], steth_amount_used_in_swap=0):
+def seed_pool_w3(
+    sim=False, nfts_list_sim=[], steth_amount_used_in_swap=39.94051917025469
+):
     safe.init_ebtc()
 
     # week 3 targets
@@ -233,16 +235,15 @@ def seed_pool_w3(sim=False, nfts_list_sim=[], steth_amount_used_in_swap=0):
         nft_from_099_to_1,
         wbtc,
         ebtc,
-        wbtc_bal * PCT_40,
-        ebtc_bal * PCT_40,
+        wbtc_bal * PCT_40 * LIQUIDITY_MULTIPLIER,
+        ebtc_bal * PCT_40 * LIQUIDITY_MULTIPLIER,
     )
     safe.uni_v3.increase_liquidity(
         nft_from_1_to_101,
         wbtc,
         ebtc,
-        wbtc_bal
-        * PCT_40,  # @note this is currently out of range, it will not top up $wbtc portion!
-        ebtc_bal * PCT_40,
+        wbtc_bal * PCT_40 * LIQUIDITY_MULTIPLIER,
+        ebtc_bal * PCT_40 * LIQUIDITY_MULTIPLIER,
     )
     remaining_ebtc_balance = ebtc.balanceOf(safe.account)
     safe.uni_v3.increase_liquidity(
@@ -250,7 +251,9 @@ def seed_pool_w3(sim=False, nfts_list_sim=[], steth_amount_used_in_swap=0):
     )
 
     if not sim:
-        safe.post_safe_tx(skip_preview=True)  # it gets stuck otherwise
+        safe.post_safe_tx(
+            skip_preview=True, replace_nonce=236
+        )  # it gets stuck otherwise
 
 
 def swap_steth_for_ebtc():
