@@ -42,8 +42,8 @@ class UniV3:
         )
 
         # constant helpers
-        self.Q128 = 2 ** 128
-        self.deadline = 60 * 60 * 24
+        self.Q128 = 2**128
+        self.deadline = 60 * 180
         self.slippage = 0.98
 
     def _get_pool(self, position):
@@ -357,12 +357,12 @@ class UniV3:
 
         # params for minting method
         lower_tick = int(
-            math.log((1 / range1) * 10 ** decimals_diff, BASE)
+            math.log((1 / range1) * 10**decimals_diff, BASE)
             // tick_spacing
             * tick_spacing
         )
         upper_tick = int(
-            math.log((1 / range0) * 10 ** decimals_diff, BASE)
+            math.log((1 / range0) * 10**decimals_diff, BASE)
             // tick_spacing
             * tick_spacing
         )
