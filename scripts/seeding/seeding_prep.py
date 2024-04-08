@@ -251,9 +251,7 @@ def seed_pool_w3(
     )
 
     if not sim:
-        safe.post_safe_tx(
-            skip_preview=True, replace_nonce=236
-        )  # it gets stuck otherwise
+        safe.post_safe_tx(skip_preview=True)  # it gets stuck otherwise
 
 
 def swap_steth_for_ebtc():
