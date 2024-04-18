@@ -2,6 +2,11 @@
 pragma solidity ^0.8.20;
 
 interface IDistributorCreator {
+    event NewCampaign(CampaignParameters campaign);
+    event NewDistribution(
+        DistributionParameters distribution,
+        address indexed sender
+    );
     struct CampaignParameters {
         bytes32 campaignId;
         address creator;
