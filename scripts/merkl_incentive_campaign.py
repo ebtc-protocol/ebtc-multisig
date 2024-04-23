@@ -12,6 +12,8 @@ from great_ape_safe.ape_api.helpers.coingecko import get_cg_price
 
 from rich.console import Console
 
+from decimal import Decimal
+
 C = Console()
 
 """
@@ -314,7 +316,9 @@ def _verify_cli_args(
     reward_token_min_amount = distribution_creator.rewardTokenMinAmounts(
         incentive_token
     )
-    token_amount_mantissa = int(token_amount) * 10 ** incentive_token.decimals()
+    token_amount_mantissa = int(
+        Decimal(token_amount) * 10 ** incentive_token.decimals()
+    )
     incentive_token_balance = incentive_token.balanceOf(safe)
     assert (
         token_amount_mantissa > 0 and token_amount_mantissa <= incentive_token_balance,
