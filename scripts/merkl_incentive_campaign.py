@@ -249,15 +249,14 @@ def swap_badger_for_campaign_target(ebtc_vault_owned=0):
     )
 
     # calc $ value of incentive
-    wbtc_price = get_cg_price(
-        wbtc.address
-    )  # @note in lack of $ebtc in cg, use $wbtc instead
+    ebtc_price = get_cg_price(ebtc.address)
+    C.print(f"[green]ebtc_price={ebtc_price}[/green]\n")
     weth_price = get_cg_price(weth.address)
 
     user_ebtc_owned_formatted = user_ebtc_owned / 10 ** ebtc.decimals()
     C.print(f"[green]user_ebtc_owned_formatted={user_ebtc_owned_formatted}\n[/green]")
 
-    usd_debt_value = user_ebtc_owned_formatted * wbtc_price
+    usd_debt_value = user_ebtc_owned_formatted * ebtc_price
     incentive_usd_apr_target_weekly = (
         (usd_debt_value * APR) / DAYS_PER_YEAR
     ) * DAYS_PER_WEEK
@@ -268,7 +267,9 @@ def swap_badger_for_campaign_target(ebtc_vault_owned=0):
     weth_equivalent_mantissa = int(
         (incentive_usd_apr_target_weekly / weth_price) * (10 ** weth.decimals())
     )
-    C.print(f"[green]swapping $weth for $badger={weth_equivalent_mantissa}\n[/green]")
+    C.print(
+        f"[green]swapping {weth_equivalent_mantissa / (10 ** weth.decimals())} $weth for $badger\n[/green]"
+    )
 
     # cow order
     safe.cow.market_sell(
