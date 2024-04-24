@@ -320,11 +320,37 @@ def _retrive_token_id(file_matching_pattern_str, current_tick):
     return token_id
 
 
+def _max_wbtc_upper_bound(path, wbtc_pool_balance):
+    """
+    Calculate the upper bound of $wbtc amount that can be swapped for $ebtc
+    w/o causing the swap to return less $ebtc than $wbtc
+    """
+    wbtc_decimals = path[0].decimals()
+    decimals_diff = path[1].decimals() - wbtc_decimals
+    step_increase = 0.1 * 10 ** wbtc_decimals
+    max_wbtc_amount = int(
+        wbtc_pool_balance / 3
+    )  # start checking swaps of 1/3 of the pool balance
+    amount_out_wbtc_adjusted = max_wbtc_amount
+
+    chain.snapshot()
+    while True:
+        amount_out = safe.uni_v3.swap(path, max_wbtc_amount)
+        amount_out_wbtc_adjusted = int(amount_out / 10 ** decimals_diff)
+        chain.revert()
+        # at this point the swap is returning less $ebtc than $wbtc in
+        if amount_out_wbtc_adjusted < max_wbtc_amount:
+            break
+        max_wbtc_amount += step_increase
+
+    return max_wbtc_amount / 10 ** wbtc_decimals
+
+
 def _calc_steth_out_to_peg_tick(pool, wbtc, ebtc, collateral):
     path = [wbtc, ebtc]
     step_increase = 0.05
     min_wbtc_amount = 0.5
-    max_wbtc_amount = 4.5  # @note swapping anything above 4.5 certainly will have negative price impact
+    max_wbtc_amount = _max_wbtc_upper_bound(path, wbtc.balanceOf(pool))
     wbtc_amount_for_swap = 0
 
     chain.snapshot()
