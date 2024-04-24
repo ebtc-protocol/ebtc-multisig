@@ -1,10 +1,18 @@
 from datetime import datetime, timezone, timedelta
+
 from eth_abi import encode_abi
 from brownie import interface, web3, accounts
+
 from great_ape_safe import GreatApeSafe
+
 from helpers.addresses import r
 from helpers.constants import AddressZero, EmptyBytes32
+
+from great_ape_safe.ape_api.helpers.coingecko import get_cg_price
+
 from rich.console import Console
+
+from decimal import Decimal
 
 C = Console()
 
@@ -31,10 +39,19 @@ Errors map:
 - CampaignRewardTokenNotWhitelisted(): typed error: 0xc0460cfb
 """
 
+# Merkl Incentives Policy Vote
+APR = 0.08
+DAYS_PER_WEEK = 7
+DAYS_PER_YEAR = 365
+
+COEF = 0.98
+DEADLINE = 60 * 60 * 3
+
 HOURS_PER_DAY = 24
 SECONDS_PER_HOUR = 3600
 WEIGHTS_TOTAL_BASE = 10_000
 CAMPAIGN_TYPE_ERC20 = 1
+CAMPAIGN_TYPE_CLAMM = 2
 
 safe = GreatApeSafe(r.badger_wallets.ibbtc_multisig_incentives)
 
@@ -45,15 +62,21 @@ distribution_creator = interface.IDistributorCreator(
 
 
 def distribute_incentives_concentrated_liquidity_pool(
-    incentive_token=r.assets.weth,
+    incentive_token=r.assets.badger,
     token_amount=0,  # in ether denomination. sc expects on wei
     weight_token_a=0,  # format in cli: %. sc expects on base 10 ** 4
     weight_token_b=0,  # format in cli: %. sc expects on base 10 ** 4
     weight_fees=0,  # format in cli: %. sc expects on base 10 ** 4
     starting_date="",  # format in cli: %Y-%m-%d %H:%M. sc expects ts
     duration_campaign=1,  # format in cli: days. sc expects hours
+    whitelist_safe=False,  # it is required to post incentives
     sim=False,
 ):
+    # @note only to call once from the msig posting the incentives
+    # whitelisting dynamic changed on the contract, now requires this method to be called
+    if whitelist_safe:
+        distribution_creator.acceptConditions()
+
     # token
     incentive_token = safe.contract(incentive_token)
 
@@ -110,15 +133,21 @@ def distribute_incentives_concentrated_liquidity_pool(
 
 
 def create_campaign(
-    incentive_token=r.assets.weth,
+    incentive_token=r.assets.badger,
     token_amount=0,  # in ether denomination. sc expects on wei
     weight_token_a=0,  # format in cli: %. sc expects on base 10 ** 4
     weight_token_b=0,  # format in cli: %. sc expects on base 10 ** 4
     weight_fees=0,  # format in cli: %. sc expects on base 10 ** 4
     starting_date="",  # format in cli: %Y-%m-%d %H:%M. sc expects ts
     duration_campaign=1,  # format in cli: days. sc expects hours
+    whitelist_safe=False,  # it is required to post incentives
     sim=False,
 ):
+    # @note only to call once from the msig posting the incentives
+    # whitelisting dynamic changed on the contract, now requires this method to be called
+    if whitelist_safe:
+        distribution_creator.acceptConditions()
+
     # token
     incentive_token = safe.contract(incentive_token)
 
@@ -167,7 +196,9 @@ def create_campaign(
             AddressZero,  # boostingAddress
             0,  # boostedReward
             [],  # @note in case that whitelist feature would be leverage this will require review
-            [],  # @note in case that blacklist feature would be leverage this will require review
+            [
+                r.badger_wallets.treasury_vault_multisig
+            ],  # @note that the treasury is getting blacklisted in the campaign
             "Incentivizing eBTC ecosystem",
         ],
     )
@@ -180,7 +211,7 @@ def create_campaign(
         safe.address,
         incentive_token.address,
         token_amount_mantissa,
-        CAMPAIGN_TYPE_ERC20,  # campaignType can be: CLAMM: 2, ERC20: 1
+        CAMPAIGN_TYPE_CLAMM,  # campaignType can be: CLAMM: 2, ERC20: 1
         start_date_ts,  # needs to be on the future
         duration_campaign * SECONDS_PER_HOUR,  # duration in seconds
         campaign_data,
@@ -197,6 +228,57 @@ def create_campaign(
 
     if not sim:
         safe.post_safe_tx()
+
+
+def swap_badger_for_campaign_target(ebtc_vault_owned=0):
+    safe.init_cow(prod=True)
+    safe.init_ebtc()
+
+    # tokens
+    weth = safe.contract(r.assets.weth)
+    badger = safe.contract(r.assets.badger)
+    wbtc = safe.contract(r.assets.wbtc)
+    ebtc = safe.contract(r.ebtc.ebtc_token)
+
+    # calc amount to swap based on user owned $ebtc supply vs treasury
+    ebtc_total_supply = ebtc.totalSupply()
+
+    # @note calculating on-chain currently owned $ebtc by the treasury is convoluted due to some
+    # portions showing up in the cdp_manager` storage vs other being direct swaps from $steth -> $ebtc
+    # instead opting for ease of precision for time being to digest the argument in the script
+    user_ebtc_owned = ebtc_total_supply - (
+        float(ebtc_vault_owned) * 10 ** ebtc.decimals()
+    )
+
+    # calc $ value of incentive
+    ebtc_price = get_cg_price(ebtc.address)
+    C.print(f"[green]ebtc_price={ebtc_price}[/green]\n")
+    weth_price = get_cg_price(weth.address)
+
+    user_ebtc_owned_formatted = user_ebtc_owned / 10 ** ebtc.decimals()
+    C.print(f"[green]user_ebtc_owned_formatted={user_ebtc_owned_formatted}\n[/green]")
+
+    usd_debt_value = user_ebtc_owned_formatted * ebtc_price
+    incentive_usd_apr_target_weekly = (
+        (usd_debt_value * APR) / DAYS_PER_YEAR
+    ) * DAYS_PER_WEEK
+    C.print(
+        f"[green]incentive_usd_apr_target_weekly=${incentive_usd_apr_target_weekly}\n[/green]"
+    )
+
+    weth_equivalent_mantissa = int(
+        (incentive_usd_apr_target_weekly / weth_price) * (10 ** weth.decimals())
+    )
+    C.print(
+        f"[green]swapping {weth_equivalent_mantissa / (10 ** weth.decimals())} $weth for $badger\n[/green]"
+    )
+
+    # cow order
+    safe.cow.market_sell(
+        weth, badger, weth_equivalent_mantissa, deadline=DEADLINE, coef=COEF
+    )
+
+    safe.post_safe_tx()
 
 
 # ===================== FEE AMOUNT CALCULATOR ===================== #
@@ -234,7 +316,9 @@ def _verify_cli_args(
     reward_token_min_amount = distribution_creator.rewardTokenMinAmounts(
         incentive_token
     )
-    token_amount_mantissa = int(token_amount) * 10 ** incentive_token.decimals()
+    token_amount_mantissa = int(
+        Decimal(token_amount) * 10 ** incentive_token.decimals()
+    )
     incentive_token_balance = incentive_token.balanceOf(safe)
     assert (
         token_amount_mantissa > 0 and token_amount_mantissa <= incentive_token_balance,

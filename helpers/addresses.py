@@ -63,6 +63,7 @@ ADDRESSES_ETH = {
         "steth": "0xae7ab96520de3a18e5e111b5eaab095312d7fe84",
         "wsteth": "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0",
         "reth": "0xae78736Cd615f374D3085123A210448E74Fc6393",
+        "badger": "0x3472A5A71965499acd81997a54BBA8D852C6E53d",
     },
     "uniswap": {
         "factoryV3": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
