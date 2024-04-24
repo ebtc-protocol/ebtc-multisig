@@ -1380,6 +1380,9 @@ class eBTC:
 
         upper_hint, lower_hint = self.sorted_cdps.findInsertPosition(nicr, hint, hint)
 
+        C.print(f"[green]upper_hint={upper_hint}\n[/green]")
+        C.print(f"[green]lower_hint={lower_hint}\n[/green]")
+
         return upper_hint, lower_hint
 
     def open_cdp(self, coll_amount, target_cr):
