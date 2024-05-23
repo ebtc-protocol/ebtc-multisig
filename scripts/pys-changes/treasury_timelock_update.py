@@ -1,9 +1,12 @@
-from brownie import chain
+from brownie import chain, web3
 
 from great_ape_safe import GreatApeSafe
 
 from helpers.addresses import r
-from helpers.constants import EmptyBytes32
+
+SALT = web3.solidityKeccak(
+    ["string"], ["PYS_STAKING_REWARD_SPLIT_INTO_TREASURY_TIMELOCK"]
+).hex()
 
 # @note that txs are schedule individually due to timelock ui support (lack of batching support atm)
 def main(sim=False):
@@ -24,7 +27,7 @@ def main(sim=False):
         False,
     )
     safe.ebtc.schedule_or_execute_timelock(
-        highsec_timelock, auth, disable_role_data, EmptyBytes32
+        highsec_timelock, auth, disable_role_data, SALT
     )
 
     # 2. create new role `PYS_REWARD_SPLIT_SETTER` (12) provided to the treasury_timelock
@@ -34,7 +37,7 @@ def main(sim=False):
         True,
     )
     safe.ebtc.schedule_or_execute_timelock(
-        highsec_timelock, auth, set_user_role_data, EmptyBytes32
+        highsec_timelock, auth, set_user_role_data, SALT
     )
 
     # 3. enable role `STETH_MARKET_RATE_SWITCHER` (12) authority over signature `SET_STAKING_REWARD_SPLIT_SIG`
@@ -45,7 +48,7 @@ def main(sim=False):
         True,
     )
     safe.ebtc.schedule_or_execute_timelock(
-        highsec_timelock, auth, enable_pys_signature_data, EmptyBytes32
+        highsec_timelock, auth, enable_pys_signature_data, SALT
     )
 
     # sim the exec after delay
@@ -56,15 +59,15 @@ def main(sim=False):
 
         # read point 1) above
         assert True == safe.ebtc.schedule_or_execute_timelock(
-            highsec_timelock, auth, disable_role_data, EmptyBytes32
+            highsec_timelock, auth, disable_role_data, SALT
         )
         # read point 2) above
         assert True == safe.ebtc.schedule_or_execute_timelock(
-            highsec_timelock, auth, set_user_role_data, EmptyBytes32
+            highsec_timelock, auth, set_user_role_data, SALT
         )
         # read point 3) above
         assert True == safe.ebtc.schedule_or_execute_timelock(
-            highsec_timelock, auth, enable_pys_signature_data, EmptyBytes32
+            highsec_timelock, auth, enable_pys_signature_data, SALT
         )
 
     else:
