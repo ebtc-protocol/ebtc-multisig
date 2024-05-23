@@ -74,6 +74,10 @@ class eBTC:
             r.ebtc.lowsec_timelock,
             interface.ITimelockControllerEnumerable,
         )
+        self.treasury_timelock = safe.contract(
+            r.ebtc.treasury_timelock,
+            interface.ITimelockControllerEnumerable,
+        )
         self.fee_recipient = self.active_pool.feeRecipientAddress()
         self.security_multisig = r.ebtc_wallets.security_multisig
         self.techops_multisig = r.ebtc_wallets.techops_multisig
@@ -100,6 +104,7 @@ class eBTC:
             STETH_MARKET_RATE_SWITCHER = (
                 11  # PriceFeed+CDPManager: CollFeedSource & RedemptionFeeFloor
             )
+            PYS_REWARD_SPLIT_SETTER = 12  # CDPManager: setStakingRewardSplit
 
         self.governance_roles = governanceRoles
 
@@ -201,12 +206,6 @@ class eBTC:
                 {
                     "target": self.cdp_manager,
                     "signature": self.governance_signatures[
-                        "SET_STAKING_REWARD_SPLIT_SIG"
-                    ],
-                },
-                {
-                    "target": self.cdp_manager,
-                    "signature": self.governance_signatures[
                         "SET_REDEMPTION_FEE_FLOOR_SIG"
                     ],
                 },
@@ -305,6 +304,14 @@ class eBTC:
                     ],
                 },
             ],
+            governanceRoles.PYS_REWARD_SPLIT_SETTER.value: [
+                {
+                    "target": self.cdp_manager,
+                    "signature": self.governance_signatures[
+                        "SET_STAKING_REWARD_SPLIT_SIG"
+                    ],
+                },
+            ],
         }
 
         # Mapping of the permissioned actors to their assigned roles
@@ -330,6 +337,9 @@ class eBTC:
                 governanceRoles.SECONDARY_ORACLE_SETTER.value,
                 governanceRoles.FALLBACK_CALLER_SETTER.value,
                 governanceRoles.STETH_MARKET_RATE_SWITCHER.value,
+            ],
+            self.treasury_timelock.address: [
+                governanceRoles.PYS_REWARD_SPLIT_SETTER.value,
             ],
             self.security_multisig: [
                 governanceRoles.PAUSER.value,
