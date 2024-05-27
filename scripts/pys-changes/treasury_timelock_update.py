@@ -47,7 +47,7 @@ def main(sim=True):
     # 3. Set name for the new role as `CDPManager: setStakingRewardSplit`
     set_role_name_data = auth.setRoleName.encode_input(
         safe.ebtc.governance_roles.PYS_REWARD_SPLIT_SETTER.value,
-        "CDPManager: setStakingRewardSplit"
+        "CDPManager: setStakingRewardSplit",
     )
     safe.ebtc.schedule_or_execute_timelock(
         highsec_timelock, auth, set_role_name_data, SALT
@@ -81,7 +81,7 @@ def main(sim=True):
         # read point 3) above
         assert True == safe.ebtc.schedule_or_execute_timelock(
             highsec_timelock, auth, set_role_name_data, SALT
-        )        
+        )
         # read point 4) above
         assert True == safe.ebtc.schedule_or_execute_timelock(
             highsec_timelock, auth, enable_pys_signature_data, SALT
