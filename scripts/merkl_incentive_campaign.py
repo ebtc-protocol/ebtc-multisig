@@ -230,8 +230,8 @@ def create_campaign(
         safe.post_safe_tx()
 
 
-def swap_badger_for_campaign_target(ebtc_vault_owned=0):
-    safe.init_cow(prod=True)
+def swap_badger_for_campaign_target(ebtc_vault_owned=22.1513):
+    safe.init_uni_v3()
     safe.init_ebtc()
 
     # tokens
@@ -273,10 +273,10 @@ def swap_badger_for_campaign_target(ebtc_vault_owned=0):
         f"[green]swapping {weth_equivalent_mantissa / (10 ** weth.decimals())} $weth for $badger\n[/green]"
     )
 
-    # cow order
-    safe.cow.market_sell(
-        weth, badger, weth_equivalent_mantissa, deadline=DEADLINE, coef=COEF
-    )
+    # univ3 swap
+    wbtc_amount_out = safe.uni_v3.swap([weth, wbtc], weth_equivalent_mantissa)
+    # @note divide in two swaps to debug the wbtc -> badger hop as it is reverting with `revert: TF`
+    badger_amount_out = safe.uni_v3.swap([wbtc, badger], wbtc_amount_out)
 
     safe.post_safe_tx()
 
