@@ -233,6 +233,7 @@ def create_campaign(
 def swap_badger_for_campaign_target(ebtc_vault_owned=0):
     safe.init_cow(prod=True)
     safe.init_ebtc()
+    safe.init_uni_v3()
 
     # tokens
     weth = safe.contract(r.assets.weth)
