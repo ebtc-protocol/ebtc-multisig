@@ -861,9 +861,6 @@ mdurl==0.1.2 ; python_version >= "3.10" and python_version < "3.11" \
 mnemonic==0.21 ; python_version >= "3.10" and python_version < "3.11" \
     --hash=sha256:1fe496356820984f45559b1540c80ff10de448368929b9c60a2b55744cc88acf \
     --hash=sha256:72dc9de16ec5ef47287237b9b6943da11647a03fe7cf1f139fc3d7c4a7439288
-mpmath==1.3.0 ; python_version >= "3.10" and python_version < "3.11" \
-    --hash=sha256:7a28eb2a9774d00c7bc92411c19a89209d5da7c4c9a9e227be8330a23a25b91f \
-    --hash=sha256:a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c
 multidict==6.0.5 ; python_version >= "3.10" and python_version < "3.11" \
     --hash=sha256:01265f5e40f5a17f8241d52656ed27192be03bfa8764d88e8220141d1e4b3556 \
     --hash=sha256:0275e35209c27a3f7951e1ce7aaf93ce0d163b28948444bec61dd7badc6d3f8c \
@@ -1433,9 +1430,6 @@ six==1.16.0 ; python_version >= "3.10" and python_version < "3.11" \
 sortedcontainers==2.4.0 ; python_version >= "3.10" and python_version < "3.11" \
     --hash=sha256:25caa5a06cc30b6b83d11423433f65d1f9d76c4c6a0c90e3379eaa43b9bfdb88 \
     --hash=sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0
-sympy==1.12.1 ; python_version >= "3.10" and python_version < "3.11" \
-    --hash=sha256:2877b03f998cd8c08f07cd0de5b767119cd3ef40d09f41c30d722f6686b0fb88 \
-    --hash=sha256:9b2cbc7f1a640289430e13d2a56f02f867a1da0190f2f99d8968c2f74da0e515
 tabulate==0.9.0 ; python_version >= "3.10" and python_version < "3.11" \
     --hash=sha256:0095b12bf5966de529c0feb1fa08671671b3368eec77d7ef7ab114be2c068b3c \
     --hash=sha256:024ca478df22e9340661486f85298cff5f6dcdba14f3813e8830015b9ed1948f
