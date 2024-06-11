@@ -330,9 +330,9 @@ def _verify_cli_args(
     assert duration_campaign >= HOURS_PER_DAY, "campaign duration smaller than 1 day"
     C.print(f"[green]duration_campaign={duration_campaign}\n[/green]")
 
-    weight_token_a = int(weight_token_a) * 10 ** 2
-    weight_token_b = int(weight_token_b) * 10 ** 2
-    weight_fees = int(weight_fees) * 10 ** 2
+    weight_token_a = int(weight_token_a) * 10**2
+    weight_token_b = int(weight_token_b) * 10**2
+    weight_fees = int(weight_fees) * 10**2
     assert (
         weight_token_a + weight_token_b + weight_fees == WEIGHTS_TOTAL_BASE
     ), "total weights does not match 10_000"

@@ -328,7 +328,7 @@ def _max_wbtc_upper_bound(path, wbtc_pool_balance):
     """
     wbtc_decimals = path[0].decimals()
     decimals_diff = path[1].decimals() - wbtc_decimals
-    step_increase = 0.1 * 10 ** wbtc_decimals
+    step_increase = 0.1 * 10**wbtc_decimals
     max_wbtc_amount = int(
         wbtc_pool_balance / 3
     )  # start checking swaps of 1/3 of the pool balance
@@ -337,14 +337,14 @@ def _max_wbtc_upper_bound(path, wbtc_pool_balance):
     chain.snapshot()
     while True:
         amount_out = safe.uni_v3.swap(path, max_wbtc_amount)
-        amount_out_wbtc_adjusted = int(amount_out / 10 ** decimals_diff)
+        amount_out_wbtc_adjusted = int(amount_out / 10**decimals_diff)
         chain.revert()
         # at this point the swap is returning less $ebtc than $wbtc in
         if amount_out_wbtc_adjusted < max_wbtc_amount:
             break
         max_wbtc_amount += step_increase
 
-    return max_wbtc_amount / 10 ** wbtc_decimals
+    return max_wbtc_amount / 10**wbtc_decimals
 
 
 def _calc_steth_out_to_peg_tick(pool, wbtc, ebtc, collateral):

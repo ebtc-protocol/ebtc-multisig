@@ -10,6 +10,7 @@ SALT = web3.solidity_keccak(
     ["string"], ["PYS_STAKING_REWARD_SPLIT_INTO_TREASURY_TIMELOCK"]
 ).hex()
 
+
 # @note that txs are schedule individually due to timelock ui support (lack of batching support atm)
 def main(sim=True):
     # safe: security msig is a proposer in `highsec_timelock`

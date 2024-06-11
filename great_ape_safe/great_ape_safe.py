@@ -37,6 +37,7 @@ class ContractWrapperExtended:
     Add the possibilty to instantiate a contract from a given interface or
     from the explorer, else revert to BrownieSafe's default behaviour
     """
+
     def __init__(self, account, instance):
         self.account = account
         self.instance = instance
@@ -417,25 +418,30 @@ class GreatApeSafeBase(BrownieSafeBase, ApeApis):
         r.raise_for_status()
         print(r.json())
 
+
 class GreatApeSafeV111(GreatApeSafeBase, SafeV111):
     pass
+
 
 class GreatApeSafeV120(GreatApeSafeBase, SafeV120):
     pass
 
+
 class GreatApeSafeV130(GreatApeSafeBase, SafeV130):
     pass
+
 
 class GreatApeSafeV141(GreatApeSafeBase, SafeV141):
     pass
 
 
 PATCHED_SAFE_VERSIONS = {
-    '1.1.1': GreatApeSafeV111,
-    '1.2.0': GreatApeSafeV120,
-    '1.3.0': GreatApeSafeV130,
-    '1.4.1': GreatApeSafeV141,
+    "1.1.1": GreatApeSafeV111,
+    "1.2.0": GreatApeSafeV120,
+    "1.3.0": GreatApeSafeV130,
+    "1.4.1": GreatApeSafeV141,
 }
+
 
 def GreatApeSafe(address, base_url=None, multisend=None):
     """
@@ -449,7 +455,9 @@ def GreatApeSafe(address, base_url=None, multisend=None):
     accounts[0].transfer(address, 10e18)
 
     great_ape_safe = PATCHED_SAFE_VERSIONS[safe.get_version()](address, ethereum_client)
-    great_ape_safe.transaction_service = TransactionServiceApi(ethereum_client.get_network(), ethereum_client, base_url)
+    great_ape_safe.transaction_service = TransactionServiceApi(
+        ethereum_client.get_network(), ethereum_client, base_url
+    )
     great_ape_safe.multisend = MultiSend(ethereum_client, multisend, call_only=True)
 
     return great_ape_safe
