@@ -9,12 +9,16 @@ from decimal import Decimal
 from io import StringIO
 
 import pandas as pd
-from ape_safe import ApeSafe
-from brownie import Contract, ETH_ADDRESS, chain, interface, network, web3
+from brownie_safe import BrownieSafeBase, to_address
+from brownie import Contract, ETH_ADDRESS, accounts, chain, interface, network, web3
 from brownie.exceptions import VirtualMachineError
 from eth_account import Account
 from eth_account.messages import encode_defunct
-from eth_utils import is_address, to_checksum_address
+from gnosis.eth import EthereumClient
+from gnosis.safe import Safe
+from gnosis.safe.api import TransactionServiceApi
+from gnosis.safe.multi_send import MultiSend
+from gnosis.safe.safe import SafeV111, SafeV120, SafeV130, SafeV141
 from gnosis.safe.signatures import signature_split
 from rich.console import Console
 from tqdm import tqdm
@@ -28,7 +32,28 @@ from helpers.chaindata import labels
 C = Console()
 
 
-class GreatApeSafe(ApeSafe, ApeApis):
+class ContractWrapperExtended:
+    """
+    Add the possibilty to instantiate a contract from a given interface or
+    from the explorer, else revert to BrownieSafe's default behaviour
+    """
+    def __init__(self, account, instance):
+        self.account = account
+        self.instance = instance
+
+    def __call__(self, address, Interface=None, from_explorer=False):
+        address = to_address(address)
+        if Interface:
+            return Interface(address, owner=self.account)
+        if from_explorer:
+            return Contract.from_explorer(address, owner=self.account)
+        return Contract(address, owner=self.account)
+
+    def __getattr__(self, attr):
+        return getattr(self.instance, attr)
+
+
+class GreatApeSafeBase(BrownieSafeBase, ApeApis):
     """
     Child of ApeSafe object, with added functionalities:
     - contains a limited library of functions needed to ape in and out of known
@@ -40,8 +65,9 @@ class GreatApeSafe(ApeSafe, ApeApis):
       versions before and after v1.3.0) and post tx to gnosis api
     """
 
-    def __init__(self, address, base_url=None, multisend=None):
-        super().__init__(address, base_url, multisend)
+    def __init__(self, address, ethereum_client):
+        super().__init__(address, ethereum_client)
+        self.contract = ContractWrapperExtended(self.account, self.contract)
 
     def take_snapshot(self, tokens):
         C.print(f"snapshotting {self.address}...")
@@ -230,23 +256,6 @@ class GreatApeSafe(ApeSafe, ApeApis):
         C.print(safe_tx.__dict__)
         self.execute_transaction_with_frame(safe_tx)
 
-    def contract(self, address=None, Interface=None, from_explorer=False):
-        """
-        Add the possibilty to instantiate a contract from a given interface or
-        from the explorer. Else revert to ApeSafe's default behaviour.
-        """
-        if address:
-            address = (
-                to_checksum_address(address)
-                if is_address(address)
-                else web3.ens.resolve(address)
-            )
-            if Interface:
-                return Interface(address, owner=self.account)
-            if from_explorer:
-                return Contract.from_explorer(address, owner=self.account)
-        return super().contract(address)
-
     def post_safe_tx_manually(self):
         safe_tx = self.post_safe_tx(events=False, silent=True, post=False)
         partial_signature = C.input(
@@ -407,3 +416,40 @@ class GreatApeSafe(ApeSafe, ApeApis):
         # since here the threshold storage variable cannot be override currently
         r.raise_for_status()
         print(r.json())
+
+class GreatApeSafeV111(GreatApeSafeBase, SafeV111):
+    pass
+
+class GreatApeSafeV120(GreatApeSafeBase, SafeV120):
+    pass
+
+class GreatApeSafeV130(GreatApeSafeBase, SafeV130):
+    pass
+
+class GreatApeSafeV141(GreatApeSafeBase, SafeV141):
+    pass
+
+
+PATCHED_SAFE_VERSIONS = {
+    '1.1.1': GreatApeSafeV111,
+    '1.2.0': GreatApeSafeV120,
+    '1.3.0': GreatApeSafeV130,
+    '1.4.1': GreatApeSafeV141,
+}
+
+def GreatApeSafe(address, base_url=None, multisend=None):
+    """
+    Create an GreatApeSafe from an address or a ENS name and use a default connection.
+    """
+    address = to_address(address)
+    ethereum_client = EthereumClient(web3.provider.endpoint_uri)
+    safe = Safe(address, ethereum_client)
+    # for owner in safe.retrieve_owners():
+    #     accounts[0].transfer(owner, 10e18)
+    accounts[0].transfer(address, 10e18)
+
+    great_ape_safe = PATCHED_SAFE_VERSIONS[safe.get_version()](address, ethereum_client)
+    great_ape_safe.transaction_service = TransactionServiceApi(ethereum_client.get_network(), ethereum_client, base_url)
+    great_ape_safe.multisend = MultiSend(ethereum_client, multisend, call_only=True)
+
+    return great_ape_safe

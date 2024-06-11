@@ -1,6 +1,6 @@
 from datetime import datetime, timezone, timedelta
 
-from eth_abi import encode_abi
+from eth_abi import encode
 from brownie import interface, web3, accounts
 
 from great_ape_safe import GreatApeSafe
@@ -174,7 +174,7 @@ def create_campaign(
 
     # https://github.com/AngleProtocol/merkl-contracts/blob/main/contracts/DistributionCreator.sol#L525-L535
     # https://github.com/AngleProtocol/merkl-contracts/blob/main/test/hardhat/middleman/merklGaugeMiddleman.test.ts#L216
-    campaign_data = encode_abi(
+    campaign_data = encode(
         [
             "address",  # target token which the campaign is incentivizing
             "uint",  # propFees
@@ -204,7 +204,7 @@ def create_campaign(
     )
 
     # should help identifying on analytics $ebtc campaigns on the past
-    campaign_id = web3.solidityKeccak(["string"], ["EBTC_CAMPAIGN"]).hex()
+    campaign_id = web3.solidity_keccak(["string"], ["EBTC_CAMPAIGN"]).hex()
 
     campaign_params = (
         campaign_id,
@@ -273,10 +273,8 @@ def swap_badger_for_campaign_target(ebtc_vault_owned=0):
         f"[green]swapping {weth_equivalent_mantissa / (10 ** weth.decimals())} $weth for $badger\n[/green]"
     )
 
-    # cow order
-    safe.cow.market_sell(
-        weth, badger, weth_equivalent_mantissa, deadline=DEADLINE, coef=COEF
-    )
+    # univ3 swap
+    safe.uni_v3.swap([weth, badger], weth_equivalent_mantissa)
 
     safe.post_safe_tx()
 

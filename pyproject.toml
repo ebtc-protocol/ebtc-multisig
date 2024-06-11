@@ -6,10 +6,10 @@ authors = ["Gosuto Inzasheru <mail@gosuto.ai>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.10"
-ape-safe = "*"
+python = ">=3.10,<3.11"
+brownie-safe = "*"
 dotmap = "*"
-eth-brownie = "1.17.0"
+eth-brownie = "1.20.5"
 pandas = "*"
 pycoingecko = "^3.1.0"
 rich = "*"
@@ -18,7 +18,7 @@ tabulate = "*"
 tqdm = "*"
 
 [tool.poetry.group.dev.dependencies]
-black = "21.9b0"
+black = "*"
 brownie-token-tester = "*"
 
 [build-system]

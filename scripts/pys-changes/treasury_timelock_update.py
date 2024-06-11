@@ -6,7 +6,7 @@ from helpers.addresses import r
 
 from scripts.ebtc_governance_lens import main as ebtc_governance_lens
 
-SALT = web3.solidityKeccak(
+SALT = web3.solidity_keccak(
     ["string"], ["PYS_STAKING_REWARD_SPLIT_INTO_TREASURY_TIMELOCK"]
 ).hex()
 
