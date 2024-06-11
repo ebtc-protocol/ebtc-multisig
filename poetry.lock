@@ -362,20 +362,6 @@ safe-eth-py = ">=6.0.0b30"
 trezor = ">=0.13.8"
 
 [[package]]
-name = "brownie-token-tester"
-version = "0.3.2"
-description = "Helper objects for generating ERC20s while testing a Brownie project."
-optional = false
-python-versions = ">=3.6,<4"
-files = [
-    {file = "brownie-token-tester-0.3.2.tar.gz", hash = "sha256:e3a131293f2ac2c230707c6d0f18e930eebdd27f05a40c05f230db7c2039bf0b"},
-    {file = "brownie_token_tester-0.3.2-py3-none-any.whl", hash = "sha256:d741630c3561f4cdb60c6e779fc7f4888b0106841958b6aa2525c122f774bf8b"},
-]
-
-[package.dependencies]
-eth-brownie = ">=1.11.6,<2.0.0"
-
-[[package]]
 name = "cached-property"
 version = "1.5.2"
 description = "A decorator for caching properties in classes."
@@ -3241,4 +3227,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.11"
-content-hash = "274aeeefc27812e5569d7b73eae3134d7fa3aa6a8d043f54a867da5587d31887"
+content-hash = "e6b4df1c522db620e560f378769430ee411feababe99f2912a0f0ed923b1ff43"
