@@ -221,6 +221,9 @@ def create_campaign(
     token_amount_mantissa_and_fee = _get_token_mantissa_and_fee(token_amount_mantissa)
 
     # actions
+    incentive_token.approve(
+        distribution_creator, 0
+    )  # required as per $badger allowance logic to clean-up
     incentive_token.approve(distribution_creator, token_amount_mantissa_and_fee)
     distribution_creator.createCampaign(campaign_params)
 
@@ -230,8 +233,8 @@ def create_campaign(
         safe.post_safe_tx()
 
 
-def swap_badger_for_campaign_target(ebtc_vault_owned=0):
-    safe.init_cow(prod=True)
+def swap_badger_for_campaign_target(ebtc_vault_owned=22.1513):
+    safe.init_uni_v3()
     safe.init_ebtc()
 
     # tokens
@@ -273,10 +276,10 @@ def swap_badger_for_campaign_target(ebtc_vault_owned=0):
         f"[green]swapping {weth_equivalent_mantissa / (10 ** weth.decimals())} $weth for $badger\n[/green]"
     )
 
-    # cow order
-    safe.cow.market_sell(
-        weth, badger, weth_equivalent_mantissa, deadline=DEADLINE, coef=COEF
-    )
+    # univ3 swap
+    wbtc_amount_out = safe.uni_v3.swap([weth, wbtc], weth_equivalent_mantissa)
+    # @note divide in two swaps to debug the wbtc -> badger hop as it is reverting with `revert: TF`
+    badger_amount_out = safe.uni_v3.swap([wbtc, badger], wbtc_amount_out)
 
     safe.post_safe_tx()
 
@@ -331,9 +334,9 @@ def _verify_cli_args(
     assert duration_campaign >= HOURS_PER_DAY, "campaign duration smaller than 1 day"
     C.print(f"[green]duration_campaign={duration_campaign}\n[/green]")
 
-    weight_token_a = int(weight_token_a) * 10 ** 2
-    weight_token_b = int(weight_token_b) * 10 ** 2
-    weight_fees = int(weight_fees) * 10 ** 2
+    weight_token_a = int(weight_token_a) * 10**2
+    weight_token_b = int(weight_token_b) * 10**2
+    weight_fees = int(weight_fees) * 10**2
     assert (
         weight_token_a + weight_token_b + weight_fees == WEIGHTS_TOTAL_BASE
     ), "total weights does not match 10_000"
