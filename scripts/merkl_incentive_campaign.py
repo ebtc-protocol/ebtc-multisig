@@ -135,11 +135,12 @@ def distribute_incentives_concentrated_liquidity_pool(
 def create_campaign(
     incentive_token=r.assets.badger,
     token_amount=0,  # in ether denomination. sc expects on wei
-    weight_token_a=0,  # format in cli: %. sc expects on base 10 ** 4
-    weight_token_b=0,  # format in cli: %. sc expects on base 10 ** 4
-    weight_fees=0,  # format in cli: %. sc expects on base 10 ** 4
-    starting_date="",  # format in cli: %Y-%m-%d %H:%M. sc expects ts
-    duration_campaign=1,  # format in cli: days. sc expects hours
+    weight_token_a=1,  # format in cli: %. sc expects on base 10 ** 4
+    weight_token_b=1,  # format in cli: %. sc expects on base 10 ** 4
+    weight_fees=98,  # format in cli: %. sc expects on base 10 ** 4
+    starting_date="2024-06-13 17:00",  # format in cli: %Y-%m-%d %H:%M. sc expects ts
+    duration_campaign=7,  # format in cli: days. sc expects hours
+    ebtc_vault_owned=21.897, # float, pull from debank (manually)
     whitelist_safe=False,  # it is required to post incentives
     sim=False,
 ):
@@ -153,6 +154,14 @@ def create_campaign(
 
     # snap
     safe.take_snapshot(tokens=[incentive_token])
+
+    if token_amount == 0:
+        # buy incentives on uni v3
+        token_amount_mantissa = swap_badger_for_campaign_target(ebtc_vault_owned)
+    else:
+        token_amount_mantissa = int(
+            Decimal(token_amount) * 10 ** incentive_token.decimals()
+        )
 
     # assert arguments correctness
     (
@@ -221,6 +230,8 @@ def create_campaign(
     token_amount_mantissa_and_fee = _get_token_mantissa_and_fee(token_amount_mantissa)
 
     # actions
+    # required as per $badger allowance logic to reset first to 0
+    incentive_token.approve(distribution_creator, 0)
     incentive_token.approve(distribution_creator, token_amount_mantissa_and_fee)
     distribution_creator.createCampaign(campaign_params)
 
@@ -231,14 +242,11 @@ def create_campaign(
 
 
 def swap_badger_for_campaign_target(ebtc_vault_owned=0):
-    safe.init_cow(prod=True)
-    safe.init_ebtc()
     safe.init_uni_v3()
 
     # tokens
     weth = safe.contract(r.assets.weth)
     badger = safe.contract(r.assets.badger)
-    wbtc = safe.contract(r.assets.wbtc)
     ebtc = safe.contract(r.ebtc.ebtc_token)
 
     # calc amount to swap based on user owned $ebtc supply vs treasury
@@ -275,9 +283,7 @@ def swap_badger_for_campaign_target(ebtc_vault_owned=0):
     )
 
     # univ3 swap
-    safe.uni_v3.swap([weth, badger], weth_equivalent_mantissa)
-
-    safe.post_safe_tx()
+    return safe.uni_v3.swap([weth, badger], weth_equivalent_mantissa)
 
 
 # ===================== FEE AMOUNT CALCULATOR ===================== #
@@ -298,7 +304,7 @@ def _get_token_mantissa_and_fee(token_amount_mantissa):
 
 def _verify_cli_args(
     incentive_token,
-    token_amount,
+    token_amount_mantissa,
     weight_token_a,
     weight_token_b,
     weight_fees,
@@ -315,12 +321,9 @@ def _verify_cli_args(
     reward_token_min_amount = distribution_creator.rewardTokenMinAmounts(
         incentive_token
     )
-    token_amount_mantissa = int(
-        Decimal(token_amount) * 10 ** incentive_token.decimals()
-    )
     incentive_token_balance = incentive_token.balanceOf(safe)
     assert (
-        token_amount_mantissa > 0 and token_amount_mantissa <= incentive_token_balance,
+        (token_amount_mantissa > 0) and (token_amount_mantissa <= incentive_token_balance),
         "amount greater than balance or zero",
     )
     C.print(f"[blue]reward_token_min_amount={reward_token_min_amount}\n[/blue]")
