@@ -138,9 +138,9 @@ def create_campaign(
     weight_token_a=1,  # format in cli: %. sc expects on base 10 ** 4
     weight_token_b=1,  # format in cli: %. sc expects on base 10 ** 4
     weight_fees=98,  # format in cli: %. sc expects on base 10 ** 4
-    starting_date="2024-06-13 17:00",  # format in cli: %Y-%m-%d %H:%M. sc expects ts
+    starting_date="2024-06-20 17:00",  # format in cli: %Y-%m-%d %H:%M. sc expects ts
     duration_campaign=7,  # format in cli: days. sc expects hours
-    ebtc_vault_owned=21.897, # float, pull from debank (manually)
+    ebtc_vault_owned=22.1411, # float, pull from debank (manually)
     whitelist_safe=False,  # it is required to post incentives
     sim=False,
 ):
@@ -173,7 +173,7 @@ def create_campaign(
         start_date_ts,
     ) = _verify_cli_args(
         incentive_token,
-        token_amount,
+        token_amount_mantissa,
         weight_token_a,
         weight_token_b,
         weight_fees,
