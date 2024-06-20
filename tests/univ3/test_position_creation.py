@@ -37,10 +37,10 @@ def test_position_creation(treasury, liq, wbtc):
     positions = treasury.uni_v3.nonfungible_position_manager.positions(token_id)
 
     price_lower_tick = round(
-        ((BASE ** positions["tickLower"]) / (10 ** decimals_diff)), 4
+        ((BASE ** positions["tickLower"]) / (10**decimals_diff)), 4
     )
     price_higher_tick = round(
-        ((BASE ** positions["tickUpper"]) / (10 ** decimals_diff)), 4
+        ((BASE ** positions["tickUpper"]) / (10**decimals_diff)), 4
     )
 
     assert (

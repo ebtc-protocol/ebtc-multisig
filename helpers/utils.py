@@ -1,5 +1,6 @@
 from brownie import web3
 
+
 # Takes a string with a function signature and returns a 4 bytes hex string
 def encode_signature(signature: str) -> str:
     return web3.keccak(text=signature).hex()[0:10]
