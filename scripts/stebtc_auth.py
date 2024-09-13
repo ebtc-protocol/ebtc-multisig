@@ -60,3 +60,5 @@ def main():
     values = [0] * len(data)
 
     safe.ebtc.schedule_or_execute_batch_timelock(safe.ebtc.highsec_timelock, targets, values, data, EmptyBytes32)
+
+    safe.post_safe_tx()
