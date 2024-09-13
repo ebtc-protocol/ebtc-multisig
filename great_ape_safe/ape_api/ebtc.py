@@ -81,6 +81,7 @@ class eBTC:
         self.fee_recipient = self.active_pool.feeRecipientAddress()
         self.security_multisig = r.ebtc_wallets.security_multisig
         self.techops_multisig = r.ebtc_wallets.techops_multisig
+        self.staked_ebtc = safe.contract(r.ebtc.staked_ebtc, interface.IStakedEbtc)
 
         ##################################################################
         ##
@@ -105,6 +106,8 @@ class eBTC:
                 11  # PriceFeed+CDPManager: CollFeedSource & RedemptionFeeFloor
             )
             PYS_REWARD_SPLIT_SETTER = 12  # CDPManager: setStakingRewardSplit
+            STEBTC_DONOR = 13   # StakedEbtc: donation 
+            STEBTC_MANAGER = 14 # StakedEbtc: management
 
         self.governance_roles = governanceRoles
 
@@ -150,6 +153,18 @@ class eBTC:
             "SET_COLLATERAL_FEED_SOURCE_SIG": encode_signature(
                 "setCollateralFeedSource(bool)"
             ),
+            "STEBTC_SET_MIN_REWARDS_PER_PERIOD_SIG": encode_signature(
+                "setMinRewardsPerPeriod(uint256)"
+            ),
+            "STEBTC_DONATE": encode_signature(
+                "donate(uint256)"
+            ),
+            "STEBTC_SWEEP": encode_signature(
+                "sweep(address)"
+            ),
+            "STEBTC_SET_MAX_DISTRIBUTION_PER_SECOND_PER_ASSET": encode_signature(
+                "setMaxDistributionPerSecondPerAsset(uint256)"
+            )
         }
 
         # Mapping of the governance roles to the list of permissions (signatures within contracts) that they have
@@ -312,6 +327,30 @@ class eBTC:
                     ],
                 },
             ],
+            governanceRoles.STEBTC_DONOR.value: [
+                {
+                    "target": self.staked_ebtc,
+                    "signature": self.governance_signatures["STEBTC_DONATE"],
+                }
+            ],
+            governanceRoles.STEBTC_MANAGER.value: [
+                {
+                    "target": self.staked_ebtc,
+                    "signature": self.governance_signatures[
+                        "STEBTC_SET_MIN_REWARDS_PER_PERIOD_SIG"
+                    ],
+                },
+                {
+                    "target": self.staked_ebtc,
+                    "signature": self.governance_signatures["STEBTC_SWEEP"],
+                },
+                {
+                    "target": self.staked_ebtc,
+                    "signature": self.governance_signatures[
+                        "STEBTC_SET_MAX_DISTRIBUTION_PER_SECOND_PER_ASSET"
+                    ],
+                }
+            ],
         }
 
         # Mapping of the permissioned actors to their assigned roles
@@ -346,10 +385,12 @@ class eBTC:
             ],
             self.techops_multisig: [
                 governanceRoles.PAUSER.value,
+                governanceRoles.STEBTC_MANAGER,
             ],
             self.fee_recipient: [
                 governanceRoles.FEE_CLAIMER.value,
                 governanceRoles.SWEEPER.value,
+                governanceRoles.STEBTC_DONOR,
             ],
         }
 

@@ -25,6 +25,7 @@ ADDRESSES_ETH = {
         "highsec_timelock": "0xaDDeE229Bd103bb5B10C3CdB595A01c425dd3264",
         "lowsec_timelock": "0xE2F2D9e226e5236BeC4531FcBf1A22A7a2bD0602",
         "treasury_timelock": "0xf1B767381819A69094a2A5a715A99776a2701b73",
+        "staked_ebtc": "0x5cD81987743A17EFE67bb5BeD89fdE76f34ed884",
     },
     "ebtc_wallets": {
         "security_multisig": "0xB3d3B6482fb50C82aa042A710775c72dfa23F7B4",
