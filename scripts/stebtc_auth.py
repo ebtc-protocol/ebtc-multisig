@@ -6,10 +6,7 @@ from rich.console import Console
 C = Console()
 
 
-def main():
-    safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
-    safe.init_ebtc()
-
+def set_stebtc_auth(safe):
     data = [
         # Role names
         safe.ebtc.authority.setRoleName.encode_input(
@@ -61,5 +58,12 @@ def main():
     safe.ebtc.schedule_or_execute_batch_timelock(
         safe.ebtc.highsec_timelock, targets, values, data, EmptyBytes32
     )
+
+
+def main():
+    safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
+    safe.init_ebtc()
+
+    set_stebtc_auth(safe)
 
     safe.post_safe_tx()
