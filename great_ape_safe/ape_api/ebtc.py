@@ -106,8 +106,8 @@ class eBTC:
                 11  # PriceFeed+CDPManager: CollFeedSource & RedemptionFeeFloor
             )
             PYS_REWARD_SPLIT_SETTER = 12  # CDPManager: setStakingRewardSplit
-            STEBTC_DONOR = 13   # StakedEbtc: donation 
-            STEBTC_MANAGER = 14 # StakedEbtc: management
+            STEBTC_DONOR = 13  # StakedEbtc: Donor
+            STEBTC_MANAGER = 14  # StakedEbtc: Manager
 
         self.governance_roles = governanceRoles
 
@@ -156,15 +156,11 @@ class eBTC:
             "STEBTC_SET_MIN_REWARDS_PER_PERIOD_SIG": encode_signature(
                 "setMinRewardsPerPeriod(uint256)"
             ),
-            "STEBTC_DONATE": encode_signature(
-                "donate(uint256)"
-            ),
-            "STEBTC_SWEEP": encode_signature(
-                "sweep(address)"
-            ),
+            "STEBTC_DONATE": encode_signature("donate(uint256)"),
+            "STEBTC_SWEEP": encode_signature("sweep(address)"),
             "STEBTC_SET_MAX_DISTRIBUTION_PER_SECOND_PER_ASSET": encode_signature(
                 "setMaxDistributionPerSecondPerAsset(uint256)"
-            )
+            ),
         }
 
         # Mapping of the governance roles to the list of permissions (signatures within contracts) that they have
@@ -349,7 +345,7 @@ class eBTC:
                     "signature": self.governance_signatures[
                         "STEBTC_SET_MAX_DISTRIBUTION_PER_SECOND_PER_ASSET"
                     ],
-                }
+                },
             ],
         }
 

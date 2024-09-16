@@ -5,6 +5,7 @@ from rich.console import Console
 
 C = Console()
 
+
 def main():
     safe = GreatApeSafe(r.ebtc_wallets.security_multisig)
     safe.init_ebtc()
@@ -12,53 +13,53 @@ def main():
     data = [
         # Role names
         safe.ebtc.authority.setRoleName.encode_input(
-            safe.ebtc.governance_roles.STEBTC_DONOR.value, 
-            "StakedEbtc: Donor"
+            safe.ebtc.governance_roles.STEBTC_DONOR.value, "StakedEbtc: Donor"
         ),
         safe.ebtc.authority.setRoleName.encode_input(
-            safe.ebtc.governance_roles.STEBTC_MANAGER.value, 
-            "StakedEbtc: Manager"
+            safe.ebtc.governance_roles.STEBTC_MANAGER.value, "StakedEbtc: Manager"
         ),
         # Role capabilities
         safe.ebtc.authority.setRoleCapability.encode_input(
-            safe.ebtc.governance_roles.STEBTC_DONOR.value, 
-            safe.ebtc.staked_ebtc, 
+            safe.ebtc.governance_roles.STEBTC_DONOR.value,
+            safe.ebtc.staked_ebtc,
             safe.ebtc.staked_ebtc.donate.signature,
-            True
+            True,
         ),
         safe.ebtc.authority.setRoleCapability.encode_input(
-            safe.ebtc.governance_roles.STEBTC_MANAGER.value, 
-            safe.ebtc.staked_ebtc, 
+            safe.ebtc.governance_roles.STEBTC_MANAGER.value,
+            safe.ebtc.staked_ebtc,
             safe.ebtc.staked_ebtc.setMinRewardsPerPeriod.signature,
-            True
+            True,
         ),
         safe.ebtc.authority.setRoleCapability.encode_input(
-            safe.ebtc.governance_roles.STEBTC_MANAGER.value, 
-            safe.ebtc.staked_ebtc, 
+            safe.ebtc.governance_roles.STEBTC_MANAGER.value,
+            safe.ebtc.staked_ebtc,
             safe.ebtc.staked_ebtc.sweep.signature,
-            True
+            True,
         ),
         safe.ebtc.authority.setRoleCapability.encode_input(
-            safe.ebtc.governance_roles.STEBTC_MANAGER.value, 
-            safe.ebtc.staked_ebtc, 
+            safe.ebtc.governance_roles.STEBTC_MANAGER.value,
+            safe.ebtc.staked_ebtc,
             safe.ebtc.staked_ebtc.setMaxDistributionPerSecondPerAsset.signature,
-            True
+            True,
         ),
         # Grant roles
         safe.ebtc.authority.setUserRole.encode_input(
-            safe.ebtc.active_pool.feeRecipientAddress(), 
+            safe.ebtc.active_pool.feeRecipientAddress(),
             safe.ebtc.governance_roles.STEBTC_DONOR.value,
-            True
+            True,
         ),
         safe.ebtc.authority.setUserRole.encode_input(
-            safe.ebtc.techops_multisig, 
+            safe.ebtc.techops_multisig,
             safe.ebtc.governance_roles.STEBTC_MANAGER.value,
-            True
-        )
+            True,
+        ),
     ]
     targets = [safe.ebtc.authority] * len(data)
     values = [0] * len(data)
 
-    safe.ebtc.schedule_or_execute_batch_timelock(safe.ebtc.highsec_timelock, targets, values, data, EmptyBytes32)
+    safe.ebtc.schedule_or_execute_batch_timelock(
+        safe.ebtc.highsec_timelock, targets, values, data, EmptyBytes32
+    )
 
     safe.post_safe_tx()
