@@ -1,9 +1,13 @@
+from .balancer import Balancer
 from .ebtc import eBTC
 from .uni_v3 import UniV3
 from .cow import Cow
 
 
 class ApeApis:
+    def init_balancer(self):
+        self.balancer = Balancer(self)
+
     def init_ebtc(self):
         self.ebtc = eBTC(self)
 
