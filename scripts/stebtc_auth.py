@@ -8,13 +8,6 @@ C = Console()
 
 def set_stebtc_auth(safe):
     data = [
-        # Role names
-        safe.ebtc.authority.setRoleName.encode_input(
-            safe.ebtc.governance_roles.STEBTC_DONOR.value, "StakedEbtc: Donor"
-        ),
-        safe.ebtc.authority.setRoleName.encode_input(
-            safe.ebtc.governance_roles.STEBTC_MANAGER.value, "StakedEbtc: Manager"
-        ),
         # Role capabilities
         safe.ebtc.authority.setRoleCapability.encode_input(
             safe.ebtc.governance_roles.STEBTC_DONOR.value,
@@ -25,13 +18,13 @@ def set_stebtc_auth(safe):
         safe.ebtc.authority.setRoleCapability.encode_input(
             safe.ebtc.governance_roles.STEBTC_MANAGER.value,
             safe.ebtc.staked_ebtc,
-            safe.ebtc.staked_ebtc.setMinRewardsPerPeriod.signature,
+            safe.ebtc.staked_ebtc.sweep.signature,
             True,
         ),
         safe.ebtc.authority.setRoleCapability.encode_input(
             safe.ebtc.governance_roles.STEBTC_MANAGER.value,
             safe.ebtc.staked_ebtc,
-            safe.ebtc.staked_ebtc.sweep.signature,
+            safe.ebtc.staked_ebtc.setMintingFee.signature,
             True,
         ),
         safe.ebtc.authority.setRoleCapability.encode_input(
@@ -66,4 +59,4 @@ def main():
 
     set_stebtc_auth(safe)
 
-    safe.post_safe_tx()
+    safe.post_safe_tx(tenderly=False)

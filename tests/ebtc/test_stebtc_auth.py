@@ -8,8 +8,6 @@ def test_stebtc_auth(security_multisig):
     security_multisig.init_ebtc()
 
     # before
-    assert security_multisig.ebtc.authority.getRoleName(13) == ""
-    assert security_multisig.ebtc.authority.getRoleName(14) == ""
     assert (
         security_multisig.ebtc.authority.canCall(
             security_multisig.ebtc.active_pool.feeRecipientAddress(),
@@ -22,7 +20,7 @@ def test_stebtc_auth(security_multisig):
         security_multisig.ebtc.authority.canCall(
             security_multisig.ebtc.techops_multisig,
             security_multisig.ebtc.staked_ebtc,
-            security_multisig.ebtc.staked_ebtc.setMinRewardsPerPeriod.signature,
+            security_multisig.ebtc.staked_ebtc.sweep.signature,
         )
         == False
     )
@@ -30,7 +28,7 @@ def test_stebtc_auth(security_multisig):
         security_multisig.ebtc.authority.canCall(
             security_multisig.ebtc.techops_multisig,
             security_multisig.ebtc.staked_ebtc,
-            security_multisig.ebtc.staked_ebtc.sweep.signature,
+            security_multisig.ebtc.staked_ebtc.setMintingFee.signature,
         )
         == False
     )
@@ -51,8 +49,6 @@ def test_stebtc_auth(security_multisig):
     set_stebtc_auth(security_multisig)
 
     # after
-    assert security_multisig.ebtc.authority.getRoleName(13) == "StakedEbtc: Donor"
-    assert security_multisig.ebtc.authority.getRoleName(14) == "StakedEbtc: Manager"
     assert (
         security_multisig.ebtc.authority.canCall(
             security_multisig.ebtc.active_pool.feeRecipientAddress(),
@@ -65,7 +61,7 @@ def test_stebtc_auth(security_multisig):
         security_multisig.ebtc.authority.canCall(
             security_multisig.ebtc.techops_multisig,
             security_multisig.ebtc.staked_ebtc,
-            security_multisig.ebtc.staked_ebtc.setMinRewardsPerPeriod.signature,
+            security_multisig.ebtc.staked_ebtc.sweep.signature,
         )
         == True
     )
@@ -73,7 +69,7 @@ def test_stebtc_auth(security_multisig):
         security_multisig.ebtc.authority.canCall(
             security_multisig.ebtc.techops_multisig,
             security_multisig.ebtc.staked_ebtc,
-            security_multisig.ebtc.staked_ebtc.sweep.signature,
+            security_multisig.ebtc.staked_ebtc.setMintingFee.signature,
         )
         == True
     )

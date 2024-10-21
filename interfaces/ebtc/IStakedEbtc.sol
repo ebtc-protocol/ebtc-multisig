@@ -6,7 +6,7 @@ interface IStakedEbtc {
     struct RewardsCycleData {
         uint40 cycleEnd; // Timestamp of the end of the current rewards cycle
         uint40 lastSync; // Timestamp of the last time the rewards cycle was synced
-        uint216 rewardCycleAmount; // Amount of rewards to be distributed in the current cycle
+        uint192 rewardCycleAmount; // Amount of rewards to be distributed in the current cycle
     }
     
     function REWARDS_CYCLE_LENGTH() external view returns (uint256);
@@ -16,7 +16,7 @@ interface IStakedEbtc {
     function rewardsCycleData() external view returns (RewardsCycleData memory);
     function storedTotalAssets() external view returns (uint256);
     function totalBalance() external view returns (uint256);
-    function setMinRewardsPerPeriod(uint256 _minRewards) external;
+    function setMintingFee(uint256 _mintingFee) external;
     function sweep(address token) external;
     function setMaxDistributionPerSecondPerAsset(uint256 _maxDistributionPerSecondPerAsset) external;
 }
