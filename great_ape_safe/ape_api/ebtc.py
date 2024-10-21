@@ -158,9 +158,7 @@ class eBTC:
             ),
             "STEBTC_DONATE": encode_signature("donate(uint256)"),
             "STEBTC_SWEEP": encode_signature("sweep(address)"),
-            "STEBTC_SET_MINTING_FEE": encode_signature(
-                "setMintingFee(uint256)"
-            ),
+            "STEBTC_SET_MINTING_FEE": encode_signature("setMintingFee(uint256)"),
             "STEBTC_SET_MAX_DISTRIBUTION_PER_SECOND_PER_ASSET": encode_signature(
                 "setMaxDistributionPerSecondPerAsset(uint256)"
             ),
@@ -345,9 +343,7 @@ class eBTC:
                 },
                 {
                     "target": self.staked_ebtc,
-                    "signature": self.governance_signatures[
-                        "STEBTC_SET_MINTING_FEE"
-                    ],
+                    "signature": self.governance_signatures["STEBTC_SET_MINTING_FEE"],
                 },
                 {
                     "target": self.staked_ebtc,
