@@ -82,6 +82,10 @@ class eBTC:
         self.security_multisig = r.ebtc_wallets.security_multisig
         self.techops_multisig = r.ebtc_wallets.techops_multisig
         self.staked_ebtc = safe.contract(r.ebtc.staked_ebtc, interface.IStakedEbtc)
+        self.bsm = safe.contract(r.ebtc.bsm, interface.IEbtcBSM)
+        self.bsm_escrow = safe.contract(r.ebtc.bsm_escrow, interface.IEscrow)
+        self.bsm_oracle_price_constraint = safe.contract(r.ebtc.oracle_price_constraint, interface.IOraclePriceConstraint)
+        self.bsm_rate_limiting_constraint = safe.contract(r.ebtc.rate_limiting_constraint, interface.IOraclePriceConstraint)
 
         ##################################################################
         ##
@@ -108,6 +112,12 @@ class eBTC:
             PYS_REWARD_SPLIT_SETTER = 12  # CDPManager: setStakingRewardSplit
             STEBTC_DONOR = 13  # StakedEbtc: Donor
             STEBTC_MANAGER = 14  # StakedEbtc: Manager
+            BSM_ADMIN = 15 # BSM: Admin
+            BSM_FEE_MANAGER = 16 # BSM: Fee Manager
+            BSM_PAUSER = 17 # BSM: Pauser
+            BSM_ESCROW_MANAGER = 18 # BSM: Escrow manager
+            BSM_CONSTRAINT_MANAGER = 19 # BSM: Escrow manager
+            BSM_AUTHORIZED_USER = 20 # BSM: Authorized User
 
         self.governance_roles = governanceRoles
 
@@ -162,6 +172,23 @@ class eBTC:
             "STEBTC_SET_MAX_DISTRIBUTION_PER_SECOND_PER_ASSET": encode_signature(
                 "setMaxDistributionPerSecondPerAsset(uint256)"
             ),
+            "BSM_UPDATE_ESCROW": encode_signature("updateEscrow(address)"),
+            "BSM_SET_ORACLE_PRICE_CONSTRAINT": encode_signature("setOraclePriceConstraint(address)"),
+            "BSM_SET_RATE_LIMITING_CONSTRAINT": encode_signature("setRateLimitingConstraint(address)"),
+            "BSM_SET_BUY_ASSET_CONSTRAINT": encode_signature("setBuyAssetConstraint(address)"),
+            "BSM_SET_FEE_TO_BUY": encode_signature("setFeeToBuy(uint256)"),
+            "BSM_SET_FEE_TO_SELL": encode_signature("setFeeToSell(uint256)"),
+            "BSM_PAUSE": encode_signature("pause()"),
+            "BSM_UNPAUSE": encode_signature("unpause()"),
+            "BSM_CLAIM_PROFIT": encode_signature("claimProfit()"),
+            "BSM_CLAIM_TOKENS": encode_signature("claimTokens(address,uint256)"),
+            "BSM_DEPOSIT_TO_EXTERNAL_VAULT": encode_signature("depositToExternalVault(uint256,uint256)"),
+            "BSM_REDEEM_FROM_EXTERNAL_VAULT": encode_signature("redeemFromExternalVault(uint256,uint256)"),
+            "BSM_SET_MIN_PRICE": encode_signature("setMinPrice(uint256)"),
+            "BSM_SET_ORACLE_FRESHNESS": encode_signature("setOracleFreshness(uint256)"),
+            "BSM_SET_MINTING_CONFIG": encode_signature("setMintingConfig(address,(uint256,uint256,bool))"),
+            "BSM_SELL_ASSET_NO_FEE": encode_signature("sellAssetNoFee(uint256,address,uint256)"),
+            "BSM_BUY_ASSET_NO_FEE": encode_signature("buyAssetNoFee(uint256,address,uint256)"),
         }
 
         # Mapping of the governance roles to the list of permissions (signatures within contracts) that they have
@@ -352,6 +379,120 @@ class eBTC:
                     ],
                 },
             ],
+            governanceRoles.BSM_ADMIN.value: [
+                {
+                    "target": self.bsm,
+                    "signature": self.governance_signatures[
+                        "BSM_UPDATE_ESCROW"
+                    ],
+                },
+                {
+                    "target": self.bsm,
+                    "signature": self.governance_signatures[
+                        "BSM_SET_ORACLE_PRICE_CONSTRAINT"
+                    ],
+                },
+                {
+                    "target": self.bsm,
+                    "signature": self.governance_signatures[
+                        "BSM_SET_RATE_LIMITING_CONSTRAINT"
+                    ],
+                },
+                {
+                    "target": self.bsm,
+                    "signature": self.governance_signatures[
+                        "BSM_SET_BUY_ASSEET_CONSTRAINT"
+                    ],
+                },
+            ],
+            governanceRoles.BSM_FEE_MANAGER.value: [
+                {
+                    "target": self.bsm,
+                    "signature": self.governance_signatures[
+                        "BSM_SET_FEE_TO_BUY"
+                    ],
+                },
+                {
+                    "target": self.bsm,
+                    "signature": self.governance_signatures[
+                        "BSM_SET_FEE_TO_SELL"
+                    ],
+                },
+            ],
+            governanceRoles.BSM_PAUSER.value: [
+                {
+                    "target": self.bsm,
+                    "signature": self.governance_signatures[
+                        "BSM_PAUSE"
+                    ],
+                },
+                {
+                    "target": self.bsm,
+                    "signature": self.governance_signatures[
+                        "BSM_UNPAUSE"
+                    ],
+                },            
+            ],
+            governanceRoles.BSM_ESCROW_MANAGER.value: [
+                {
+                    "target": self.bsm_escrow,
+                    "signature": self.governance_signatures[
+                        "BSM_CLAIM_PROFIT"
+                    ],
+                },                        
+                {
+                    "target": self.bsm_escrow,
+                    "signature": self.governance_signatures[
+                        "BSM_CLAIM_TOKENS"
+                    ],
+                }, 
+                {
+                    "target": self.bsm_escrow,
+                    "signature": self.governance_signatures[
+                        "BSM_DEPOSIT_TO_EXTRNAL_VAULT"
+                    ],
+                },                        
+                {
+                    "target": self.bsm_escrow,
+                    "signature": self.governance_signatures[
+                        "BSM_REDEEM_FROM_EXTERNAL_VAULT"
+                    ],
+                },                        
+            ],
+            governanceRoles.BSM_CONSTRAINT_MANAGER.value: [
+                {
+                    "target": self.bsm_oracle_price_constraint,
+                    "signature": self.governance_signatures[
+                        "BSM_SET_MIN_PRICE"
+                    ],
+                },                        
+                {
+                    "target": self.bsm_oracle_price_constraint,
+                    "signature": self.governance_signatures[
+                        "BSM_SET_ORACLE_FRESHNESS"
+                    ],
+                },                        
+                {
+                    "target": self.bsm_rate_limiting_constraint,
+                    "signature": self.governance_signatures[
+                        "BSM_SET_MINTING_CONFIG"
+                    ],
+                },                                    
+            ],
+            governanceRoles.BSM_AUTHORIZED_USER.value: [
+                {
+                    "target": self.bsm,
+                    "signature": self.governance_signatures[
+                        "BSM_BUY_ASSET_NO_FEE"
+                    ],
+                },            
+                {
+                    "target": self.bsm,
+                    "signature": self.governance_signatures[
+                        "BSM_SELL_ASSET_NO_FEE"
+                    ],
+                },            
+            ]
         }
 
         # Mapping of the permissioned actors to their assigned roles
@@ -367,6 +508,7 @@ class eBTC:
                 governanceRoles.SECONDARY_ORACLE_SETTER.value,
                 governanceRoles.FALLBACK_CALLER_SETTER.value,
                 governanceRoles.STETH_MARKET_RATE_SWITCHER.value,
+                governanceRoles.BSM_ADMIN.value,
             ],
             self.lowsec_timelock.address: [
                 governanceRoles.CDP_MANAGER_ALL.value,
@@ -377,16 +519,20 @@ class eBTC:
                 governanceRoles.SECONDARY_ORACLE_SETTER.value,
                 governanceRoles.FALLBACK_CALLER_SETTER.value,
                 governanceRoles.STETH_MARKET_RATE_SWITCHER.value,
+                governanceRoles.BSM_FEE_MANAGER.value,
             ],
             self.treasury_timelock.address: [
                 governanceRoles.PYS_REWARD_SPLIT_SETTER.value,
             ],
             self.security_multisig: [
                 governanceRoles.PAUSER.value,
+                governanceRoles.BSM_PAUSER.valuee
             ],
             self.techops_multisig: [
                 governanceRoles.PAUSER.value,
                 governanceRoles.STEBTC_MANAGER,
+                governanceRoles.BSM_ESCROW_MANAGER,
+                governanceRoles.BSM_CONSTRAINT_MANAGER,
             ],
             self.fee_recipient: [
                 governanceRoles.FEE_CLAIMER.value,
