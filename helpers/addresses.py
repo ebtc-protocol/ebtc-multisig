@@ -26,6 +26,10 @@ ADDRESSES_ETH = {
         "lowsec_timelock": "0xE2F2D9e226e5236BeC4531FcBf1A22A7a2bD0602",
         "treasury_timelock": "0xf1B767381819A69094a2A5a715A99776a2701b73",
         "staked_ebtc": "0x5884055ca6CacF53A39DA4ea76DD88956baFAee0",
+        "bsm": "placeholder",
+        "bsm_escrow": "placeholder",
+        "bsm_oracle_price_constraint": "placeholder",
+        "bsm_rate_limiting_constraint": "placeholder",
     },
     "ebtc_wallets": {
         "security_multisig": "0xB3d3B6482fb50C82aa042A710775c72dfa23F7B4",

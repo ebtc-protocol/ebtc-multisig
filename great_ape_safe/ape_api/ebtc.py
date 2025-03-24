@@ -85,7 +85,7 @@ class eBTC:
         self.bsm = safe.contract(r.ebtc.bsm, interface.IEbtcBSM)
         self.bsm_escrow = safe.contract(r.ebtc.bsm_escrow, interface.IEscrow)
         self.bsm_oracle_price_constraint = safe.contract(r.ebtc.oracle_price_constraint, interface.IOraclePriceConstraint)
-        self.bsm_rate_limiting_constraint = safe.contract(r.ebtc.rate_limiting_constraint, interface.IOraclePriceConstraint)
+        self.bsm_rate_limiting_constraint = safe.contract(r.ebtc.rate_limiting_constraint, interface.IRateLimitingConstraint)
 
         ##################################################################
         ##
