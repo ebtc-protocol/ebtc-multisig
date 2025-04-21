@@ -526,18 +526,18 @@ class eBTC:
             ],
             self.security_multisig: [
                 governanceRoles.PAUSER.value,
-                governanceRoles.BSM_PAUSER.valuee
+                governanceRoles.BSM_PAUSER.value
             ],
             self.techops_multisig: [
                 governanceRoles.PAUSER.value,
-                governanceRoles.STEBTC_MANAGER,
-                governanceRoles.BSM_ESCROW_MANAGER,
-                governanceRoles.BSM_CONSTRAINT_MANAGER,
+                governanceRoles.STEBTC_MANAGER.value,
+                governanceRoles.BSM_ESCROW_MANAGER.value,
+                governanceRoles.BSM_CONSTRAINT_MANAGER.value,
             ],
             self.fee_recipient: [
                 governanceRoles.FEE_CLAIMER.value,
                 governanceRoles.SWEEPER.value,
-                governanceRoles.STEBTC_DONOR,
+                governanceRoles.STEBTC_DONOR.value,
             ],
         }
 
