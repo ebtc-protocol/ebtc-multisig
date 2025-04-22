@@ -5,32 +5,28 @@ from rich.console import Console
 
 C = Console()
 
+
 def set_bsm_auth(safe):
     data = [
         # Role names
         safe.ebtc.authority.setRoleName.encode_input(
-            safe.ebtc.governance_roles.BSM_ADMIN.value, 
-            "BSM: Admin"
+            safe.ebtc.governance_roles.BSM_ADMIN.value, "BSM: Admin"
         ),
         safe.ebtc.authority.setRoleName.encode_input(
-            safe.ebtc.governance_roles.BSM_FEE_MANAGER.value, 
-            "BSM: Fee Manager"
+            safe.ebtc.governance_roles.BSM_FEE_MANAGER.value, "BSM: Fee Manager"
         ),
         safe.ebtc.authority.setRoleName.encode_input(
-            safe.ebtc.governance_roles.BSM_PAUSER.value, 
-            "BSM: Pauser"
+            safe.ebtc.governance_roles.BSM_PAUSER.value, "BSM: Pauser"
         ),
         safe.ebtc.authority.setRoleName.encode_input(
-            safe.ebtc.governance_roles.BSM_ESCROW_MANAGER.value, 
-            "BSM: Escrow Manager"
+            safe.ebtc.governance_roles.BSM_ESCROW_MANAGER.value, "BSM: Escrow Manager"
         ),
         safe.ebtc.authority.setRoleName.encode_input(
-            safe.ebtc.governance_roles.BSM_CONSTRAINT_MANAGER.value, 
-            "BSM: Constraint Manager"
+            safe.ebtc.governance_roles.BSM_CONSTRAINT_MANAGER.value,
+            "BSM: Constraint Manager",
         ),
         safe.ebtc.authority.setRoleName.encode_input(
-            safe.ebtc.governance_roles.BSM_AUTHORIZED_USER.value, 
-            "BSM: Authorized User"
+            safe.ebtc.governance_roles.BSM_AUTHORIZED_USER.value, "BSM: Authorized User"
         ),
         # Role capabilities
         safe.ebtc.authority.setRoleCapability.encode_input(
@@ -157,6 +153,7 @@ def set_bsm_auth(safe):
     safe.ebtc.schedule_or_execute_batch_timelock(
         safe.ebtc.highsec_timelock, targets, values, data, EmptyBytes32
     )
+
 
 def main():
     safe = GreatApeSafe(r.ebtc_wallets.security_multisig)

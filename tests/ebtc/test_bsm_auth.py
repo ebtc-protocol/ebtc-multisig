@@ -3,6 +3,7 @@ import pytest
 from helpers.constants import EmptyBytes32
 from scripts.bsm_auth import set_bsm_auth
 
+
 def test_bsm_auth(security_multisig):
     security_multisig.init_ebtc()
 

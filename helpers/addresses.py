@@ -79,7 +79,7 @@ ADDRESSES_ETH = {
         "v3pool_wbtc_badger": "0xe15e6583425700993bd08F51bF6e7B73cd5da91B",
         "v3pool_wbtc_ebtc": "0xEf9b4FddD861aa2F00eE039C323b7FAbd7AFE239",
         "v3pool_wbtc_weth": "0xCBCdF9626bC03E24f779434178A73a0B4bad62eD",
-        "v3pool_ebtc_badger": "0x81d97d927cE883B46a5ecBE696B7189677FdC0Cd"
+        "v3pool_ebtc_badger": "0x81d97d927cE883B46a5ecBE696B7189677FdC0Cd",
     },
     "cow": {
         "vault_relayer": "0xC92E8bdf79f0507f65a392b0ab4667716BFE0110",
