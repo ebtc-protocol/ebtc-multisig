@@ -84,12 +84,6 @@ def set_bsm_auth(safe):
         safe.ebtc.authority.setRoleCapability.encode_input(
             safe.ebtc.governance_roles.BSM_ESCROW_MANAGER.value,
             safe.ebtc.bsm_escrow,
-            safe.ebtc.bsm_escrow.feeProfit.signature,
-            True,
-        ),
-        safe.ebtc.authority.setRoleCapability.encode_input(
-            safe.ebtc.governance_roles.BSM_ESCROW_MANAGER.value,
-            safe.ebtc.bsm_escrow,
             safe.ebtc.bsm_escrow.claimProfit.signature,
             True,
         ),
@@ -120,13 +114,13 @@ def set_bsm_auth(safe):
         safe.ebtc.authority.setRoleCapability.encode_input(
             safe.ebtc.governance_roles.BSM_AUTHORIZED_USER.value,
             safe.ebtc.bsm,
-            safe.ebtc.bsm.unpause.sellAssetNoFee,
+            safe.ebtc.bsm.sellAssetNoFee.signature,
             True,
         ),
         safe.ebtc.authority.setRoleCapability.encode_input(
             safe.ebtc.governance_roles.BSM_AUTHORIZED_USER.value,
             safe.ebtc.bsm,
-            safe.ebtc.bsm.unpause.buyAssetNoFee,
+            safe.ebtc.bsm.buyAssetNoFee.signature,
             True,
         ),
         # Grant roles

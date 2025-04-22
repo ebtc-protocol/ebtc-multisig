@@ -82,10 +82,10 @@ class eBTC:
         self.security_multisig = r.ebtc_wallets.security_multisig
         self.techops_multisig = r.ebtc_wallets.techops_multisig
         self.staked_ebtc = safe.contract(r.ebtc.staked_ebtc, interface.IStakedEbtc)
-        self.bsm = safe.contract(r.ebtc.bsm, interface.IEbtcBSM)
+        self.bsm = safe.contract(r.ebtc.bsm, interface.IEbtcBsm)
         self.bsm_escrow = safe.contract(r.ebtc.bsm_escrow, interface.IEscrow)
-        self.bsm_oracle_price_constraint = safe.contract(r.ebtc.oracle_price_constraint, interface.IOraclePriceConstraint)
-        self.bsm_rate_limiting_constraint = safe.contract(r.ebtc.rate_limiting_constraint, interface.IRateLimitingConstraint)
+        self.bsm_oracle_price_constraint = safe.contract(r.ebtc.bsm_oracle_price_constraint, interface.IOraclePriceConstraint)
+        self.bsm_rate_limiting_constraint = safe.contract(r.ebtc.bsm_rate_limiting_constraint, interface.IRateLimitingConstraint)
 
         ##################################################################
         ##
@@ -401,7 +401,7 @@ class eBTC:
                 {
                     "target": self.bsm,
                     "signature": self.governance_signatures[
-                        "BSM_SET_BUY_ASSEET_CONSTRAINT"
+                        "BSM_SET_BUY_ASSET_CONSTRAINT"
                     ],
                 },
             ],
@@ -449,7 +449,7 @@ class eBTC:
                 {
                     "target": self.bsm_escrow,
                     "signature": self.governance_signatures[
-                        "BSM_DEPOSIT_TO_EXTRNAL_VAULT"
+                        "BSM_DEPOSIT_TO_EXTERNAL_VAULT"
                     ],
                 },                        
                 {
