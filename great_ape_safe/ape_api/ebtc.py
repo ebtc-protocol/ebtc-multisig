@@ -120,7 +120,7 @@ class eBTC:
             BSM_FEE_MANAGER = 16  # BSM: Fee Manager
             BSM_PAUSER = 17  # BSM: Pauser
             BSM_ESCROW_MANAGER = 18  # BSM: Escrow manager
-            BSM_CONSTRAINT_MANAGER = 19  # BSM: Escrow manager
+            BSM_CONSTRAINT_MANAGER = 19  # BSM: Constraint manager
             BSM_AUTHORIZED_USER = 20  # BSM: Authorized User
 
         self.governance_roles = governanceRoles
