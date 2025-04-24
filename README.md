@@ -57,7 +57,7 @@ pip install regex==2021.10.21
 You can ignore the following warning:
 
 ```
-ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behavior is the source of the following dependency conflicts.
 eth-brownie 1.17.0 requires regex==2021.10.8, but you have regex 2021.10.21 which is incompatible.
 ```
 
@@ -134,7 +134,7 @@ The following is a list of all Treasury Council members and therefore the signer
 
 ### Low Sec Governance Operations
 
-These operations are executed by the Low Sec TechOps multisig with a Low Sec Timelock (2 day delay). Scripts interacting with the Low Sec Timelock need to be run twice (**with the exact same parameters**) in order to fully execute each transaction: Once to shcedule the transaction and antoher time, once the delay time has elapsed, to execute it. If the parameters don't match when running the script the second time, the script will recognize it as a new operation and new "schedule" transaction will be posted instead. You can verify the parameters used when scheduling the scheduled transaction within the Timelock Transparency Dashboard (WIP).
+These operations are executed by the Low Sec TechOps multisig with a Low Sec Timelock (2 day delay). Scripts interacting with the Low Sec Timelock need to be run twice (**with the exact same parameters**) in order to fully execute each transaction: Once to schedule the transaction and another time, once the delay time has elapsed, to execute it. If the parameters don't match when running the script the second time, the script will recognize it as a new operation and new "schedule" transaction will be posted instead. You can verify the parameters used when scheduling the scheduled transaction within the Timelock Transparency Dashboard (WIP).
 
 1. **Set Staking Reward Split for CDPManager Contract**
    ```bash
@@ -210,7 +210,7 @@ These operations are executed by the Low Sec TechOps multisig with a Low Sec Tim
 
 ### High Sec Governance Operations
 
-These operations are executed by the High Sec TechOps multisig with a Low Sec Timelock (7 day delay). Scripts interacting with the High Sec Timelock need to be run twice (**with the exact same parameters**) in order to fully execute each transaction: Once to shcedule the transaction and antoher time, once the delay time has elapsed, to execute it. If the parameters don't match when running the script the second time, the script will recognize it as a new operation and new "schedule" transaction will be posted instead. You can verify the parameters used when scheduling the scheduled transaction within the Timelock Transparency Dashboard (WIP).
+These operations are executed by the High Sec TechOps multisig with a Low Sec Timelock (7 day delay). Scripts interacting with the High Sec Timelock need to be run twice (**with the exact same parameters**) in order to fully execute each transaction: Once to schedule the transaction and another time, once the delay time has elapsed, to execute it. If the parameters don't match when running the script the second time, the script will recognize it as a new operation and new "schedule" transaction will be posted instead. You can verify the parameters used when scheduling the scheduled transaction within the Timelock Transparency Dashboard (WIP).
 
 1. **Set Role Name for Authority Contract**
    ```bash
