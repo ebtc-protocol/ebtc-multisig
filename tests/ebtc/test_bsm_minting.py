@@ -20,7 +20,7 @@ def test_bsm_minting(security_multisig):
         security_multisig.ebtc.authority.canCall(
             security_multisig.ebtc.bsm,
             security_multisig.ebtc.ebtc_token,
-            security_multisig.ebtc.ebtc_token.burn.methods['address', 'uint'].signature,
+            security_multisig.ebtc.ebtc_token.burn.methods["address", "uint"].signature,
         )
         == False
     )
@@ -28,7 +28,9 @@ def test_bsm_minting(security_multisig):
         security_multisig.ebtc.authority.canCall(
             security_multisig.ebtc.bsm,
             security_multisig.ebtc.ebtc_token,
-            security_multisig.ebtc.ebtc_token.burn.methods['uint', ].signature,
+            security_multisig.ebtc.ebtc_token.burn.methods[
+                "uint",
+            ].signature,
         )
         == False
     )
@@ -53,7 +55,7 @@ def test_bsm_minting(security_multisig):
         security_multisig.ebtc.authority.canCall(
             security_multisig.ebtc.bsm,
             security_multisig.ebtc.ebtc_token,
-            security_multisig.ebtc.ebtc_token.burn.methods['address', 'uint'].signature,
+            security_multisig.ebtc.ebtc_token.burn.methods["address", "uint"].signature,
         )
         == True
     )
@@ -61,7 +63,9 @@ def test_bsm_minting(security_multisig):
         security_multisig.ebtc.authority.canCall(
             security_multisig.ebtc.bsm,
             security_multisig.ebtc.ebtc_token,
-            security_multisig.ebtc.ebtc_token.burn.methods['uint', ].signature,
+            security_multisig.ebtc.ebtc_token.burn.methods[
+                "uint",
+            ].signature,
         )
         == True
     )
