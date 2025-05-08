@@ -71,6 +71,13 @@ ADDRESSES_ETH = {
         "reth": "0xae78736Cd615f374D3085123A210448E74Fc6393",
         "badger": "0x3472A5A71965499acd81997a54BBA8D852C6E53d",
     },
+    "balancer": {
+        "vault": "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
+        "gauge_factory": "0x4E7bBd911cf1EFa442BC1b2e9Ea01ffE785412EC",
+        "veBAL": "0xC128a9954e6c874eA3d62ce62B468bA073093F25",
+        "minter": "0x239e55F427D44C3cc793f49bFB507ebe76638a2b",
+        "composable_stable_pool_factory": "0xDB8d758BCb971e482B2C45f7F8a7740283A1bd3A",
+    },
     "uniswap": {
         "factoryV3": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
         "NonfungiblePositionManager": "0xC36442b4a4522E871399CD717aBDD847Ab11FE88",
