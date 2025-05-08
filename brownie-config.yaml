@@ -2,5 +2,11 @@ autofetch_sources: True
 
 networks:
   default: mainnet-fork
+  development:
+    priority_fee: auto
+    gas_price: null
+  mainnet-fork:
+    cmd_settings:
+      evm_version: shanghai
 
 dotenv: .env

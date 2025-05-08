@@ -42,7 +42,7 @@ class UniV3:
         )
 
         # constant helpers
-        self.Q128 = 2 ** 128
+        self.Q128 = 2**128
         self.deadline = 60 * 180
         self.slippage = 0.98
 
@@ -83,8 +83,8 @@ class UniV3:
     def _encode_path(self, multihop_path):
         path_encoded = b""
         for item in multihop_path:
-            if web3.isAddress(item):
-                path_encoded += web3.toBytes(hexstr=item)
+            if web3.is_address(item):
+                path_encoded += web3.to_bytes(hexstr=item)
             else:
                 path_encoded += int.to_bytes(item, 3, byteorder="big")
         return path_encoded
@@ -357,12 +357,12 @@ class UniV3:
 
         # params for minting method
         lower_tick = int(
-            math.log((1 / range1) * 10 ** decimals_diff, BASE)
+            math.log((1 / range1) * 10**decimals_diff, BASE)
             // tick_spacing
             * tick_spacing
         )
         upper_tick = int(
-            math.log((1 / range0) * 10 ** decimals_diff, BASE)
+            math.log((1 / range0) * 10**decimals_diff, BASE)
             // tick_spacing
             * tick_spacing
         )
@@ -471,7 +471,7 @@ class UniV3:
         params = (
             path_encoded,
             destination,
-            web3.eth.getBlock(web3.eth.blockNumber).timestamp + self.deadline,
+            web3.eth.get_block(web3.eth.block_number).timestamp + self.deadline,
             mantissa,
             min_out,
         )
